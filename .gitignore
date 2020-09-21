@@ -130,3 +130,6 @@ dmypy.json
 
 # Jetbrains IDE
 .idea
+
+# Demo output
+demo/output/**/*.wav
