@@ -1,0 +1,24 @@
+name: torch-audiomentations
+channels:
+- defaults
+- pytorch
+dependencies:
+- cudatoolkit=10.1
+- ffmpeg
+- numpy>=1.14,<1.18
+- pip>=20.1,<=21
+- python=3.7.3
+- scipy=1.4
+- pytorch=1.6.0
+- pip:
+  - audiomentations==0.11.0
+  - audioread==2.1.8
+  - black
+  - coverage==5.3
+  - ffmpeg-python
+  - librosa>=0.6.1,<=0.8
+  - pytest==5.3.4
+  - pytest-cov==2.8.1
+  - setuptools>=41.0.0
+  - tqdm==4.49.0
+  - twine

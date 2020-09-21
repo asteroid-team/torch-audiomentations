@@ -10,6 +10,12 @@ to start discussing about `torch-audiomentations` with us.
 
 torch-audiomentations is in a very early development stage. Meanwhile, star the repo and stay tuned!
 
+# Development
+
+A development environment for torch-audiomentations can be created with conda:
+
+`conda env create`
+
 # Acknowledgements
 
 The development of torch-audiomentations is kindly backed by [Nomono](https://nomono.co/)
