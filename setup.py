@@ -33,7 +33,9 @@ setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/asteroid-team/torch-audiomentations",
-    packages=find_packages(exclude=["build", "scripts", "dist", "test_fixtures", "tests"]),
+    packages=find_packages(
+        exclude=["build", "scripts", "dist", "images", "test_fixtures", "tests"]
+    ),
     install_requires=["torch"],
     python_requires=">=3.6",
     classifiers=[

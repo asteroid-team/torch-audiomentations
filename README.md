@@ -6,6 +6,13 @@ Contributors welcome!
 [Join the Asteroid's slack](https://join.slack.com/t/asteroid-dev/shared_invite/zt-cn9y85t3-QNHXKD1Et7qoyzu1Ji5bcA)
 to start discussing about `torch-audiomentations` with us.
 
+# Motivation: Speed
+
+We don't want data augmentation to be a bottle neck in model training speed. Here is a
+comparison of the time it takes to run 1D convolution:
+
+![Convolve execution times](images/convolve_exec_time_plot.png)
+
 # Current state
 
 torch-audiomentations is in a very early development stage. Meanwhile, star the repo and stay tuned!
