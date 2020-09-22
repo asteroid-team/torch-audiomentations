@@ -13,7 +13,7 @@ from torch_audiomentations import PolarityInversion
 SAMPLE_RATE = 16000
 
 BASE_DIR = Path(os.path.abspath(os.path.dirname(os.path.dirname(__file__))))
-DEMO_DIR = BASE_DIR / "demo"
+SCRIPTS_DIR = BASE_DIR / "scripts"
 TEST_FIXTURES_DIR = BASE_DIR / "test_fixtures"
 
 
@@ -59,7 +59,7 @@ if __name__ == "__main__":
     For each transformation, apply it to an example sound and write the transformed sounds to
     an output folder. Also crudely measure and print execution time.
     """
-    output_dir = os.path.join(DEMO_DIR, "output")
+    output_dir = os.path.join(SCRIPTS_DIR, "output")
     os.makedirs(output_dir, exist_ok=True)
 
     np.random.seed(42)
