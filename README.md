@@ -19,12 +19,18 @@ torch-audiomentations is in a very early development stage. Meanwhile, star the 
 
 # Development
 
+## Setup
+
 A GPU-enabled development environment for torch-audiomentations can be created with conda:
 
 * `conda create --name torch-audiomentations python=3.7.3`
 * `conda activate torch-audiomentations`
 * `conda install pytorch cudatoolkit=10.1 -c pytorch`
 * `conda env update`
+
+## Run tests
+
+`pytest`
 
 # Acknowledgements
 
