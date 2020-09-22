@@ -17,6 +17,7 @@ dependencies:
   - coverage==5.3
   - ffmpeg-python
   - librosa>=0.6.1,<=0.8
+  - py-cpuinfo==7.0.0
   - pytest==5.3.4
   - pytest-cov==2.8.1
   - setuptools>=41.0.0
