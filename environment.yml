@@ -5,6 +5,7 @@ channels:
 dependencies:
 - cudatoolkit=10.1
 - ffmpeg
+- matplotlib>=3,<4
 - numpy>=1.14,<1.18
 - pip>=20.1,<=21
 - python=3.7.3
