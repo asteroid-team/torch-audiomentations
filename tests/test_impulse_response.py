@@ -1,22 +1,17 @@
 import os
 import torch
 import unittest
-from torch_audiomentations import load_audio
-from torch_audiomentations import ApplyImpulseResponse
-from pathlib import Path
-
-
-BASE_DIR = Path(os.path.abspath(os.path.dirname(os.path.dirname(__file__))))
-TEST_FIXTURES_DIR = BASE_DIR / "test_fixtures"
+from torch_audiomentations import ApplyImpulseResponse, load_audio
+from .utils import TEST_FIXTURES_DIR
 
 
 class TestApplyImpulseResponse(unittest.TestCase):
     def setUp(self):
-        self.sample_rate = 48000
+        self.sample_rate = 16000
         self.batch_size = 32
-        self.input_audio = torch.from_numpy(load_audio(os.path.join(TEST_FIXTURES_DIR, 'acoustic_guitar_0.wav'), self.sample_rate))
+        self.input_audio = torch.from_numpy(load_audio(os.path.join(TEST_FIXTURES_DIR, "acoustic_guitar_0.wav"), self.sample_rate))
         self.input_audios = torch.stack([self.input_audio] * self.batch_size)
-        self.ir_path = os.path.join(TEST_FIXTURES_DIR, 'ir')
+        self.ir_path = os.path.join(TEST_FIXTURES_DIR, "ir")
         self.ir_transform = ApplyImpulseResponse(self.ir_path, p=1.0)
 
     def test_impulse_response_with_single_tensor_input(self):

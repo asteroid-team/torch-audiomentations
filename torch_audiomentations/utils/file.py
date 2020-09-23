@@ -6,8 +6,8 @@ import librosa
 SUPPORTED_EXTENSIONS = ['.wav']
 
 
-def find_files(path):
-    """Finds all files of supported extensions."""
+def find_audio_files(path):
+    """Finds all audio files of supported extensions."""
     files = []
 
     for supported_extension in SUPPORTED_EXTENSIONS:

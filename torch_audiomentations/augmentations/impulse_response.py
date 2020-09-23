@@ -1,9 +1,9 @@
 import numpy as np
 import random
 import torch
-from torch_audiomentations.core.transforms_interface import BasicTransform
-from torch_audiomentations.utils.convolution import convolve
-from torch_audiomentations.utils.file import find_files, load_audio
+from ..core.transforms_interface import BasicTransform
+from ..utils.convolution import convolve
+from ..utils.file import find_audio_files, load_audio
 
 
 class ApplyImpulseResponse(BasicTransform):
@@ -13,7 +13,7 @@ class ApplyImpulseResponse(BasicTransform):
 
     def __init__(self, ir_path, convolve_mode="full", p=0.5):
         super(ApplyImpulseResponse, self).__init__(p)
-        self.ir_path = find_files(ir_path)
+        self.ir_path = find_audio_files(ir_path)
         self.convolve_mode = convolve_mode
 
     def randomize_parameters(self, samples, sample_rate):
