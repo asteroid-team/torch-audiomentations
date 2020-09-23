@@ -18,4 +18,3 @@ def find_audio_files(path):
 def load_audio(audio_file_path, sample_rate):
     """Loads the audio given the path of an audio file."""
     return librosa.load(audio_file_path, sr=sample_rate)[0]
-

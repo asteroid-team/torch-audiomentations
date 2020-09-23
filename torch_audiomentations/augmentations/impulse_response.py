@@ -18,15 +18,10 @@ class ApplyImpulseResponse(BasicTransform):
 
     def randomize_parameters(self, samples, sample_rate):
         super(ApplyImpulseResponse, self).randomize_parameters(samples, sample_rate)
-
         if self.parameters["should_apply"]:
             self.parameters["ir_file_path"] = random.choice(self.ir_path)
 
-    def apply(self, samples, sample_rate):
-        device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-        samples = samples.to(device)
-        ir = torch.from_numpy(load_audio(self.parameters["ir_file_path"], sample_rate)).to(device)
-        signal_ir = convolve(samples, ir, mode=self.convolve_mode)
-        signal_ir = signal_ir.cpu().numpy()
-        return signal_ir
-
+    def forward(self, samples, sample_rate):
+        super(ApplyImpulseResponse, self).forward(samples, sample_rate)
+        ir = torch.from_numpy(load_audio(self.parameters["ir_file_path"], sample_rate))
+        return convolve(samples, ir, mode=self.convolve_mode)

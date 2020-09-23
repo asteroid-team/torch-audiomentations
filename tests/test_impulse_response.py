@@ -16,10 +16,9 @@ class TestApplyImpulseResponse(unittest.TestCase):
 
     def test_impulse_response_with_single_tensor_input(self):
         mixed_input = self.ir_transform(self.input_audio, self.sample_rate)
-        self.assertNotEqual(mixed_input.shape[-1], self.input_audio.shape[-1])
+        self.assertNotEqual(mixed_input.size(-1), self.input_audio.size(-1))
 
     def test_impulse_response_with_batched_tensor_input(self):
         mixed_inputs = self.ir_transform(self.input_audios, self.sample_rate)
-        self.assertEqual(mixed_inputs.shape[0], self.input_audios.shape[0])
-        self.assertNotEqual(mixed_inputs.shape[-1], self.input_audios.shape[-1])
-
+        self.assertEqual(mixed_inputs.size(0), self.input_audios.size(0))
+        self.assertNotEqual(mixed_inputs.size(-1), self.input_audios.size(-1))

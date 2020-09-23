@@ -1,5 +1,6 @@
 import random
 import warnings
+import torch
 
 from torch_audiomentations.utils.multichannel import is_multichannel
 
@@ -8,19 +9,20 @@ class MultichannelAudioNotSupportedException(Exception):
     pass
 
 
-# TODO: Extend nn.Module
-class BasicTransform:
+class BasicTransform(torch.nn.Module):
     supports_multichannel = False
 
     def __init__(self, p=0.5):
+        super(BasicTransform, self).__init__()
         assert 0 <= p <= 1
         self.p = p
         self.parameters = {"should_apply": None}
         self.are_parameters_frozen = False
 
-    def __call__(self, samples, sample_rate):
+    def forward(self, samples, sample_rate):
         if not self.are_parameters_frozen:
             self.randomize_parameters(samples, sample_rate)
+
         if self.parameters["should_apply"] and len(samples) > 0:
             if is_multichannel(samples):
                 if samples.shape[1] > samples.shape[2]:
@@ -35,14 +37,11 @@ class BasicTransform:
                             self.__class__.__name__
                         )
                     )
-            return self.apply(samples, sample_rate)
+
         return samples
 
     def randomize_parameters(self, samples, sample_rate):
         self.parameters["should_apply"] = random.random() < self.p
-
-    def apply(self, samples, sample_rate):
-        raise NotImplementedError
 
     def serialize_parameters(self):
         """Return the parameters as a JSON-serializable dict."""
