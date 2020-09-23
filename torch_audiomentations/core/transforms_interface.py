@@ -23,11 +23,11 @@ class BasicTransform:
             self.randomize_parameters(samples, sample_rate)
         if self.parameters["should_apply"] and len(samples) > 0:
             if is_multichannel(samples):
-                if samples.shape[0] > samples.shape[1]:
+                if samples.shape[1] > samples.shape[2]:
                     warnings.warn(
                         "Multichannel audio must have channels first, not channels last. In"
-                        " other words, the shape must be (channels, samples), not"
-                        " (samples, channels)"
+                        " other words, the shape must be (batch size, channels, samples), not"
+                        " (batch_size, samples, channels)"
                     )
                 if not self.supports_multichannel:
                     raise MultichannelAudioNotSupportedException(
