@@ -23,5 +23,9 @@ class ApplyImpulseResponse(BasicTransform):
 
     def forward(self, samples, sample_rate):
         super(ApplyImpulseResponse, self).forward(samples, sample_rate)
-        ir = torch.from_numpy(load_audio(self.parameters["ir_file_path"], sample_rate))
-        return convolve(samples, ir, mode=self.convolve_mode)
+
+        if self.parameters["should_apply"] and len(samples) > 0:
+            ir = torch.from_numpy(load_audio(self.parameters["ir_file_path"], sample_rate))
+            return convolve(samples, ir, mode=self.convolve_mode)
+
+        return samples

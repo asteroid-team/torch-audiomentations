@@ -24,4 +24,4 @@ class TestConvolution(unittest.TestCase):
             torch.from_numpy(samples), torch.from_numpy(ir_samples)
         ).numpy()
 
-        assert_almost_equal(actual_output, expected_output)
+        assert_almost_equal(actual_output, expected_output, decimal=6)
