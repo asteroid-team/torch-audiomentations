@@ -15,7 +15,8 @@ comparison of the time it takes to run 1D convolution:
 
 # Current state
 
-torch-audiomentations is in a very early development stage. Meanwhile, star the repo and stay tuned!
+torch-audiomentations is in a very early development stage, so it's not ready for prime-time yet.
+Meanwhile, star the repo and stay tuned!
 
 # Development
 
@@ -31,6 +32,12 @@ A GPU-enabled development environment for torch-audiomentations can be created w
 ## Run tests
 
 `pytest`
+
+## Conventions
+
+* Format python code with [black](https://github.com/psf/black)
+* Use [Google-style docstrings](https://google.github.io/styleguide/pyguide.html#381-docstrings)
+* Use explicit relative imports, not absolute imports
 
 # Acknowledgements
 
