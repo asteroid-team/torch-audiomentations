@@ -23,5 +23,5 @@ class PolarityInversion(BasicTransform):
     def randomize_parameters(self, samples, sample_rate):
         super().randomize_parameters(samples, sample_rate)
 
-    def apply(self, samples, sample_rate):
+    def forward(self, samples, sample_rate):
         return -samples
