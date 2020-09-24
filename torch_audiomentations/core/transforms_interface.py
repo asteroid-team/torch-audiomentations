@@ -38,6 +38,8 @@ class BasicTransform(torch.nn.Module):
                         )
                     )
 
+            return self.apply(samples, sample_rate)
+
         return samples
 
     def randomize_parameters(self, samples, sample_rate):
