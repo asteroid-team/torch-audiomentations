@@ -1,4 +1,4 @@
-from torch_audiomentations.core.transforms_interface import BasicTransform
+from ..core.transforms_interface import BasicTransform
 
 
 class PolarityInversion(BasicTransform):
