@@ -14,7 +14,7 @@ class ApplyImpulseResponse(BasicTransform):
     def __init__(self, ir_path, convolve_mode="full", p=0.5):
         super(ApplyImpulseResponse, self).__init__(p)
         self.ir_path = find_audio_files(ir_path)
-        assert(len(self.ir_path) > 0)
+        assert len(self.ir_path) > 0
         self.convolve_mode = convolve_mode
 
     def randomize_parameters(self, samples, sample_rate):
