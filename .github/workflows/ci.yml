@@ -21,6 +21,11 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
 
+    - name: Install libnsdfile
+      run: |
+        sudo apt update
+        sudo apt install libsndfile1-dev libsndfile1
+
     # FIX requirement install
     - name: Install python dependencies
       run: |
