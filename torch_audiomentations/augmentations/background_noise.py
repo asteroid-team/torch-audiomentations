@@ -13,7 +13,7 @@ class ApplyBackgroundNoise(BasicTransform):
     def __init__(self, bg_path, snr_in_db, p=0.5):
         super(ApplyBackgroundNoise, self).__init__(p)
         self.bg_path = find_audio_files(bg_path)
-        assert(len(self.bg_path) > 0)
+        assert len(self.bg_path) > 0
         self.snr_in_db = snr_in_db
 
     def randomize_parameters(self, samples, sample_rate):
@@ -39,13 +39,15 @@ class ApplyBackgroundNoise(BasicTransform):
         samples_rms = calculate_rms(samples)
         bg_audios_rms = calculate_rms(bg_audios)
 
-        desired_bg_audios_rms = calculate_desired_noise_rms(samples_rms, self.parameters["snr_in_db"])
+        desired_bg_audios_rms = calculate_desired_noise_rms(
+            samples_rms, self.parameters["snr_in_db"]
+        )
         bg_audios = bg_audios * (desired_bg_audios_rms / bg_audios_rms)
 
         while bg_audios.size(1) < samples.size(1):
             bg_audios = bg_audios.repeat(1, 2)
 
         if bg_audios.size(1) > samples.size(1):
-            bg_audios = bg_audios[:, :samples.size(1)]
+            bg_audios = bg_audios[:, : samples.size(1)]
 
         return samples + bg_audios

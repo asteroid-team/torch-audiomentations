@@ -11,7 +11,9 @@ class TestApplyBackgroundNoise(unittest.TestCase):
         self.sample_rate = 16000
         self.batch_size = 2
         self.empty_input_audio = torch.empty(0)
-        self.input_audio = torch.from_numpy(load_audio(TEST_FIXTURES_DIR / "acoustic_guitar_0.wav", self.sample_rate)).unsqueeze(0)
+        self.input_audio = torch.from_numpy(
+            load_audio(TEST_FIXTURES_DIR / "acoustic_guitar_0.wav", self.sample_rate)
+        ).unsqueeze(0)
         self.input_audios = torch.stack([self.input_audio] * self.batch_size)
         self.bg_path = TEST_FIXTURES_DIR / "bg"
         self.bg_noise_transform_guaranteed = ApplyBackgroundNoise(self.bg_path, 20, p=1.0)
