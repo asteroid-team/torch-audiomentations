@@ -11,3 +11,6 @@ ignore =
     W504  # W504 - line break after binary operator
     W503  # W503 - line break before binary operator, need for black
     E203  # E203 - whitespace before ':'. Opposite convention enforced by black
+
+per-file-ignores =
+    */__init__.py: F401
