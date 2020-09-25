@@ -1,6 +1,6 @@
 numpy>=1.14,<1.18
 scipy>=1.5.2
-pytorch>=1.6.0
+torch>=1.6.0
 audiomentations>=0.11.0
 audioread>=2.1.8
 ffmpeg-python
