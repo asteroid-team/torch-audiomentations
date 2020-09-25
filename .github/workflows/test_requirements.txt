@@ -1,0 +1,11 @@
+numpy>=1.14,<1.18
+scipy>=1.5.2
+torch>=1.6.0
+audiomentations>=0.11.0
+audioread>=2.1.8
+ffmpeg-python
+librosa>=0.6.1,<=0.8
+py-cpuinfo>=7.0.0
+pytest>=5.3.4
+pytest-cov>=2.8.1
+coverage>=5.3
