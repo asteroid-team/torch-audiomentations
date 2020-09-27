@@ -10,6 +10,7 @@ def calculate_rms(samples):
     """
     return torch.sqrt(torch.mean(torch.square(samples), -1, keepdims=True))
 
+
 def calculate_desired_noise_rms(clean_rms, snr):
     """
     Given the Root Mean Square (RMS) of a clean sound and a desired signal-to-noise ratio (SNR),
