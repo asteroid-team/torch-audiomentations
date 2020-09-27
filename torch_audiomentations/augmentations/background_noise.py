@@ -10,11 +10,12 @@ class ApplyBackgroundNoise(BasicTransform):
     Applies a background noise to the input signal.
     """
 
-    def __init__(self, bg_path, snr_in_db, p=0.5):
+    def __init__(self, bg_path, snr_in_db, device=torch.device("cpu"), p=0.5):
         super(ApplyBackgroundNoise, self).__init__(p)
         self.bg_path = find_audio_files(bg_path)
         assert len(self.bg_path) > 0
         self.snr_in_db = snr_in_db
+        self.device = device
 
     def randomize_parameters(self, samples, sample_rate):
         super(ApplyBackgroundNoise, self).randomize_parameters(samples, sample_rate)
@@ -33,7 +34,8 @@ class ApplyBackgroundNoise(BasicTransform):
             self.parameters["bg_audios"] = torch.stack(bg_audios)
 
     def apply(self, samples, sample_rate):
-        bg_audios = self.parameters["bg_audios"]
+        samples = samples.to(self.device)
+        bg_audios = self.parameters["bg_audios"].to(self.device)
 
         # calculate sample and background audio RMS
         samples_rms = calculate_rms(samples)

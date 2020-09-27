@@ -11,11 +11,12 @@ class ApplyImpulseResponse(BasicTransform):
     Convolves an input signal with an impulse response.
     """
 
-    def __init__(self, ir_path, convolve_mode="full", p=0.5):
+    def __init__(self, ir_path, device=torch.device("cpu"), convolve_mode="full", p=0.5):
         super(ApplyImpulseResponse, self).__init__(p)
         self.ir_path = find_audio_files(ir_path)
         assert len(self.ir_path) > 0
         self.convolve_mode = convolve_mode
+        self.device = device
 
     def randomize_parameters(self, samples, sample_rate):
         super(ApplyImpulseResponse, self).randomize_parameters(samples, sample_rate)
@@ -37,5 +38,6 @@ class ApplyImpulseResponse(BasicTransform):
             self.parameters["ir_sounds"] = torch.stack(ir_sounds)
 
     def apply(self, samples, sample_rate):
-        ir = self.parameters["ir_sounds"]
+        samples = samples.to(self.device)
+        ir = self.parameters["ir_sounds"].to(self.device)
         return convolve(samples, ir, mode=self.convolve_mode)
