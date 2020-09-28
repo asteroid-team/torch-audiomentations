@@ -1,3 +1,4 @@
+import librosa
 import numpy as np
 import torch
 
@@ -24,3 +25,8 @@ def calculate_desired_noise_rms(clean_rms, snr):
     a = float(snr) / 20
     noise_rms = clean_rms / (10 ** a)
     return noise_rms
+
+
+def resample_audio(audio, orig_sr, target_sr):
+    """Resamples the audio to a new sampling rate."""
+    return librosa.resample(audio, orig_sr, target_sr)
