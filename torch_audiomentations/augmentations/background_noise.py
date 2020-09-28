@@ -27,7 +27,9 @@ class ApplyBackgroundNoise(BasicTransform):
             bg_audios = []
             for index, bg_file_path in enumerate(bg_file_paths):
                 bg_audio_info = soundfile.info(bg_file_path, verbose=True)
-                bg_audio_num_samples = math.ceil(sample_rate * bg_audio_info.frames / bg_audio_info.samplerate)
+                bg_audio_num_samples = math.ceil(
+                    sample_rate * bg_audio_info.frames / bg_audio_info.samplerate
+                )
                 samples_num_samples = samples[index].size(0)
 
                 # ensure that background noise has the same length as the sample
@@ -36,10 +38,12 @@ class ApplyBackgroundNoise(BasicTransform):
                     bg_stop_index = bg_audio_info.frames
                     loaded_bg_audio_num_samples = bg_audio_num_samples
 
-                    current_bg_audio = load_audio(bg_file_path,
-                                                  sample_rate=sample_rate,
-                                                  start=bg_start_index,
-                                                  stop=bg_stop_index)
+                    current_bg_audio = load_audio(
+                        bg_file_path,
+                        sample_rate=sample_rate,
+                        start=bg_start_index,
+                        stop=bg_stop_index,
+                    )
                     bg_audio = [current_bg_audio]
 
                     while loaded_bg_audio_num_samples < samples_num_samples:
@@ -54,10 +58,12 @@ class ApplyBackgroundNoise(BasicTransform):
                     max_bg_offset = max(0, bg_audio_info.frames - samples_num_samples * factor)
                     bg_start_index = random.randint(0, max_bg_offset)
                     bg_stop_index = bg_start_index + samples_num_samples * factor
-                    bg_audio = load_audio(bg_file_path,
-                                          sample_rate=sample_rate,
-                                          start=bg_start_index,
-                                          stop=bg_stop_index)
+                    bg_audio = load_audio(
+                        bg_file_path,
+                        sample_rate=sample_rate,
+                        start=bg_start_index,
+                        stop=bg_stop_index,
+                    )
 
                 bg_audios.append(torch.from_numpy(bg_audio))
 
