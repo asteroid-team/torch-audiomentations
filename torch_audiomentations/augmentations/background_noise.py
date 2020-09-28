@@ -13,14 +13,17 @@ class ApplyBackgroundNoise(BasicTransform):
     Applies a background noise to the input signal.
     """
 
-    def __init__(self, bg_path, snr_in_db, device=torch.device("cpu"), p=0.5):
+    def __init__(
+        self, bg_path, min_snr_in_db=3, max_snr_in_db=30, device=torch.device("cpu"), p=0.5
+    ):
         super(ApplyBackgroundNoise, self).__init__(p)
         self.bg_path = find_audio_files(bg_path)
 
         if len(self.bg_path) == 0:
             raise EmptyPathException("There are no supported audio files found.")
 
-        self.snr_in_db = snr_in_db
+        self.min_snr_in_db = min_snr_in_db
+        self.max_snr_in_db = max_snr_in_db
         self.device = device
 
     def randomize_parameters(self, samples, sample_rate):
@@ -70,7 +73,7 @@ class ApplyBackgroundNoise(BasicTransform):
 
                 bg_audios.append(torch.from_numpy(bg_audio))
 
-            self.parameters["snr_in_db"] = self.snr_in_db
+            self.parameters["snr_in_db"] = random.uniform(self.min_snr_in_db, self.max_snr_in_db)
             self.parameters["bg_audios"] = torch.stack(bg_audios)
 
     def apply(self, samples, sample_rate):
