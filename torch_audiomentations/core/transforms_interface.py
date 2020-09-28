@@ -9,6 +9,10 @@ class MultichannelAudioNotSupportedException(Exception):
     pass
 
 
+class EmptyPathException(Exception):
+    pass
+
+
 class BasicTransform(torch.nn.Module):
     supports_multichannel = False
 

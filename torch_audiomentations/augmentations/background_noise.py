@@ -3,7 +3,7 @@ import numpy as np
 import random
 import soundfile
 import torch
-from ..core.transforms_interface import BasicTransform
+from ..core.transforms_interface import BasicTransform, EmptyPathException
 from ..utils.file import find_audio_files, load_audio
 from ..utils.dsp import calculate_rms, calculate_desired_noise_rms
 
@@ -16,7 +16,10 @@ class ApplyBackgroundNoise(BasicTransform):
     def __init__(self, bg_path, snr_in_db, device=torch.device("cpu"), p=0.5):
         super(ApplyBackgroundNoise, self).__init__(p)
         self.bg_path = find_audio_files(bg_path)
-        assert len(self.bg_path) > 0
+
+        if len(self.bg_path) == 0:
+            raise EmptyPathException("There are no supported audio files found.")
+
         self.snr_in_db = snr_in_db
         self.device = device
 
