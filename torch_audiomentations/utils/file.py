@@ -1,6 +1,7 @@
+from .dsp import resample_audio
 import os
 import glob
-import librosa
+import soundfile
 
 
 SUPPORTED_EXTENSIONS = [".wav"]
@@ -16,6 +17,11 @@ def find_audio_files(path):
     return files
 
 
-def load_audio(audio_file_path, sample_rate):
+def load_audio(audio_file_path, sample_rate=None, start=0, stop=None):
     """Loads the audio given the path of an audio file."""
-    return librosa.load(audio_file_path, sr=sample_rate)[0]
+    audio, source_sample_rate = soundfile.read(audio_file_path, start=start, stop=stop)
+
+    if sample_rate:
+        audio = resample_audio(audio, source_sample_rate, sample_rate)
+
+    return audio
