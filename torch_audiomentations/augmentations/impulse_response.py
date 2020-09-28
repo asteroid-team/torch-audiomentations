@@ -1,7 +1,7 @@
 import numpy as np
 import random
 import torch
-from ..core.transforms_interface import BasicTransform
+from ..core.transforms_interface import BasicTransform, EmptyPathException
 from ..utils.convolution import convolve
 from ..utils.file import find_audio_files, load_audio
 
@@ -14,7 +14,10 @@ class ApplyImpulseResponse(BasicTransform):
     def __init__(self, ir_path, device=torch.device("cpu"), convolve_mode="full", p=0.5):
         super(ApplyImpulseResponse, self).__init__(p)
         self.ir_path = find_audio_files(ir_path)
-        assert len(self.ir_path) > 0
+
+        if len(self.ir_path) == 0:
+            raise EmptyPathException("There are no supported audio files found.")
+
         self.convolve_mode = convolve_mode
         self.device = device
 
