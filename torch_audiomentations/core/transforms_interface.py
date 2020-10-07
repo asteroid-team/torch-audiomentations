@@ -9,6 +9,10 @@ class MultichannelAudioNotSupportedException(Exception):
     pass
 
 
+class EmptyPathException(Exception):
+    pass
+
+
 class BasicTransform(torch.nn.Module):
     supports_multichannel = False
 
@@ -37,6 +41,8 @@ class BasicTransform(torch.nn.Module):
                             self.__class__.__name__
                         )
                     )
+
+            return self.apply(samples, sample_rate)
 
         return samples
 

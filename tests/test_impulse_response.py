@@ -12,8 +12,8 @@ class TestApplyImpulseResponse(unittest.TestCase):
         self.empty_input_audio = torch.empty(0)
         self.input_audio = torch.from_numpy(
             load_audio(os.path.join(TEST_FIXTURES_DIR, "acoustic_guitar_0.wav"), self.sample_rate)
-        )
-        self.input_audios = torch.stack([self.input_audio] * self.batch_size)
+        ).unsqueeze(0)
+        self.input_audios = torch.stack([self.input_audio] * self.batch_size).squeeze(1)
         self.ir_path = os.path.join(TEST_FIXTURES_DIR, "ir")
         self.ir_transform_guaranteed = ApplyImpulseResponse(self.ir_path, p=1.0)
         self.ir_transform_no_guarantee = ApplyImpulseResponse(self.ir_path, p=0.0)
