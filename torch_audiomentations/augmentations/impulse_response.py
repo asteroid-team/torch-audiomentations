@@ -27,24 +27,23 @@ class ApplyImpulseResponse(BaseWaveformTransform):
         self.device = device
 
     def randomize_parameters(self, selected_samples, sample_rate: int):
-        if self.parameters["should_apply"] and selected_samples.size(0) > 0:
-            ir_paths = random.choices(self.ir_path, k=selected_samples.size(0))
-            ir_sounds = []
-            max_ir_sound_length = 0
-            for ir_path in ir_paths:
-                ir_samples = load_audio(ir_path, sample_rate)
-                num_samples = len(ir_samples)
-                if num_samples > max_ir_sound_length:
-                    max_ir_sound_length = num_samples
-                ir_samples = torch.from_numpy(ir_samples)
-                ir_sounds.append(ir_samples)
-            for i in range(len(ir_sounds)):
-                placeholder = torch.zeros(
-                    size=(max_ir_sound_length,), dtype=torch.float32
-                )
-                placeholder[0 : len(ir_sounds[i])] = ir_sounds[i]
-                ir_sounds[i] = placeholder
-            self.parameters["ir_sounds"] = torch.stack(ir_sounds)
+        ir_paths = random.choices(self.ir_path, k=selected_samples.size(0))
+        ir_sounds = []
+        max_ir_sound_length = 0
+        for ir_path in ir_paths:
+            ir_samples = load_audio(ir_path, sample_rate)
+            num_samples = len(ir_samples)
+            if num_samples > max_ir_sound_length:
+                max_ir_sound_length = num_samples
+            ir_samples = torch.from_numpy(ir_samples)
+            ir_sounds.append(ir_samples)
+        for i in range(len(ir_sounds)):
+            placeholder = torch.zeros(
+                size=(max_ir_sound_length,), dtype=torch.float32
+            )
+            placeholder[0 : len(ir_sounds[i])] = ir_sounds[i]
+            ir_sounds[i] = placeholder
+        self.parameters["ir_sounds"] = torch.stack(ir_sounds)
 
     def apply_transform(self, selected_samples, sample_rate: int):
         selected_samples = selected_samples.to(self.device)
