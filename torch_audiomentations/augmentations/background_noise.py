@@ -1,21 +1,29 @@
+import random
+
 import math
 import numpy as np
-import random
 import soundfile
 import torch
-from ..core.transforms_interface import BasicTransform, EmptyPathException
-from ..utils.file import find_audio_files, load_audio
+
+from ..core.transforms_interface import BaseWaveformTransform, EmptyPathException
 from ..utils.dsp import calculate_rms, calculate_desired_noise_rms
+from ..utils.file import find_audio_files, load_audio
 
 
-class ApplyBackgroundNoise(BasicTransform):
+class ApplyBackgroundNoise(BaseWaveformTransform):
     """
     Applies a background noise to the input signal.
     """
 
     def __init__(
-        self, bg_path, min_snr_in_db=3, max_snr_in_db=30, device=torch.device("cpu"), p=0.5
+        self,
+        bg_path,
+        min_snr_in_db: float = 3.0,
+        max_snr_in_db: float = 30.0,
+        device=torch.device("cpu"),
+        p: float = 0.5,
     ):
+        # TODO: infer device from the given samples instead
         super(ApplyBackgroundNoise, self).__init__(p)
         self.bg_path = find_audio_files(bg_path)
 
@@ -26,7 +34,7 @@ class ApplyBackgroundNoise(BasicTransform):
         self.max_snr_in_db = max_snr_in_db
         self.device = device
 
-    def randomize_parameters(self, samples, sample_rate):
+    def randomize_parameters(self, samples, sample_rate: int):
         super(ApplyBackgroundNoise, self).randomize_parameters(samples, sample_rate)
         if self.parameters["should_apply"] and samples.size(0) > 0:
             bg_file_paths = random.choices(self.bg_path, k=samples.size(0))
@@ -52,6 +60,8 @@ class ApplyBackgroundNoise(BasicTransform):
                     )
                     bg_audio = [current_bg_audio]
 
+                    # TODO: Factor out this bit that repeats the audio until the desired length
+                    #  has been reached, and then trims away any excess audio from the end
                     while loaded_bg_audio_num_samples < samples_num_samples:
                         current_bg_audio = bg_audio[-1]
                         loaded_bg_audio_num_samples += current_bg_audio.shape[0]
@@ -61,7 +71,9 @@ class ApplyBackgroundNoise(BasicTransform):
                     bg_audio = bg_audio[:samples_num_samples]
                 else:
                     factor = int(bg_audio_info.samplerate / sample_rate)
-                    max_bg_offset = max(0, bg_audio_info.frames - samples_num_samples * factor)
+                    max_bg_offset = max(
+                        0, bg_audio_info.frames - samples_num_samples * factor
+                    )
                     bg_start_index = random.randint(0, max_bg_offset)
                     bg_stop_index = bg_start_index + samples_num_samples * factor
                     bg_audio = load_audio(
@@ -73,15 +85,17 @@ class ApplyBackgroundNoise(BasicTransform):
 
                 bg_audios.append(torch.from_numpy(bg_audio))
 
-            self.parameters["snr_in_db"] = random.uniform(self.min_snr_in_db, self.max_snr_in_db)
+            self.parameters["snr_in_db"] = random.uniform(
+                self.min_snr_in_db, self.max_snr_in_db
+            )
             self.parameters["bg_audios"] = torch.stack(bg_audios)
 
-    def apply(self, samples, sample_rate):
-        samples = samples.to(self.device)
+    def apply_transform(self, selected_samples, sample_rate: int):
+        selected_samples = selected_samples.to(self.device)
         bg_audios = self.parameters["bg_audios"].to(self.device)
 
         # calculate sample and background audio RMS
-        samples_rms = calculate_rms(samples)
+        samples_rms = calculate_rms(selected_samples)
         bg_audios_rms = calculate_rms(bg_audios)
 
         desired_bg_audios_rms = calculate_desired_noise_rms(
@@ -89,4 +103,4 @@ class ApplyBackgroundNoise(BasicTransform):
         )
         bg_audios = bg_audios * (desired_bg_audios_rms / bg_audios_rms)
 
-        return samples + bg_audios
+        return selected_samples + bg_audios

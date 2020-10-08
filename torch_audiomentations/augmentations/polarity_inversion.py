@@ -1,7 +1,7 @@
-from ..core.transforms_interface import BasicTransform
+from ..core.transforms_interface import BaseWaveformTransform
 
 
-class PolarityInversion(BasicTransform):
+class PolarityInversion(BaseWaveformTransform):
     """
     Flip the audio samples upside-down, reversing their polarity. In other words, multiply the
     waveform by -1, so negative values become positive, and vice versa. The result will sound
@@ -14,14 +14,14 @@ class PolarityInversion(BasicTransform):
 
     supports_multichannel = True
 
-    def __init__(self, p=0.5):
+    def __init__(self, p: float = 0.5):
         """
         :param p:
         """
         super().__init__(p)
 
-    def randomize_parameters(self, samples, sample_rate):
+    def randomize_parameters(self, samples, sample_rate: int):
         super().randomize_parameters(samples, sample_rate)
 
-    def forward(self, samples, sample_rate):
-        return -samples
+    def apply_transform(self, selected_samples, sample_rate: int):
+        return -selected_samples
