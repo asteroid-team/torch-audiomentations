@@ -26,10 +26,9 @@ class ApplyImpulseResponse(BaseWaveformTransform):
         self.convolve_mode = convolve_mode
         self.device = device
 
-    def randomize_parameters(self, samples, sample_rate: int):
-        super(ApplyImpulseResponse, self).randomize_parameters(samples, sample_rate)
-        if self.parameters["should_apply"] and samples.size(0) > 0:
-            ir_paths = random.choices(self.ir_path, k=samples.size(0))
+    def randomize_parameters(self, selected_samples, sample_rate: int):
+        if self.parameters["should_apply"] and selected_samples.size(0) > 0:
+            ir_paths = random.choices(self.ir_path, k=selected_samples.size(0))
             ir_sounds = []
             max_ir_sound_length = 0
             for ir_path in ir_paths:

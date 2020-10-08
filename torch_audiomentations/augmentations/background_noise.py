@@ -34,17 +34,16 @@ class ApplyBackgroundNoise(BaseWaveformTransform):
         self.max_snr_in_db = max_snr_in_db
         self.device = device
 
-    def randomize_parameters(self, samples, sample_rate: int):
-        super(ApplyBackgroundNoise, self).randomize_parameters(samples, sample_rate)
-        if self.parameters["should_apply"] and samples.size(0) > 0:
-            bg_file_paths = random.choices(self.bg_path, k=samples.size(0))
+    def randomize_parameters(self, selected_samples, sample_rate: int):
+        if self.parameters["should_apply"] and selected_samples.size(0) > 0:
+            bg_file_paths = random.choices(self.bg_path, k=selected_samples.size(0))
             bg_audios = []
             for index, bg_file_path in enumerate(bg_file_paths):
                 bg_audio_info = soundfile.info(bg_file_path, verbose=True)
                 bg_audio_num_samples = math.ceil(
                     sample_rate * bg_audio_info.frames / bg_audio_info.samplerate
                 )
-                samples_num_samples = samples[index].size(0)
+                samples_num_samples = selected_samples[index].size(0)
 
                 # ensure that background noise has the same length as the sample
                 if bg_audio_num_samples < samples_num_samples:

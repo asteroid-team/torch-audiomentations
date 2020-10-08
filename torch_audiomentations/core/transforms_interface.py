@@ -77,8 +77,13 @@ class BaseWaveformTransform(torch.nn.Module):
 
         return samples
 
+    def _forward_unimplemented(self, *inputs) -> None:
+        # Avoid IDE error message like "Class ... must implement all abstract methods"
+        # See also https://github.com/python/mypy/issues/8795#issuecomment-691658758
+        pass
+
     def randomize_parameters(self, selected_samples, sample_rate: int):
-        raise NotImplementedError
+        pass
 
     def apply_transform(self, selected_samples, sample_rate: int):
         raise NotImplementedError

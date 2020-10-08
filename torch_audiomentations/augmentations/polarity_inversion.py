@@ -20,8 +20,5 @@ class PolarityInversion(BaseWaveformTransform):
         """
         super().__init__(p)
 
-    def randomize_parameters(self, samples, sample_rate: int):
-        super().randomize_parameters(samples, sample_rate)
-
     def apply_transform(self, selected_samples, sample_rate: int):
         return -selected_samples
