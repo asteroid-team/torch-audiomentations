@@ -33,7 +33,7 @@ class ApplyBackgroundNoise(BaseWaveformTransform):
         self.min_snr_in_db = min_snr_in_db
         self.max_snr_in_db = max_snr_in_db
         self.snr_distribution = torch.distributions.Uniform(
-            low=min_snr_in_db, high=max_snr_in_db
+            low=min_snr_in_db, high=max_snr_in_db, validate_args=True
         )
         self.device = device
 

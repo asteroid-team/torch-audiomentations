@@ -94,3 +94,9 @@ class TestApplyBackgroundNoise(unittest.TestCase):
             actual_snr_values.append(snr_in_db)
 
         self.assertGreater(max(actual_snr_values) - min(actual_snr_values), 13.37)
+
+    def test_invalid_params(self):
+        with self.assertRaises(ValueError):
+            augment = ApplyBackgroundNoise(
+                self.bg_path, min_snr_in_db=30, max_snr_in_db=3, p=1.0
+            )
