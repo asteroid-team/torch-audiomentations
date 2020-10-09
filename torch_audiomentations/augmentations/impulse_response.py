@@ -32,9 +32,7 @@ class ApplyImpulseResponse(BaseWaveformTransform):
         max_ir_sound_length = 0
         for ir_path in ir_paths:
             ir_samples = load_audio(ir_path, sample_rate)
-            num_samples = len(ir_samples)
-            if num_samples > max_ir_sound_length:
-                max_ir_sound_length = num_samples
+            max_ir_sound_length = max(max_ir_sound_length, len(ir_samples))
             ir_samples = torch.from_numpy(ir_samples)
             ir_sounds.append(ir_samples)
         for i in range(len(ir_sounds)):
