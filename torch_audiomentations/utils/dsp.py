@@ -21,8 +21,7 @@ def calculate_desired_noise_rms(clean_rms, snr):
     :param snr: Signal-to-Noise (SNR) Ratio in dB - typically somewhere between -20 and 60
     :return:
     """
-    a = float(snr) / 20
-    noise_rms = clean_rms / (10 ** a)
+    noise_rms = clean_rms / (10 ** (snr / 20))
     return noise_rms
 
 

@@ -93,5 +93,4 @@ class TestApplyBackgroundNoise(unittest.TestCase):
 
             actual_snr_values.append(snr_in_db)
 
-        self.assertLess(min(actual_snr_values), max(actual_snr_values))
-
+        self.assertGreater(max(actual_snr_values) - min(actual_snr_values), 13.37)

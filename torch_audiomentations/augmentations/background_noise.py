@@ -32,10 +32,14 @@ class ApplyBackgroundNoise(BaseWaveformTransform):
 
         self.min_snr_in_db = min_snr_in_db
         self.max_snr_in_db = max_snr_in_db
+        self.snr_distribution = torch.distributions.Uniform(
+            low=min_snr_in_db, high=max_snr_in_db
+        )
         self.device = device
 
     def randomize_parameters(self, selected_samples, sample_rate: int):
-        bg_file_paths = random.choices(self.bg_path, k=selected_samples.size(0))
+        batch_size = selected_samples.size(0)
+        bg_file_paths = random.choices(self.bg_path, k=batch_size)
         bg_audios = []
         for index, bg_file_path in enumerate(bg_file_paths):
             bg_audio_info = soundfile.info(bg_file_path, verbose=True)
@@ -83,8 +87,8 @@ class ApplyBackgroundNoise(BaseWaveformTransform):
 
             bg_audios.append(torch.from_numpy(bg_audio))
 
-        self.parameters["snr_in_db"] = random.uniform(
-            self.min_snr_in_db, self.max_snr_in_db
+        self.parameters["snr_in_db"] = self.snr_distribution.sample(
+            sample_shape=(batch_size,)
         )
         self.parameters["bg_audios"] = torch.stack(bg_audios)
 
@@ -93,12 +97,12 @@ class ApplyBackgroundNoise(BaseWaveformTransform):
         bg_audios = self.parameters["bg_audios"].to(self.device)
 
         # calculate sample and background audio RMS
-        samples_rms = calculate_rms(selected_samples)
-        bg_audios_rms = calculate_rms(bg_audios)
+        samples_rms = calculate_rms(selected_samples).squeeze()
+        bg_audios_rms = calculate_rms(bg_audios).squeeze()
 
         desired_bg_audios_rms = calculate_desired_noise_rms(
             samples_rms, self.parameters["snr_in_db"]
         )
-        bg_audios = bg_audios * (desired_bg_audios_rms / bg_audios_rms)
+        bg_audios = bg_audios * (desired_bg_audios_rms / bg_audios_rms).unsqueeze(1)
 
         return selected_samples + bg_audios
