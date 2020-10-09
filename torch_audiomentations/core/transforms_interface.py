@@ -71,7 +71,7 @@ class BaseWaveformTransform(torch.nn.Module):
                 )
 
         if self.parameters["should_apply"].any():
-            cloned_samples = samples.detach().clone()
+            cloned_samples = samples.clone()
             cloned_samples[self.parameters["should_apply"]] = self.apply_transform(
                 samples[self.parameters["should_apply"]], sample_rate
             )
