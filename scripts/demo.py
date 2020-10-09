@@ -102,6 +102,4 @@ if __name__ == "__main__":
                 )
             )
         else:
-            print(
-                "{:<32} {:.3f} s".format(run_name, np.mean(execution_times[run_name]))
-            )
+            print("{:<32} {:.3f} s".format(run_name, np.mean(execution_times[run_name])))

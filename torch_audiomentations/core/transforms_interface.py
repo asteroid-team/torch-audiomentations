@@ -38,9 +38,7 @@ class BaseWaveformTransform(torch.nn.Module):
     def forward(self, samples, sample_rate: int):
         if len(samples) == 0:
             warnings.warn(
-                "An empty samples tensor was passed to {}".format(
-                    self.__class__.__name__
-                )
+                "An empty samples tensor was passed to {}".format(self.__class__.__name__)
             )
             return samples
 

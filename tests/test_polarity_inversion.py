@@ -17,8 +17,7 @@ class TestPolarityInversion(unittest.TestCase):
             samples=torch.from_numpy(samples), sample_rate=sample_rate
         ).numpy()
         assert_almost_equal(
-            inverted_samples,
-            np.array([[-1.0, -0.5, 0.25, 0.125, 0.0]], dtype=np.float32),
+            inverted_samples, np.array([[-1.0, -0.5, 0.25, 0.125, 0.0]], dtype=np.float32)
         )
         self.assertEqual(inverted_samples.dtype, np.float32)
 
