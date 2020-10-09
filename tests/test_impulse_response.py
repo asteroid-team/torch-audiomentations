@@ -27,17 +27,14 @@ class TestApplyImpulseResponse(unittest.TestCase):
         mixed_input = self.ir_transform_guaranteed(self.input_audio, self.sample_rate)
         self.assertEqual(mixed_input.size(0), self.input_audio.size(0))
         self.assertEqual(mixed_input.size(-1), self.input_audio.size(-1))
-
-        with assert_raises(AssertionError):
-            assert_array_almost_equal(mixed_input, self.input_audio)
+        self.assertFalse(torch.equal(mixed_input, self.input_audio))
 
     def test_impulse_response_guaranteed_with_batched_tensor_input(self):
         mixed_inputs = self.ir_transform_guaranteed(self.input_audios, self.sample_rate)
         self.assertEqual(mixed_inputs.size(0), self.input_audios.size(0))
         self.assertEqual(mixed_inputs.size(-1), self.input_audios.size(-1))
 
-        with assert_raises(AssertionError):
-            assert_array_almost_equal(mixed_inputs, self.input_audio)
+        self.assertFalse(torch.equal(mixed_inputs, self.input_audios))
 
     def test_impulse_response_no_guarantee_with_single_tensor_input(self):
         mixed_input = self.ir_transform_no_guarantee(self.input_audio, self.sample_rate)
