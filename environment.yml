@@ -12,7 +12,7 @@ dependencies:
 - scipy=1.5.2
 - pytorch=1.6.0
 - pip:
-  - audiomentations==0.11.0
+  - audiomentations==0.12.1
   - audioread==2.1.8
   - black
   - coverage==5.3

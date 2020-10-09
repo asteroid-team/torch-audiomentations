@@ -54,9 +54,7 @@ if __name__ == "__main__":
 
     for i in tqdm(range(5), desc="torch FFT CPU, batch size={}".format(num_examples)):
         with timer("torch FFT CPU") as t:
-            _ = torch_convolve(
-                pytorch_samples_batch_cpu, pytorch_ir_samples_cpu
-            ).numpy()
+            _ = torch_convolve(pytorch_samples_batch_cpu, pytorch_ir_samples_cpu).numpy()
         execution_times[(t.description, num_examples)].append(t.execution_time)
 
     if is_cuda_available:

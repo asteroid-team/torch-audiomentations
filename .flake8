@@ -1,5 +1,5 @@
 [flake8]
-max-line-length = 119
+max-line-length = 90
 exclude = scripts,*.egg,build
 select = E,W,F
 verbose = 2

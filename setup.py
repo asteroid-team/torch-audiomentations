@@ -36,7 +36,7 @@ setup(
     packages=find_packages(
         exclude=["build", "scripts", "dist", "images", "test_fixtures", "tests"]
     ),
-    install_requires=["torch"],
+    install_requires=["torch>=1.2.0"],
     python_requires=">=3.6",
     classifiers=[
         "Programming Language :: Python :: 3",
