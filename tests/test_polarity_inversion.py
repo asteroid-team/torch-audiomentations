@@ -56,8 +56,8 @@ class TestPolarityInversion(unittest.TestCase):
         self.assertEqual(num_unprocessed_examples + num_processed_examples, 10000)
 
         print(num_processed_examples)
-        self.assertGreater(num_processed_examples, 1000)
-        self.assertLess(num_processed_examples, 9000)
+        self.assertGreater(num_processed_examples, 2000)
+        self.assertLess(num_processed_examples, 8000)
 
     def test_polarity_inversion_multichannel(self):
         samples = np.array(
