@@ -23,8 +23,14 @@ class Gain(BaseWaveformTransform):
         :param p:
         """
         super().__init__(p)
-        self._min_gain_in_db = min_gain_in_db
-        self._max_gain_in_db = max_gain_in_db
+        self.register_buffer(
+            name="_min_gain_in_db",
+            tensor=torch.tensor(min_gain_in_db, dtype=torch.float32),
+        )
+        self.register_buffer(
+            name="_max_gain_in_db",
+            tensor=torch.tensor(max_gain_in_db, dtype=torch.float32),
+        )
         self.gain_distribution = self.reset_distribution()
 
     def reset_distribution(self):
@@ -33,13 +39,30 @@ class Gain(BaseWaveformTransform):
         )
         return self.gain_distribution
 
+    def to(self, *args, **kwargs):
+        return_value = super().to(*args, **kwargs)
+        self.reset_distribution()
+        return return_value
+
+    def cuda(self, *args, **kwargs):
+        return_value = super().cuda(*args, **kwargs)
+        self.reset_distribution()
+        return return_value
+
+    def cpu(self, *args, **kwargs):
+        return_value = super().cpu(*args, **kwargs)
+        self.reset_distribution()
+        return return_value
+
     @property
     def min_gain_in_db(self):
         return self._min_gain_in_db
 
     @min_gain_in_db.setter
     def min_gain_in_db(self, min_gain_in_db):
-        self._min_gain_in_db = min_gain_in_db
+        self._min_gain_in_db = torch.tensor(
+            min_gain_in_db, dtype=torch.float32, device=self._min_gain_in_db.device
+        )
         self.reset_distribution()
 
     @property
@@ -48,7 +71,9 @@ class Gain(BaseWaveformTransform):
 
     @max_gain_in_db.setter
     def max_gain_in_db(self, max_gain_in_db):
-        self._max_gain_in_db = max_gain_in_db
+        self._max_gain_in_db = torch.tensor(
+            max_gain_in_db, dtype=torch.float32, device=self._max_gain_in_db.device
+        )
         self.reset_distribution()
 
     def randomize_parameters(self, selected_samples, sample_rate: int):
