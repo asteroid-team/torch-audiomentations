@@ -65,3 +65,44 @@ class TestGain(unittest.TestCase):
         self.assertEqual(num_unprocessed_examples + num_processed_examples, 10000)
         self.assertGreater(num_processed_examples, 2000)
         self.assertLess(num_processed_examples, 8000)
+
+    def test_reset_distribution(self):
+        samples = np.array([1.0, 0.5, 0.25, 0.125, 0.01], dtype=np.float32)
+        samples_batch = np.vstack([samples] * 10000)
+        sample_rate = 16000
+
+        augment = Gain(min_gain_in_db=-6, max_gain_in_db=6, p=0.5)
+        # Change the parameters after init
+        augment.min_gain_in_db = -18
+        augment.max_gain_in_db = 3
+        processed_samples = augment(
+            samples=torch.from_numpy(samples_batch), sample_rate=sample_rate
+        ).numpy()
+        self.assertEqual(processed_samples.dtype, np.float32)
+
+        actual_gains_in_db = []
+        for i in range(processed_samples.shape[0]):
+            if not np.allclose(processed_samples[i], samples_batch[i]):
+
+                estimated_gain_factor = np.mean(processed_samples[i] / samples_batch[i])
+                estimated_gain_factor_in_db = convert_amplitude_ratio_to_decibels(
+                    torch.tensor(estimated_gain_factor)
+                ).item()
+
+                self.assertGreaterEqual(estimated_gain_factor_in_db, -18)
+                self.assertLessEqual(estimated_gain_factor_in_db, 3)
+                actual_gains_in_db.append(estimated_gain_factor_in_db)
+
+        mean_gain_in_db = np.mean(actual_gains_in_db)
+        self.assertGreater(mean_gain_in_db, (-18 + 3) / 2 - 1)
+        self.assertLess(mean_gain_in_db, (-18 + 3) / 2 + 1)
+
+    def test_invalid_distribution(self):
+        with self.assertRaises(ValueError):
+            Gain(min_gain_in_db=18, max_gain_in_db=-3, p=0.5)
+
+        with self.assertRaises(ValueError):
+            augment = Gain(min_gain_in_db=-6, max_gain_in_db=-3, p=0.5)
+            # Change the parameters after init
+            augment.min_gain_in_db = 18
+            augment.max_gain_in_db = 3
