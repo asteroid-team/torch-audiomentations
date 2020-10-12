@@ -1,6 +1,7 @@
 import unittest
 
 import numpy as np
+import pytest
 import torch
 from numpy.testing import assert_almost_equal
 
@@ -76,5 +77,21 @@ class TestPolarityInversion(unittest.TestCase):
                 [[-1.0, -0.5, 0.25, 0.125, 0.0], [-1.0, -0.5, 0.25, 0.125, 0.0]],
                 dtype=np.float32,
             ),
+        )
+        self.assertEqual(inverted_samples.dtype, np.float32)
+
+    @pytest.mark.skipif(not torch.cuda.is_available(), reason="Requires CUDA")
+    def test_polarity_inversion_cuda(self):
+        samples = np.array([[1.0, 0.5, -0.25, -0.125, 0.0]], dtype=np.float32)
+        sample_rate = 16000
+
+        augment = PolarityInversion(p=1.0).cuda()
+        inverted_samples = (
+            augment(samples=torch.from_numpy(samples).cuda(), sample_rate=sample_rate)
+            .cpu()
+            .numpy()
+        )
+        assert_almost_equal(
+            inverted_samples, np.array([[-1.0, -0.5, 0.25, 0.125, 0.0]], dtype=np.float32)
         )
         self.assertEqual(inverted_samples.dtype, np.float32)
