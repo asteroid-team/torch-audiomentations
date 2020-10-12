@@ -1,6 +1,7 @@
 import unittest
 
 import numpy as np
+import pytest
 import torch
 from numpy.testing import assert_almost_equal
 
@@ -97,6 +98,7 @@ class TestGain(unittest.TestCase):
         self.assertGreater(mean_gain_in_db, (-18 + 3) / 2 - 1)
         self.assertLess(mean_gain_in_db, (-18 + 3) / 2 + 1)
 
+    @pytest.mark.skipif(not torch.cuda.is_available(), reason="Requires CUDA")
     def test_cuda_reset_distribution(self):
         samples = np.array([1.0, 0.5, 0.25, 0.125, 0.01], dtype=np.float32)
         samples_batch = np.vstack([samples] * 10000)
@@ -142,7 +144,8 @@ class TestGain(unittest.TestCase):
             augment.min_gain_in_db = 18
             augment.max_gain_in_db = 3
 
-    def test_gain_to_device(self):
+    @pytest.mark.skipif(not torch.cuda.is_available(), reason="Requires CUDA")
+    def test_gain_to_device_cuda(self):
         samples = np.array([[[1.0, 0.5, -0.25, -0.125, 0.0]]], dtype=np.float32)
         sample_rate = 16000
 
@@ -168,6 +171,7 @@ class TestGain(unittest.TestCase):
         )
         self.assertEqual(processed_samples.dtype, np.float32)
 
+    @pytest.mark.skipif(not torch.cuda.is_available(), reason="Requires CUDA")
     def test_gain_cuda(self):
         samples = np.array([[[1.0, 0.5, -0.25, -0.125, 0.0]]], dtype=np.float32)
         sample_rate = 16000
@@ -187,6 +191,7 @@ class TestGain(unittest.TestCase):
         )
         self.assertEqual(processed_samples.dtype, np.float32)
 
+    @pytest.mark.skipif(not torch.cuda.is_available(), reason="Requires CUDA")
     def test_gain_cuda_cpu(self):
         samples = np.array([[[1.0, 0.5, -0.25, -0.125, 0.0]]], dtype=np.float32)
         sample_rate = 16000
