@@ -3,9 +3,7 @@ Audio data augmentation in PyTorch. Inspired by [audiomentations](https://github
 
 # Setup
 
-`pip install git+https://github.com/asteroid-team/torch-audiomentations`
-
-Note: torch-audiomentations will be published on PyPI for easier installation later.
+`pip install torch-audiomentations`
 
 # Contribute
 
@@ -24,6 +22,12 @@ comparison of the time it takes to run 1D convolution:
 
 torch-audiomentations is in a very early development stage, so it's not ready for prime time yet.
 Meanwhile, star the repo and stay tuned!
+
+# Version history
+
+## v0.1.0 (2020-10-12)
+
+Initial release with `Gain` and `PolarityInversion`
 
 # Development
 
