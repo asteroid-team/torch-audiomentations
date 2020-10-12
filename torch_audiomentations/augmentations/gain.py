@@ -17,7 +17,7 @@ class Gain(BaseWaveformTransform):
     supports_multichannel = True
 
     def __init__(
-        self, min_gain_in_db: float = -12.0, max_gain_in_db: float = 12.0, p: float = 0.5
+        self, min_gain_in_db: float = -18.0, max_gain_in_db: float = 6.0, p: float = 0.5
     ):
         """
         :param p:
