@@ -68,7 +68,7 @@ if __name__ == "__main__":
     samples, _ = librosa.load(
         os.path.join(TEST_FIXTURES_DIR, "acoustic_guitar_0.wav"), sr=SAMPLE_RATE
     )
-    samples = torch.from_numpy(samples).unsqueeze(1).unsqueeze(1)
+    samples = torch.from_numpy(samples).unsqueeze(0).unsqueeze(0)
 
     transforms = [
         {"instance": Gain(p=1.0), "num_runs": 5},
