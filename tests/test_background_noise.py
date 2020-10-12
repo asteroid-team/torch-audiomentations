@@ -1,6 +1,8 @@
 import torch
 import unittest
-from torch_audiomentations import ApplyBackgroundNoise, load_audio, calculate_rms
+from torch_audiomentations.augmentations.background_noise import ApplyBackgroundNoise
+from torch_audiomentations.utils.dsp import calculate_rms
+from torch_audiomentations.utils.file import load_audio
 from .utils import TEST_FIXTURES_DIR
 
 

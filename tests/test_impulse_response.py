@@ -2,9 +2,9 @@ import os
 import unittest
 
 import torch
-from numpy.testing import assert_raises, assert_array_almost_equal
 
-from torch_audiomentations import ApplyImpulseResponse, load_audio
+from torch_audiomentations.augmentations.impulse_response import ApplyImpulseResponse
+from torch_audiomentations.utils.file import load_audio
 from .utils import TEST_FIXTURES_DIR
 
 
