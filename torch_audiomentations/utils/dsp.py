@@ -29,3 +29,11 @@ def resample_audio(audio, orig_sr, target_sr):
     # TODO: We can probably remove this function and call resample directly where needed
     """Resamples the audio to a new sampling rate."""
     return librosa.resample(audio, orig_sr, target_sr)
+
+
+def convert_decibels_to_amplitude_ratio(decibels):
+    return 10 ** (decibels / 20)
+
+
+def convert_amplitude_ratio_to_decibels(amplitude_ratio):
+    return 20 * torch.log10(amplitude_ratio)

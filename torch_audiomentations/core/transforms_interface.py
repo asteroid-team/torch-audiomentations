@@ -18,7 +18,7 @@ class BaseWaveformTransform(torch.nn.Module):
     supports_multichannel = False
 
     def __init__(self, p: float = 0.5):
-        super(BaseWaveformTransform, self).__init__()
+        super().__init__()
         assert 0.0 <= p <= 1.0
         self._p = p
         self.parameters = {}
