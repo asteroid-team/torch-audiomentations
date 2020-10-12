@@ -8,7 +8,7 @@ import time
 import torch
 from scipy.io import wavfile
 
-from torch_audiomentations import PolarityInversion
+from torch_audiomentations import PolarityInversion, Gain
 
 SAMPLE_RATE = 16000
 
@@ -68,8 +68,12 @@ if __name__ == "__main__":
     samples, _ = librosa.load(
         os.path.join(TEST_FIXTURES_DIR, "acoustic_guitar_0.wav"), sr=SAMPLE_RATE
     )
+    samples = torch.from_numpy(samples).unsqueeze(1).unsqueeze(1)
 
-    transforms = [{"instance": PolarityInversion(p=1.0), "num_runs": 1}]
+    transforms = [
+        {"instance": Gain(p=1.0), "num_runs": 5},
+        {"instance": PolarityInversion(p=1.0), "num_runs": 1},
+    ]
 
     execution_times = {}
 
@@ -87,8 +91,8 @@ if __name__ == "__main__":
             )
             with timer() as t:
                 augmented_samples = augmenter(
-                    samples=torch.from_numpy(samples), sample_rate=SAMPLE_RATE
-                ).numpy()
+                    samples=samples, sample_rate=SAMPLE_RATE
+                ).numpy().squeeze()
             execution_times[run_name].append(t.execution_time)
             wavfile.write(output_file_path, rate=SAMPLE_RATE, data=augmented_samples)
 
