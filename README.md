@@ -7,7 +7,8 @@ Audio data augmentation in PyTorch. Inspired by [audiomentations](https://github
 
 # Usage example
 
-```
+```python
+import torch
 from torch_audiomentations import Gain
 
 
