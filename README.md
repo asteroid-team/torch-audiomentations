@@ -5,6 +5,29 @@ Audio data augmentation in PyTorch. Inspired by [audiomentations](https://github
 
 `pip install torch-audiomentations`
 
+# Usage example
+
+```
+from torch_audiomentations import Gain
+
+
+torch_device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+# Initialize augmentation callable
+apply_gain_augmentation = Gain(
+  min_gain_in_db=-15.0,
+  max_gain_in_db=5.0,
+  p=0.5,
+).to(device=torch_device)
+
+# Make an example tensor with white noise.
+# This tensor represents 8 audio snippets with 2 channels (stereo) and 2 seconds of 16 kHz audio.
+audio_samples = torch.rand(size=(8, 2, 32000), dtype=torch.float32, device=torch_device) - 0.5
+
+# Apply gain augmentation. This varies the gain of (some of) the audio snippets in the batch independently.
+perturbed_audio_samples = apply_gain_augmentation(audio_samples, sample_rate=16000)
+```
+
 # Contribute
 
 Contributors welcome! 
