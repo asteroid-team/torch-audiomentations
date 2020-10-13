@@ -138,11 +138,12 @@ class TestGain(unittest.TestCase):
         with self.assertRaises(ValueError):
             Gain(min_gain_in_db=18, max_gain_in_db=-3, p=0.5)
 
+        augment = Gain(min_gain_in_db=-6, max_gain_in_db=-3, p=1.0)
+        # Change the parameters after init
+        augment.min_gain_in_db = 18
+        augment.max_gain_in_db = 3
         with self.assertRaises(ValueError):
-            augment = Gain(min_gain_in_db=-6, max_gain_in_db=-3, p=0.5)
-            # Change the parameters after init
-            augment.min_gain_in_db = 18
-            augment.max_gain_in_db = 3
+            augment(torch.tensor([[[1.0, 0.5, 0.25, 0.125]]], dtype=torch.float32), 16000)
 
     @pytest.mark.skipif(not torch.cuda.is_available(), reason="Requires CUDA")
     def test_gain_to_device_cuda(self):
