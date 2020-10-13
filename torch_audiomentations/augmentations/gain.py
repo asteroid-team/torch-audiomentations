@@ -23,63 +23,24 @@ class Gain(BaseWaveformTransform):
         :param p:
         """
         super().__init__(p)
-        self.register_buffer(
-            name="_min_gain_in_db",
-            tensor=torch.tensor(min_gain_in_db, dtype=torch.float32),
-        )
-        self.register_buffer(
-            name="_max_gain_in_db",
-            tensor=torch.tensor(max_gain_in_db, dtype=torch.float32),
-        )
-        self.gain_distribution = self.reset_distribution()
-
-    def reset_distribution(self):
-        self.gain_distribution = torch.distributions.Uniform(
-            low=self._min_gain_in_db, high=self._max_gain_in_db, validate_args=True
-        )
-        return self.gain_distribution
-
-    def to(self, *args, **kwargs):
-        return_value = super().to(*args, **kwargs)
-        self.reset_distribution()
-        return return_value
-
-    def cuda(self, *args, **kwargs):
-        return_value = super().cuda(*args, **kwargs)
-        self.reset_distribution()
-        return return_value
-
-    def cpu(self, *args, **kwargs):
-        return_value = super().cpu(*args, **kwargs)
-        self.reset_distribution()
-        return return_value
-
-    @property
-    def min_gain_in_db(self):
-        return self._min_gain_in_db
-
-    @min_gain_in_db.setter
-    def min_gain_in_db(self, min_gain_in_db):
-        self._min_gain_in_db = torch.tensor(
-            min_gain_in_db, dtype=torch.float32, device=self._min_gain_in_db.device
-        )
-        self.reset_distribution()
-
-    @property
-    def max_gain_in_db(self):
-        return self._max_gain_in_db
-
-    @max_gain_in_db.setter
-    def max_gain_in_db(self, max_gain_in_db):
-        self._max_gain_in_db = torch.tensor(
-            max_gain_in_db, dtype=torch.float32, device=self._max_gain_in_db.device
-        )
-        self.reset_distribution()
+        self.min_gain_in_db = min_gain_in_db
+        self.max_gain_in_db = max_gain_in_db
+        if self.min_gain_in_db >= self.max_gain_in_db:
+            raise ValueError("min_gain_in_db must be higher than max_gain_in_db")
 
     def randomize_parameters(self, selected_samples, sample_rate: int):
+        distribution = torch.distributions.Uniform(
+            low=torch.tensor(
+                self.min_gain_in_db, dtype=torch.float32, device=selected_samples.device
+            ),
+            high=torch.tensor(
+                self.max_gain_in_db, dtype=torch.float32, device=selected_samples.device
+            ),
+            validate_args=True,
+        )
         selected_batch_size = selected_samples.size(0)
         self.parameters["gain_factors"] = convert_decibels_to_amplitude_ratio(
-            self.gain_distribution.sample(sample_shape=(selected_batch_size,))
+            distribution.sample(sample_shape=(selected_batch_size,))
         )
 
     def apply_transform(self, selected_samples, sample_rate: int):
