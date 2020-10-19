@@ -61,8 +61,6 @@ class PeakNormalization(BaseWaveformTransform):
                     "1-dimensional data is not supported by PeakNormalization"
                 )
 
-        self.parameters["gain_factors"] = None
-
     def apply_transform(self, selected_samples, sample_rate: int):
         selected_samples[self.parameters["selector"]] /= self.parameters["divisors"]
         return selected_samples
