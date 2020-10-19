@@ -48,6 +48,56 @@ comparison of the time it takes to run 1D convolution:
 torch-audiomentations is in a very early development stage, so it's not ready for prime time yet.
 Meanwhile, star the repo and stay tuned!
 
+# Waveform transforms
+
+## ApplyBackgroundNoise
+
+_Not released yet_
+
+Add background noise to the input audio.
+
+## Gain
+
+_Added in v0.1.0_
+
+Multiply the audio by a random amplitude factor to reduce or increase the volume. This
+technique can help a model become somewhat invariant to the overall gain of the input audio.
+
+Warning: This transform can return samples outside the [-1, 1] range, which may lead to
+clipping or wrap distortion, depending on what you do with the audio in a later stage.
+See also https://en.wikipedia.org/wiki/Clipping_(audio)#Digital_clipping
+
+## ApplyImpulseResponse
+
+_Not released yet_
+
+Convolve the given audio with impulse responses.
+
+## PeakNormalization
+
+_Added in v0.2.0_
+
+Apply a constant amount of gain, so that highest signal level present in each audio snippet
+in the batch becomes 0 dBFS, i.e. the loudest level allowed if all samples must be between
+-1 and 1.
+
+This transform has an alternative mode (apply_to="only_too_loud_sounds") where it only
+applies to audio snippets that have extreme values outside the [-1, 1] range. This is useful
+for avoiding digital clipping in audio that is too loud, while leaving other audio
+untouched.
+
+## PolarityInversion
+
+_Added in v0.1.0_
+
+Flip the audio samples upside-down, reversing their polarity. In other words, multiply the
+waveform by -1, so negative values become positive, and vice versa. The result will sound
+the same compared to the original when played back in isolation. However, when mixed with
+other audio sources, the result may be different. This waveform inversion technique
+is sometimes used for audio cancellation or obtaining the difference between two waveforms.
+However, in the context of audio data augmentation, this transform can be useful when
+training phase-aware machine learning models.
+
 # Version history
 
 ## v0.2.0 (2020-10-19)

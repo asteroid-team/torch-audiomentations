@@ -12,7 +12,7 @@ from ..utils.file import find_audio_files, load_audio
 
 class ApplyBackgroundNoise(BaseWaveformTransform):
     """
-    Applies a background noise to the input signal.
+    Add background noise to the input audio.
     """
 
     def __init__(

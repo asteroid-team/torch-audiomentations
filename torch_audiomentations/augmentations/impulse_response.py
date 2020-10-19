@@ -9,7 +9,7 @@ from ..utils.file import find_audio_files, load_audio
 
 class ApplyImpulseResponse(BaseWaveformTransform):
     """
-    Convolves an input signal with an impulse response.
+    Convolve the given audio with impulse responses.
     """
 
     def __init__(self, ir_path, device=torch.device("cpu"), convolve_mode="full", p=0.5):
