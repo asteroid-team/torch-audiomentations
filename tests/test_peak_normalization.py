@@ -203,3 +203,34 @@ class TestPeakNormalization(unittest.TestCase):
         self.assertEqual(num_unprocessed_examples + num_processed_examples, 1337)
         self.assertGreater(num_processed_examples, 0.2 * 1337)
         self.assertLess(num_processed_examples, 0.8 * 1337)
+
+    def test_freeze_parameters(self):
+        samples1 = np.array(
+            [[0.9, 0.5, -0.25, -0.125, 0.0], [0.9, 0.5, -0.25, -1.12, 0.0]],
+            dtype=np.float32,
+        )
+        samples2 = np.array(
+            [[0.1, -0.2, -0.35, -0.625, 2.0], [0.2, 0.9, -0.05, -0.12, 0.0]],
+            dtype=np.float32,
+        )
+        sample_rate = 16000
+
+        augment = PeakNormalization(p=1.0)
+        _ = augment(samples=torch.from_numpy(samples1), sample_rate=sample_rate).numpy()
+        augment.freeze_parameters()
+        processed_samples2 = augment(
+            samples=torch.from_numpy(samples2), sample_rate=sample_rate
+        ).numpy()
+        augment.unfreeze_parameters()
+
+        assert_almost_equal(
+            processed_samples2,
+            np.array(
+                [
+                    [0.1 / 0.9, -0.2 / 0.9, -0.35 / 0.9, -0.625 / 0.9, 2.0 / 0.9],
+                    [0.2 / 1.12, 0.9 / 1.12, -0.05 / 1.12, -0.12 / 1.12, 0.0 / 1.12],
+                ],
+                dtype=np.float32,
+            ),
+        )
+        self.assertEqual(processed_samples2.dtype, np.float32)
