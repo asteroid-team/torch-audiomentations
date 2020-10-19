@@ -62,5 +62,6 @@ class PeakNormalization(BaseWaveformTransform):
                 )
 
     def apply_transform(self, selected_samples, sample_rate: int):
-        selected_samples[self.parameters["selector"]] /= self.parameters["divisors"]
+        if "divisors" in self.parameters:
+            selected_samples[self.parameters["selector"]] /= self.parameters["divisors"]
         return selected_samples

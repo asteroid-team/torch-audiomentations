@@ -96,7 +96,7 @@ class TestPeakNormalization(unittest.TestCase):
         )
         self.assertEqual(processed_samples.dtype, np.float32)
 
-    def test_digital_silence(self):
+    def test_digital_silence_in_batch(self):
         """Check that there is no division by zero in case of digital silence (all zeros)."""
         samples = np.array(
             [[0.75, 0.5, -0.25, -0.125, 0.0], [0.0, 0.0, 0.0, 0.0, 0.0]], dtype=np.float32
@@ -116,6 +116,26 @@ class TestPeakNormalization(unittest.TestCase):
                     [0.0, 0.0, 0.0, 0.0, 0.0],
                 ],
                 dtype=np.float32,
+            ),
+        )
+        self.assertEqual(processed_samples.dtype, np.float32)
+
+    def test_only_digital_silence(self):
+        """Check that an exception is not thrown is selector is all False."""
+        samples = np.array(
+            [[0.0, 0.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, 0.0, 0.0]], dtype=np.float32
+        )
+        sample_rate = 16000
+
+        augment = PeakNormalization(p=1.0)
+        processed_samples = augment(
+            samples=torch.from_numpy(samples), sample_rate=sample_rate
+        ).numpy()
+
+        assert_almost_equal(
+            processed_samples,
+            np.array(
+                [[0.0, 0.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, 0.0, 0.0]], dtype=np.float32
             ),
         )
         self.assertEqual(processed_samples.dtype, np.float32)
