@@ -8,7 +8,7 @@ import time
 import torch
 from scipy.io import wavfile
 
-from torch_audiomentations import PolarityInversion, Gain
+from torch_audiomentations import PolarityInversion, Gain, PeakNormalization
 
 SAMPLE_RATE = 16000
 
@@ -73,6 +73,7 @@ if __name__ == "__main__":
     transforms = [
         {"instance": Gain(p=1.0), "num_runs": 5},
         {"instance": PolarityInversion(p=1.0), "num_runs": 1},
+        {"instance": PeakNormalization(p=1.0), "num_runs": 1},
     ]
 
     execution_times = {}
