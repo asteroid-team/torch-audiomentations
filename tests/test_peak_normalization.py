@@ -1,0 +1,205 @@
+import unittest
+
+import numpy as np
+import pytest
+import torch
+from numpy.testing import assert_almost_equal, assert_equal
+
+from torch_audiomentations.augmentations.peak_normalization import PeakNormalization
+
+
+class TestPeakNormalization(unittest.TestCase):
+    def test_apply_to_all_2_dim(self):
+        samples = np.array(
+            [
+                [0.75, 0.5, -0.25, -0.125, 0.0],
+                [0.9, 0.5, -0.25, -0.125, 0.0],
+                [0.9, 0.5, -0.25, -1.12, 0.0],
+            ],
+            dtype=np.float32,
+        )
+        sample_rate = 16000
+
+        augment = PeakNormalization(p=1.0)
+        processed_samples = augment(
+            samples=torch.from_numpy(samples), sample_rate=sample_rate
+        ).numpy()
+
+        assert_almost_equal(
+            processed_samples,
+            np.array(
+                [
+                    [0.75 / 0.75, 0.5 / 0.75, -0.25 / 0.75, -0.125 / 0.75, 0.0 / 0.75],
+                    [0.9 / 0.9, 0.5 / 0.9, -0.25 / 0.9, -0.125 / 0.9, 0.0 / 0.9],
+                    [0.9 / 1.12, 0.5 / 1.12, -0.25 / 1.12, -1.12 / 1.12, 0.0 / 1.12],
+                ],
+                dtype=np.float32,
+            ),
+        )
+        self.assertEqual(processed_samples.dtype, np.float32)
+
+    def test_apply_to_only_too_loud_sounds_2_dim(self):
+        samples = np.array(
+            [
+                [0.75, 0.5, -0.25, -0.125, 0.0],
+                [1.9, 0.5, -0.25, -0.125, 0.0],
+                [0.9, 0.5, -0.25, -1.12, 0.0],
+            ],
+            dtype=np.float32,
+        )
+        sample_rate = 16000
+
+        augment = PeakNormalization(apply_to="only_too_loud_sounds", p=1.0)
+        processed_samples = augment(
+            samples=torch.from_numpy(samples), sample_rate=sample_rate
+        ).numpy()
+
+        assert_almost_equal(
+            processed_samples,
+            np.array(
+                [
+                    [0.75, 0.5, -0.25, -0.125, 0.0],
+                    [1.9 / 1.9, 0.5 / 1.9, -0.25 / 1.9, -0.125 / 1.9, 0.0 / 1.9],
+                    [0.9 / 1.12, 0.5 / 1.12, -0.25 / 1.12, -1.12 / 1.12, 0.0 / 1.12],
+                ],
+                dtype=np.float32,
+            ),
+        )
+        self.assertEqual(processed_samples.dtype, np.float32)
+
+    def test_apply_to_only_too_loud_sounds_3_dim(self):
+        samples = np.array(
+            [
+                [[0.75, 0.5, -0.25, -0.125, 0.0]],
+                [[0.9, 0.5, -0.25, -0.125, 0.0]],
+                [[0.9, 0.5, -0.25, -1.12, 0.0]],
+            ],
+            dtype=np.float32,
+        )
+        sample_rate = 16000
+
+        augment = PeakNormalization(apply_to="only_too_loud_sounds", p=1.0)
+        processed_samples = augment(
+            samples=torch.from_numpy(samples), sample_rate=sample_rate
+        ).numpy()
+
+        assert_almost_equal(
+            processed_samples,
+            np.array(
+                [
+                    [[0.75, 0.5, -0.25, -0.125, 0.0]],
+                    [[0.9, 0.5, -0.25, -0.125, 0.0]],
+                    [[0.9 / 1.12, 0.5 / 1.12, -0.25 / 1.12, -1.12 / 1.12, 0.0 / 1.12]],
+                ],
+                dtype=np.float32,
+            ),
+        )
+        self.assertEqual(processed_samples.dtype, np.float32)
+
+    def test_digital_silence(self):
+        """Check that there is no division by zero in case of digital silence (all zeros)."""
+        samples = np.array(
+            [[0.75, 0.5, -0.25, -0.125, 0.0], [0.0, 0.0, 0.0, 0.0, 0.0]], dtype=np.float32
+        )
+        sample_rate = 16000
+
+        augment = PeakNormalization(p=1.0)
+        processed_samples = augment(
+            samples=torch.from_numpy(samples), sample_rate=sample_rate
+        ).numpy()
+
+        assert_almost_equal(
+            processed_samples,
+            np.array(
+                [
+                    [0.75 / 0.75, 0.5 / 0.75, -0.25 / 0.75, -0.125 / 0.75, 0.0 / 0.75],
+                    [0.0, 0.0, 0.0, 0.0, 0.0],
+                ],
+                dtype=np.float32,
+            ),
+        )
+        self.assertEqual(processed_samples.dtype, np.float32)
+
+    def test_never_apply(self):
+        samples = np.array(
+            [
+                [0.75, 0.5, -0.25, -0.125, 0.0],
+                [0.9, 0.5, -0.25, -0.125, 0.0],
+                [0.9, 0.5, -0.25, -1.12, 0.0],
+            ],
+            dtype=np.float32,
+        )
+        sample_rate = 16000
+
+        augment = PeakNormalization(p=0.0)
+        processed_samples = augment(
+            samples=torch.from_numpy(samples), sample_rate=sample_rate
+        ).numpy()
+
+        assert_equal(
+            processed_samples,
+            np.array(
+                [
+                    [0.75, 0.5, -0.25, -0.125, 0.0],
+                    [0.9, 0.5, -0.25, -0.125, 0.0],
+                    [0.9, 0.5, -0.25, -1.12, 0.0],
+                ],
+                dtype=np.float32,
+            ),
+        )
+        self.assertEqual(processed_samples.dtype, np.float32)
+
+    @pytest.mark.skipif(not torch.cuda.is_available(), reason="Requires CUDA")
+    def test_apply_to_all_3_dim_cuda(self):
+        samples = np.array(
+            [
+                [[0.75, 0.5, -0.25, -0.125, 0.0]],
+                [[0.9, 0.5, -0.25, -0.125, 0.0]],
+                [[0.9, 0.5, -0.25, -1.12, 0.0]],
+            ],
+            dtype=np.float32,
+        )
+        sample_rate = 16000
+
+        augment = PeakNormalization(p=1.0)
+        processed_samples = (
+            augment(samples=torch.from_numpy(samples).cuda(), sample_rate=sample_rate)
+            .cpu()
+            .numpy()
+        )
+
+        assert_almost_equal(
+            processed_samples,
+            np.array(
+                [
+                    [[0.75 / 0.75, 0.5 / 0.75, -0.25 / 0.75, -0.125 / 0.75, 0.0 / 0.75]],
+                    [[0.9 / 0.9, 0.5 / 0.9, -0.25 / 0.9, -0.125 / 0.9, 0.0 / 0.9]],
+                    [[0.9 / 1.12, 0.5 / 1.12, -0.25 / 1.12, -1.12 / 1.12, 0.0 / 1.12]],
+                ],
+                dtype=np.float32,
+            ),
+        )
+        self.assertEqual(processed_samples.dtype, np.float32)
+
+    def test_variability_within_batch(self):
+        samples = np.array([0.75, 0.5, 0.25, 0.125, 0.01], dtype=np.float32)
+        samples_batch = np.vstack([samples] * 1337)
+        sample_rate = 16000
+
+        augment = PeakNormalization(p=0.5)
+        processed_samples = augment(
+            samples=torch.from_numpy(samples_batch), sample_rate=sample_rate
+        ).numpy()
+        self.assertEqual(processed_samples.dtype, np.float32)
+
+        num_unprocessed_examples = 0
+        num_processed_examples = 0
+        for i in range(processed_samples.shape[0]):
+            if np.allclose(processed_samples[i], samples_batch[i]):
+                num_unprocessed_examples += 1
+            else:
+                num_processed_examples += 1
+
+        self.assertEqual(num_unprocessed_examples + num_processed_examples, 1337)
+        self.assertGreater(num_processed_examples, 0.2 * 1337)
+        self.assertLess(num_processed_examples, 0.8 * 1337)

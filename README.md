@@ -14,9 +14,9 @@ from torch_audiomentations import Gain
 
 # Initialize augmentation callable
 apply_gain_augmentation = Gain(
-  min_gain_in_db=-15.0,
-  max_gain_in_db=5.0,
-  p=0.5,
+    min_gain_in_db=-15.0,
+    max_gain_in_db=5.0,
+    p=0.5,
 )
 
 # Note: torch-audiomentations can run on CPU or GPU
