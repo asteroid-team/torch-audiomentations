@@ -50,9 +50,15 @@ Meanwhile, star the repo and stay tuned!
 
 # Version history
 
+## v0.2.0 (2020-10-19)
+
+* Simplify API for using CUDA tensors. The device is now inferred from the input tensor.
+* Implement `PeakNormalization`
+* Expose `convolve` in the API
+
 ## v0.1.0 (2020-10-12)
 
-Initial release with `Gain` and `PolarityInversion`
+* Initial release with `Gain` and `PolarityInversion`
 
 # Development
 

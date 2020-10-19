@@ -4,4 +4,4 @@ from .augmentations.peak_normalization import PeakNormalization
 
 from .utils.convolution import convolve
 
-__version__ = "0.1.0"
+__version__ = "0.2.0"
