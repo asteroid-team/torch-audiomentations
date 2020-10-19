@@ -36,6 +36,10 @@ class BaseWaveformTransform(torch.nn.Module):
         self.bernoulli_distribution = Bernoulli(self._p)
 
     def forward(self, samples, sample_rate: int):
+
+        if not self.training:
+            return samples
+
         if len(samples) == 0:
             warnings.warn(
                 "An empty samples tensor was passed to {}".format(self.__class__.__name__)

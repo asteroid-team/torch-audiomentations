@@ -30,6 +30,19 @@ class TestGain(unittest.TestCase):
         )
         self.assertEqual(processed_samples.dtype, np.float32)
 
+    def test_eval(self):
+        samples = np.array([[[1.0, 0.5, -0.25, -0.125, 0.0]]], dtype=np.float32)
+        sample_rate = 16000
+
+        augment = Gain(min_gain_in_db=-15, max_gain_in_db=5, p=1.0)
+        augment.eval()
+
+        processed_samples = augment(
+            samples=torch.from_numpy(samples), sample_rate=sample_rate
+        ).numpy()
+
+        np.testing.assert_array_equal(samples, processed_samples)
+
     def test_variability_within_batch(self):
         samples = np.array([1.0, 0.5, 0.25, 0.125, 0.01], dtype=np.float32)
         samples_batch = np.vstack([samples] * 10000)
