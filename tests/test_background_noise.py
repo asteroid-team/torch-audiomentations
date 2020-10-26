@@ -1,5 +1,7 @@
-import torch
 import unittest
+
+import torch
+
 from torch_audiomentations.augmentations.background_noise import ApplyBackgroundNoise
 from torch_audiomentations.utils.dsp import calculate_rms
 from torch_audiomentations.utils.file import load_audio
@@ -35,16 +37,29 @@ class TestApplyBackgroundNoise(unittest.TestCase):
         self.assertEqual(mixed_input.size(0), self.input_audio.size(0))
 
     def test_background_noise_no_guarantee_with_empty_tensor(self):
-        mixed_input = self.bg_noise_transform_no_guarantee(
-            self.empty_input_audio, self.sample_rate
+        with self.assertWarns(UserWarning) as warning_context_manager:
+            mixed_input = self.bg_noise_transform_no_guarantee(
+                self.empty_input_audio, self.sample_rate
+            )
+
+        self.assertIn(
+            "An empty samples tensor was passed", str(warning_context_manager.warning)
         )
+
         self.assertTrue(torch.equal(mixed_input, self.empty_input_audio))
         self.assertEqual(mixed_input.size(0), self.empty_input_audio.size(0))
 
     def test_background_noise_guaranteed_with_zero_length_samples(self):
-        mixed_input = self.bg_noise_transform_guaranteed(
-            self.empty_input_audio, self.sample_rate
+
+        with self.assertWarns(UserWarning) as warning_context_manager:
+            mixed_input = self.bg_noise_transform_guaranteed(
+                self.empty_input_audio, self.sample_rate
+            )
+
+        self.assertIn(
+            "An empty samples tensor was passed", str(warning_context_manager.warning)
         )
+
         self.assertTrue(torch.equal(mixed_input, self.empty_input_audio))
         self.assertEqual(mixed_input.size(0), self.empty_input_audio.size(0))
 

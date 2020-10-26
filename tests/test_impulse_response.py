@@ -46,7 +46,13 @@ class TestApplyImpulseResponse(unittest.TestCase):
         self.assertEqual(mixed_inputs.size(-1), self.input_audios.size(-1))
 
     def test_impulse_response_guaranteed_with_zero_length_samples(self):
-        mixed_inputs = self.ir_transform_guaranteed(
-            self.empty_input_audio, self.sample_rate
+        with self.assertWarns(UserWarning) as warning_context_manager:
+            mixed_inputs = self.ir_transform_guaranteed(
+                self.empty_input_audio, self.sample_rate
+            )
+
+        self.assertIn(
+            "An empty samples tensor was passed", str(warning_context_manager.warning)
         )
+
         self.assertTrue(torch.equal(mixed_inputs, self.empty_input_audio))
