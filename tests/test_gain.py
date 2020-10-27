@@ -106,9 +106,7 @@ class TestGain(unittest.TestCase):
         self.assertGreater(
             perturbation_type_counter["only_the_second_channel_changed"], 100
         )
-        self.assertLess(
-            perturbation_type_counter["only_the_second_channel_changed"], 500
-        )
+        self.assertLess(perturbation_type_counter["only_the_second_channel_changed"], 500)
         self.assertLess(perturbation_type_counter["both_channels_changed_equally"], 10)
         self.assertGreater(
             perturbation_type_counter["both_channels_changed_differently"], 100
@@ -210,9 +208,7 @@ class TestGain(unittest.TestCase):
             self.assertLess(
                 perturbation_type_counter["only_the_second_channel_changed"], 2
             )
-            self.assertLess(
-                perturbation_type_counter["both_channels_changed_equally"], 2
-            )
+            self.assertLess(perturbation_type_counter["both_channels_changed_equally"], 2)
             self.assertGreater(
                 perturbation_type_counter["both_channels_changed_differently"], 10
             )
@@ -301,8 +297,12 @@ class TestGain(unittest.TestCase):
         self.assertLess(perturbation_type_counter["zero_channels_changed"], 8000)
 
         # We allow both these two to be 1 due to numerical accuracy. Ideally they should be 0.
-        self.assertLessEqual(perturbation_type_counter["only_the_first_channel_changed"], 1)
-        self.assertLessEqual(perturbation_type_counter["only_the_second_channel_changed"], 1)
+        self.assertLessEqual(
+            perturbation_type_counter["only_the_first_channel_changed"], 1
+        )
+        self.assertLessEqual(
+            perturbation_type_counter["only_the_second_channel_changed"], 1
+        )
 
         self.assertLess(perturbation_type_counter["both_channels_changed_equally"], 100)
         self.assertGreater(
