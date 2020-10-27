@@ -1,6 +1,7 @@
 import warnings
 
 import torch
+import typing
 from torch.distributions import Bernoulli
 
 from torch_audiomentations.utils.multichannel import is_multichannel
@@ -17,10 +18,48 @@ class EmptyPathException(Exception):
 class BaseWaveformTransform(torch.nn.Module):
     supports_multichannel = False
 
-    def __init__(self, p: float = 0.5):
+    def __init__(
+        self,
+        mode: str = "per_example",
+        p: float = 0.5,
+        p_mode: typing.Optional[str] = None,
+    ):
+        """
+
+        :param mode:
+            mode="per_channel" means each channel gets processed independently.
+            mode="per_example" means each (multichannel) audio snippet gets processed
+                independently, i.e. all channels in each audio snippet get processed with the
+                same parameters.
+            mode="per_batch" means all (multichannel) audio snippets in the batch get processed
+                with the same parameters.
+        :param p: The probability of the transform being applied to a batch/example/channel
+            (see mode and p_mode). This number must be in the range [0.0, 1.0].
+        :param p_mode: This optional argument can be set to "per_example" or "per_channel" if
+            mode is set to "per_batch", or it can be set to "per_channel" if mode is set to
+            "per_example". In the latter case, the transform is applied to the randomly selected
+            examples, but the channels in those examples will be processed independently, i.e.
+            with different parameters. Default value: Same as mode.
+        """
         super().__init__()
         assert 0.0 <= p <= 1.0
+        self.mode = mode
         self._p = p
+        self.p_mode = p_mode
+        if self.p_mode is None:
+            self.p_mode = self.mode
+
+        # Check validity of mode/p_mode combination
+        if self.p_mode == "per_batch":
+            assert self.mode in ("per_batch", "per_example", "per_channel")
+            raise NotImplementedError("Sorry, per_batch is not implemented yet")  # TODO
+        elif self.p_mode == "per_example":
+            assert self.mode in ("per_example", "per_channel")
+        elif self.p_mode == "per_channel":
+            assert self.mode == "per_channel"
+        else:
+            raise Exception("Unknown mode/p_mode {}".format(self.p_mode))
+
         self.parameters = {}
         self.are_parameters_frozen = False
         self.bernoulli_distribution = Bernoulli(self._p)
@@ -36,7 +75,6 @@ class BaseWaveformTransform(torch.nn.Module):
         self.bernoulli_distribution = Bernoulli(self._p)
 
     def forward(self, samples, sample_rate: int):
-
         if not self.training:
             return samples
 
@@ -61,23 +99,81 @@ class BaseWaveformTransform(torch.nn.Module):
                 )
 
         if not self.are_parameters_frozen:
-            batch_size = samples.shape[0]
+            if self.p_mode == "per_example":
+                p_sample_size = samples.shape[0]
+            elif self.p_mode == "per_channel":
+                p_sample_size = samples.shape[0] * samples.shape[1]
+            elif self.p_mode == "per_batch":
+                # p_sample_size = 1
+                # TODO
+                raise NotImplementedError()
+            else:
+                raise Exception("Invalid mode")
             self.parameters = {
                 "should_apply": self.bernoulli_distribution.sample(
-                    sample_shape=(batch_size,)
+                    sample_shape=(p_sample_size,)
                 ).to(torch.bool)
             }
-            if self.parameters["should_apply"].any():
-                self.randomize_parameters(
-                    samples[self.parameters["should_apply"]], sample_rate
-                )
 
         if self.parameters["should_apply"].any():
             cloned_samples = samples.clone()
-            cloned_samples[self.parameters["should_apply"]] = self.apply_transform(
-                samples[self.parameters["should_apply"]], sample_rate
-            )
-            return cloned_samples
+
+            if self.p_mode == "per_channel":
+                batch_size = cloned_samples.shape[0]
+                num_channels = cloned_samples.shape[1]
+                cloned_samples = cloned_samples.view(
+                    batch_size * num_channels, 1, cloned_samples.shape[2]
+                )
+                selected_samples = cloned_samples[self.parameters["should_apply"]]
+
+                if not self.are_parameters_frozen:
+                    self.randomize_parameters(selected_samples, sample_rate)
+
+                cloned_samples[self.parameters["should_apply"]] = self.apply_transform(
+                    selected_samples, sample_rate
+                )
+
+                cloned_samples = cloned_samples.view(
+                    batch_size, num_channels, cloned_samples.shape[2]
+                )
+
+                return cloned_samples
+
+            elif self.p_mode == "per_example":
+                selected_samples = cloned_samples[self.parameters["should_apply"]]
+
+                if self.mode == "per_example":
+                    if not self.are_parameters_frozen:
+                        self.randomize_parameters(selected_samples, sample_rate)
+
+                    cloned_samples[
+                        self.parameters["should_apply"]
+                    ] = self.apply_transform(selected_samples, sample_rate)
+                    return cloned_samples
+                elif self.mode == "per_channel":
+                    batch_size = selected_samples.shape[0]
+                    num_channels = selected_samples.shape[1]
+                    selected_samples = selected_samples.view(
+                        batch_size * num_channels, 1, selected_samples.shape[2]
+                    )
+
+                    if not self.are_parameters_frozen:
+                        self.randomize_parameters(selected_samples, sample_rate)
+
+                    perturbed_samples = self.apply_transform(
+                        selected_samples, sample_rate
+                    )
+                    perturbed_samples = perturbed_samples.view(
+                        batch_size, num_channels, selected_samples.shape[2]
+                    )
+
+                    cloned_samples[self.parameters["should_apply"]] = perturbed_samples
+                    return cloned_samples
+                else:
+                    raise Exception("Invalid mode/p_mode combination")
+            else:
+                # TODO
+                raise NotImplementedError()
 
         return samples
 
@@ -90,11 +186,11 @@ class BaseWaveformTransform(torch.nn.Module):
         pass
 
     def apply_transform(self, selected_samples, sample_rate: int):
-        raise NotImplementedError
+        raise NotImplementedError()
 
     def serialize_parameters(self):
         """Return the parameters as a JSON-serializable dict."""
-        raise NotImplementedError
+        raise NotImplementedError()
         # TODO: Clone the params and convert any tensors into json-serializable lists
         # return self.parameters
 

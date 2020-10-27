@@ -1,4 +1,5 @@
 import torch
+import typing
 
 from ..core.transforms_interface import BaseWaveformTransform
 from ..utils.dsp import convert_decibels_to_amplitude_ratio
@@ -17,12 +18,14 @@ class Gain(BaseWaveformTransform):
     supports_multichannel = True
 
     def __init__(
-        self, min_gain_in_db: float = -18.0, max_gain_in_db: float = 6.0, p: float = 0.5
+        self,
+        min_gain_in_db: float = -18.0,
+        max_gain_in_db: float = 6.0,
+        mode: str = "per_example",
+        p: float = 0.5,
+        p_mode: typing.Optional[str] = None,
     ):
-        """
-        :param p:
-        """
-        super().__init__(p)
+        super().__init__(mode, p, p_mode)
         self.min_gain_in_db = min_gain_in_db
         self.max_gain_in_db = max_gain_in_db
         if self.min_gain_in_db >= self.max_gain_in_db:
@@ -46,6 +49,7 @@ class Gain(BaseWaveformTransform):
     def apply_transform(self, selected_samples, sample_rate: int):
         num_dimensions = len(selected_samples.shape)
         if num_dimensions == 1:
+            # TODO: We shouldn't support this
             gain_factors = self.parameters["gain_factors"]
         elif num_dimensions == 2:
             gain_factors = self.parameters["gain_factors"].unsqueeze(1)
