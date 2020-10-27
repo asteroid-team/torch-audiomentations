@@ -104,9 +104,7 @@ class BaseWaveformTransform(torch.nn.Module):
             elif self.p_mode == "per_channel":
                 p_sample_size = samples.shape[0] * samples.shape[1]
             elif self.p_mode == "per_batch":
-                # p_sample_size = 1
-                # TODO
-                raise NotImplementedError()
+                p_sample_size = 1
             else:
                 raise Exception("Invalid mode")
             self.parameters = {
@@ -171,9 +169,17 @@ class BaseWaveformTransform(torch.nn.Module):
                     return cloned_samples
                 else:
                     raise Exception("Invalid mode/p_mode combination")
+            elif self.p_mode == "per_batch":
+                if self.mode == "per_batch":
+                    raise NotImplementedError()
+                elif self.mode == "per_example":
+                    raise NotImplementedError()
+                elif self.mode == "per_channel":
+                    raise NotImplementedError()
+                else:
+                    raise Exception("Invalid mode")
             else:
-                # TODO
-                raise NotImplementedError()
+                raise Exception("Invalid p_mode {}".format(self.p_mode))
 
         return samples
 
