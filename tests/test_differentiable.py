@@ -31,7 +31,7 @@ IR_PATH = TEST_FIXTURES_DIR / "ir"
         pytest.param(PeakNormalization(p=1.0), marks=pytest.mark.skip("Not differentiable")),
     ]
 )
-def test_polarity_inversion_is_differentiable(augment):
+def test_transform_is_differentiable(augment):
     sample_rate = 16000
     # Note: using float64 dtype to be compatible with ApplyBackgroundNoise fixtures
     samples = torch.tensor([[1.0, 0.5, -0.25, -0.125, 0.0]], dtype=torch.float64)
