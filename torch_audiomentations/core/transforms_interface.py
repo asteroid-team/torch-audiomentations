@@ -118,7 +118,7 @@ class BaseWaveformTransform(torch.nn.Module):
             if self.p_mode == "per_channel":
                 batch_size = cloned_samples.shape[0]
                 num_channels = cloned_samples.shape[1]
-                cloned_samples = cloned_samples.view(
+                cloned_samples = cloned_samples.reshape(
                     batch_size * num_channels, 1, cloned_samples.shape[2]
                 )
                 selected_samples = cloned_samples[self.parameters["should_apply"]]
@@ -130,7 +130,7 @@ class BaseWaveformTransform(torch.nn.Module):
                     selected_samples, sample_rate
                 )
 
-                cloned_samples = cloned_samples.view(
+                cloned_samples = cloned_samples.reshape(
                     batch_size, num_channels, cloned_samples.shape[2]
                 )
 
@@ -150,7 +150,7 @@ class BaseWaveformTransform(torch.nn.Module):
                 elif self.mode == "per_channel":
                     batch_size = selected_samples.shape[0]
                     num_channels = selected_samples.shape[1]
-                    selected_samples = selected_samples.view(
+                    selected_samples = selected_samples.reshape(
                         batch_size * num_channels, 1, selected_samples.shape[2]
                     )
 
@@ -160,7 +160,7 @@ class BaseWaveformTransform(torch.nn.Module):
                     perturbed_samples = self.apply_transform(
                         selected_samples, sample_rate
                     )
-                    perturbed_samples = perturbed_samples.view(
+                    perturbed_samples = perturbed_samples.reshape(
                         batch_size, num_channels, selected_samples.shape[2]
                     )
 
@@ -172,7 +172,7 @@ class BaseWaveformTransform(torch.nn.Module):
                 if self.mode == "per_batch":
                     batch_size = cloned_samples.shape[0]
                     num_channels = cloned_samples.shape[1]
-                    cloned_samples = cloned_samples.view(
+                    cloned_samples = cloned_samples.reshape(
                         1, batch_size * num_channels, cloned_samples.shape[2]
                     )
 
@@ -180,7 +180,7 @@ class BaseWaveformTransform(torch.nn.Module):
                         self.randomize_parameters(cloned_samples, sample_rate)
 
                     perturbed_samples = self.apply_transform(cloned_samples, sample_rate)
-                    perturbed_samples = perturbed_samples.view(
+                    perturbed_samples = perturbed_samples.reshape(
                         batch_size, num_channels, cloned_samples.shape[2]
                     )
                     return perturbed_samples
@@ -191,7 +191,7 @@ class BaseWaveformTransform(torch.nn.Module):
                 elif self.mode == "per_channel":
                     batch_size = cloned_samples.shape[0]
                     num_channels = cloned_samples.shape[1]
-                    cloned_samples = cloned_samples.view(
+                    cloned_samples = cloned_samples.reshape(
                         batch_size * num_channels, 1, cloned_samples.shape[2]
                     )
 
@@ -200,7 +200,7 @@ class BaseWaveformTransform(torch.nn.Module):
 
                     perturbed_samples = self.apply_transform(cloned_samples, sample_rate)
 
-                    perturbed_samples = perturbed_samples.view(
+                    perturbed_samples = perturbed_samples.reshape(
                         batch_size, num_channels, cloned_samples.shape[2]
                     )
                     return perturbed_samples
