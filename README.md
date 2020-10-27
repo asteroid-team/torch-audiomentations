@@ -51,8 +51,7 @@ comparison of the time it takes to run 1D convolution:
 
 # Current state
 
-torch-audiomentations is in a very early development stage, so it's not ready for prime time yet.
-Meanwhile, star the repo and stay tuned!
+torch-audiomentations is in an early development stage, so the APIs are subject to change.
 
 # Waveform transforms
 
