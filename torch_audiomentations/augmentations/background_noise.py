@@ -4,6 +4,7 @@ import math
 import numpy as np
 import soundfile
 import torch
+import typing
 
 from ..core.transforms_interface import BaseWaveformTransform, EmptyPathException
 from ..utils.dsp import calculate_rms, calculate_desired_noise_rms
@@ -21,10 +22,12 @@ class ApplyBackgroundNoise(BaseWaveformTransform):
         min_snr_in_db: float = 3.0,
         max_snr_in_db: float = 30.0,
         device=torch.device("cpu"),
+        mode: str = "per_example",
         p: float = 0.5,
+        p_mode: typing.Optional[str] = None,
     ):
         # TODO: infer device from the given samples instead
-        super(ApplyBackgroundNoise, self).__init__(p)
+        super(ApplyBackgroundNoise, self).__init__(mode, p, p_mode)
         self.bg_path = find_audio_files(bg_path)
 
         if len(self.bg_path) == 0:

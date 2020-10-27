@@ -1,6 +1,7 @@
 import random
 
 import torch
+import typing
 
 from ..core.transforms_interface import BaseWaveformTransform, EmptyPathException
 from ..utils.convolution import convolve
@@ -12,9 +13,17 @@ class ApplyImpulseResponse(BaseWaveformTransform):
     Convolve the given audio with impulse responses.
     """
 
-    def __init__(self, ir_path, device=torch.device("cpu"), convolve_mode="full", p=0.5):
+    def __init__(
+        self,
+        ir_path,
+        device=torch.device("cpu"),
+        convolve_mode="full",
+        mode: str = "per_example",
+        p: float = 0.5,
+        p_mode: typing.Optional[str] = None,
+    ):
         # TODO: infer device from the given samples instead
-        super(ApplyImpulseResponse, self).__init__(p)
+        super(ApplyImpulseResponse, self).__init__(mode, p, p_mode)
 
         self.ir_path = find_audio_files(ir_path)
 
