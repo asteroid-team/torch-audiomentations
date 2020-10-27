@@ -10,7 +10,7 @@ from scipy.io import wavfile
 
 from torch_audiomentations import PolarityInversion, Gain, PeakNormalization
 
-SAMPLE_RATE = 16000
+SAMPLE_RATE = 44100
 
 BASE_DIR = Path(os.path.abspath(os.path.dirname(os.path.dirname(__file__))))
 SCRIPTS_DIR = BASE_DIR / "scripts"
@@ -65,46 +65,63 @@ if __name__ == "__main__":
     np.random.seed(42)
     random.seed(42)
 
-    samples, _ = librosa.load(
-        os.path.join(TEST_FIXTURES_DIR, "acoustic_guitar_0.wav"), sr=SAMPLE_RATE
+    filenames = ["perfect-alley1.ogg", "perfect-alley2.ogg"]
+    samples1, _ = librosa.load(
+        os.path.join(TEST_FIXTURES_DIR, filenames[0]), sr=SAMPLE_RATE, mono=False
     )
-    samples = torch.from_numpy(samples).unsqueeze(0).unsqueeze(0)
+    samples2, _ = librosa.load(
+        os.path.join(TEST_FIXTURES_DIR, filenames[1]), sr=SAMPLE_RATE, mono=False
+    )
+    samples = np.stack((samples1, samples2), axis=0)
+    samples = torch.from_numpy(samples)
 
-    transforms = [
-        {"instance": Gain(p=1.0), "num_runs": 5},
-        {"instance": PolarityInversion(p=1.0), "num_runs": 1},
-        {"instance": PeakNormalization(p=1.0), "num_runs": 1},
-    ]
+    modes = ["per_batch", "per_example", "per_channel"]
+    for mode in modes:
+        transforms = [
+            {"instance": Gain(mode=mode, p=1.0), "num_runs": 5},
+            {"instance": PolarityInversion(mode=mode, p=1.0), "num_runs": 1},
+            {"instance": PeakNormalization(mode=mode, p=1.0), "num_runs": 1},
+        ]
 
-    execution_times = {}
+        execution_times = {}
 
-    for transform in transforms:
-        augmenter = transform["instance"]
-        run_name = (
-            transform.get("name")
-            if transform.get("name")
-            else transform["instance"].__class__.__name__
-        )
-        execution_times[run_name] = []
-        for i in range(transform["num_runs"]):
-            output_file_path = os.path.join(
-                output_dir, "{}_{:03d}.wav".format(run_name, i)
+        for transform in transforms:
+            augmenter = transform["instance"]
+            transform_name = (
+                transform.get("name")
+                if transform.get("name")
+                else transform["instance"].__class__.__name__
             )
-            with timer() as t:
-                augmented_samples = augmenter(
-                    samples=samples, sample_rate=SAMPLE_RATE
-                ).numpy().squeeze()
-            execution_times[run_name].append(t.execution_time)
-            wavfile.write(output_file_path, rate=SAMPLE_RATE, data=augmented_samples)
+            execution_times[transform_name] = []
+            for i in range(transform["num_runs"]):
+                with timer() as t:
+                    augmented_samples = augmenter(
+                        samples=samples, sample_rate=SAMPLE_RATE
+                    ).numpy()
+                execution_times[transform_name].append(t.execution_time)
+                for example_idx, original_filename in enumerate(filenames):
+                    output_file_path = os.path.join(
+                        output_dir,
+                        "{}_{}_{:03d}_{}.wav".format(
+                            transform_name, mode, i, Path(original_filename).stem,
+                        ),
+                    )
+                    wavfile.write(
+                        output_file_path,
+                        rate=SAMPLE_RATE,
+                        data=augmented_samples[example_idx].transpose(),
+                    )
 
-    for run_name in execution_times:
-        if len(execution_times[run_name]) > 1:
-            print(
-                "{:<32} {:.3f} s (std: {:.3f} s)".format(
-                    run_name,
-                    np.mean(execution_times[run_name]),
-                    np.std(execution_times[run_name]),
+        for transform_name in execution_times:
+            if len(execution_times[transform_name]) > 1:
+                print(
+                    "{:<32} {:.3f} s (std: {:.3f} s)".format(
+                        transform_name,
+                        np.mean(execution_times[transform_name]),
+                        np.std(execution_times[transform_name]),
+                    )
                 )
-            )
-        else:
-            print("{:<32} {:.3f} s".format(run_name, np.mean(execution_times[run_name])))
+            else:
+                print(
+                    "{:<32} {:.3f} s".format(transform_name, np.mean(execution_times[transform_name]))
+                )
