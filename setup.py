@@ -37,6 +37,9 @@ setup(
         exclude=["build", "scripts", "dist", "images", "test_fixtures", "tests"]
     ),
     install_requires=["torch>=1.2.0"],
+    extras_require={
+        'dev': ['pytest']
+    },
     python_requires=">=3.6",
     classifiers=[
         "Programming Language :: Python :: 3",
