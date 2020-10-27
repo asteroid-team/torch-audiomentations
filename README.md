@@ -100,6 +100,11 @@ training phase-aware machine learning models.
 
 # Version history
 
+## v0.3.0 (2020-10-27)
+
+* Transforms now return the input unchanged when they are in eval mode
+* Add support for alternative modes `per_batch` and `per_channel`
+
 ## v0.2.0 (2020-10-19)
 
 * Simplify API for using CUDA tensors. The device is now inferred from the input tensor.
