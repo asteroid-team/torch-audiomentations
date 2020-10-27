@@ -37,7 +37,6 @@ class TestGain(unittest.TestCase):
         )
         samples_batch = np.stack([samples] * 10000, axis=0)
         sample_rate = 16000
-        print(samples_batch.shape)
 
         augment = Gain(
             min_gain_in_db=-30.0, max_gain_in_db=0.0, mode="per_channel", p=0.5
@@ -131,7 +130,6 @@ class TestGain(unittest.TestCase):
         )
         samples_batch = np.stack([samples] * 10000, axis=0)
         sample_rate = 16000
-        print(samples_batch.shape)
 
         augment = Gain(
             min_gain_in_db=-30.0,
@@ -217,6 +215,34 @@ class TestGain(unittest.TestCase):
 
         self.assertEqual(processed_samples.dtype, np.float32)
 
+    def test_gain_per_batch(self):
+        samples = np.array(
+            [[1.0, 0.5, 0.25, 0.125, 0.01], [0.95, 0.5, 0.25, 0.12, 0.011]],
+            dtype=np.float32,
+        )
+        samples_batch = np.stack([samples] * 4, axis=0)
+        sample_rate = 16000
+
+        augment = Gain(min_gain_in_db=-30.0, max_gain_in_db=0.0, mode="per_batch", p=0.5)
+        num_unprocessed_batches = 0
+        num_processed_batches = 0
+        for i in range(1000):
+            processed_samples = augment(
+                samples=torch.from_numpy(samples_batch), sample_rate=sample_rate
+            ).numpy()
+
+            estimated_gain_factors = processed_samples / samples_batch
+            self.assertAlmostEqual(
+                np.amin(estimated_gain_factors), np.amax(estimated_gain_factors), places=6
+            )
+            if np.allclose(processed_samples, samples_batch):
+                num_unprocessed_batches += 1
+            else:
+                num_processed_batches += 1
+
+        self.assertGreater(num_processed_batches, 200)
+        self.assertGreater(num_unprocessed_batches, 200)
+
     def test_eval(self):
         samples = np.array([[[1.0, 0.5, -0.25, -0.125, 0.0]]], dtype=np.float32)
         sample_rate = 16000
@@ -266,6 +292,54 @@ class TestGain(unittest.TestCase):
         self.assertEqual(num_unprocessed_examples + num_processed_examples, 10000)
         self.assertGreater(num_processed_examples, 2000)
         self.assertLess(num_processed_examples, 8000)
+
+    def test_variability_within_batch_with_p_mode_per_batch(self):
+        samples = np.array([1.0, 0.5, 0.25, 0.125, 0.01], dtype=np.float32)
+        samples_batch = np.vstack([samples] * 100)
+        sample_rate = 16000
+
+        augment = Gain(min_gain_in_db=-6, max_gain_in_db=6, p=0.5, p_mode="per_batch")
+
+        num_processed_batches = 0
+        for _ in range(100):
+            processed_samples = augment(
+                samples=torch.from_numpy(samples_batch), sample_rate=sample_rate
+            ).numpy()
+            self.assertEqual(processed_samples.dtype, np.float32)
+
+            if np.allclose(processed_samples, samples_batch):
+                continue
+            else:
+                num_processed_batches += 1
+
+            num_unprocessed_examples = 0
+            num_processed_examples = 0
+            actual_gains_in_db = []
+            for i in range(processed_samples.shape[0]):
+                if np.allclose(processed_samples[i], samples_batch[i]):
+                    num_unprocessed_examples += 1
+                else:
+                    num_processed_examples += 1
+
+                    estimated_gain_factor = np.mean(
+                        processed_samples[i] / samples_batch[i]
+                    )
+                    estimated_gain_factor_in_db = convert_amplitude_ratio_to_decibels(
+                        torch.tensor(estimated_gain_factor)
+                    ).item()
+
+                    self.assertGreaterEqual(estimated_gain_factor_in_db, -6)
+                    self.assertLessEqual(estimated_gain_factor_in_db, 6)
+                    actual_gains_in_db.append(estimated_gain_factor_in_db)
+
+            mean_gain_in_db = np.mean(actual_gains_in_db)
+            self.assertGreater(mean_gain_in_db, -1)
+            self.assertLess(mean_gain_in_db, 1)
+
+            self.assertEqual(num_unprocessed_examples, 0)
+            self.assertEqual(num_processed_examples, 100)
+
+        self.assertGreater(num_processed_batches, 5)
 
     def test_reset_distribution(self):
         samples = np.array([1.0, 0.5, 0.25, 0.125, 0.01], dtype=np.float32)

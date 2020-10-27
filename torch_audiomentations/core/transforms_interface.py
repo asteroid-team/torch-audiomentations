@@ -52,7 +52,6 @@ class BaseWaveformTransform(torch.nn.Module):
         # Check validity of mode/p_mode combination
         if self.p_mode == "per_batch":
             assert self.mode in ("per_batch", "per_example", "per_channel")
-            raise NotImplementedError("Sorry, per_batch is not implemented yet")  # TODO
         elif self.p_mode == "per_example":
             assert self.mode in ("per_example", "per_channel")
         elif self.p_mode == "per_channel":
@@ -171,11 +170,26 @@ class BaseWaveformTransform(torch.nn.Module):
                     raise Exception("Invalid mode/p_mode combination")
             elif self.p_mode == "per_batch":
                 if self.mode == "per_batch":
-                    raise NotImplementedError()
+                    batch_size = cloned_samples.shape[0]
+                    num_channels = cloned_samples.shape[1]
+                    cloned_samples = cloned_samples.view(
+                        1, batch_size * num_channels, cloned_samples.shape[2]
+                    )
+
+                    if not self.are_parameters_frozen:
+                        self.randomize_parameters(cloned_samples, sample_rate)
+
+                    perturbed_samples = self.apply_transform(cloned_samples, sample_rate)
+                    perturbed_samples = perturbed_samples.view(
+                        batch_size, num_channels, cloned_samples.shape[2]
+                    )
+                    return perturbed_samples
                 elif self.mode == "per_example":
-                    raise NotImplementedError()
+                    if not self.are_parameters_frozen:
+                        self.randomize_parameters(cloned_samples, sample_rate)
+                    return self.apply_transform(cloned_samples, sample_rate)
                 elif self.mode == "per_channel":
-                    raise NotImplementedError()
+                    raise NotImplementedError()  # TODO
                 else:
                     raise Exception("Invalid mode")
             else:
