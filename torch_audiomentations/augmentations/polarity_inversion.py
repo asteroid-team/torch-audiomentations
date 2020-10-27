@@ -1,3 +1,5 @@
+import typing
+
 from ..core.transforms_interface import BaseWaveformTransform
 
 
@@ -14,11 +16,16 @@ class PolarityInversion(BaseWaveformTransform):
 
     supports_multichannel = True
 
-    def __init__(self, p: float = 0.5):
+    def __init__(
+        self,
+        mode: str = "per_example",
+        p: float = 0.5,
+        p_mode: typing.Optional[str] = None,
+    ):
         """
         :param p:
         """
-        super().__init__(p)
+        super().__init__(mode, p, p_mode)
 
     def apply_transform(self, selected_samples, sample_rate: int):
         return -selected_samples

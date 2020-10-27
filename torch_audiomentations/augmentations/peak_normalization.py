@@ -1,4 +1,5 @@
 import torch
+import typing
 
 from ..core.transforms_interface import BaseWaveformTransform
 
@@ -17,11 +18,17 @@ class PeakNormalization(BaseWaveformTransform):
 
     supports_multichannel = True
 
-    def __init__(self, apply_to="all", p: float = 0.5):
+    def __init__(
+        self,
+        apply_to="all",
+        mode: str = "per_example",
+        p: float = 0.5,
+        p_mode: typing.Optional[str] = None,
+    ):
         """
         :param p:
         """
-        super().__init__(p)
+        super().__init__(mode, p, p_mode)
         assert apply_to in ("all", "only_too_loud_sounds")
         self.apply_to = apply_to
 
