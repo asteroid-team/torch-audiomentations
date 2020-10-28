@@ -8,6 +8,7 @@ Audio data augmentation in PyTorch. Inspired by [audiomentations](https://github
 ✅ Three modes: `per_batch`, `per_example` and `per_channel`  
 ✅ Cross-platform compatibility  
 ✅ Permissive MIT license  
+✅ High test coverage  
 
 # Setup
 
