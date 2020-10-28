@@ -6,6 +6,6 @@ audioread>=2.1.8
 ffmpeg-python
 librosa>=0.6.1,<=0.8
 py-cpuinfo>=7.0.0
-pytest>=5.3.4
-pytest-cov>=2.8.1
+pytest==5.3.4
+pytest-cov==2.8.1
 coverage>=5.3
