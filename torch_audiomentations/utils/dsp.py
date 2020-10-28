@@ -28,6 +28,7 @@ def resample_audio(audio, orig_sr, target_sr):
     # TODO: We can probably remove this function and call resample directly where needed
     """Resamples the audio to a new sampling rate."""
     import librosa
+
     return librosa.resample(audio, orig_sr, target_sr)
 
 

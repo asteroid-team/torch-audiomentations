@@ -14,22 +14,22 @@ IR_PATH = TEST_FIXTURES_DIR / "ir"
 
 
 @pytest.mark.parametrize(
-    'augment',
+    "augment",
     [
         # Differentiable transforms:
         PolarityInversion(p=1.0),
         Gain(min_gain_in_db=-6.000001, max_gain_in_db=-6, p=1.0),
         ApplyImpulseResponse(IR_PATH, p=1.0),
         ApplyBackgroundNoise(BG_NOISE_PATH, 20, p=1.0),
-
         # Non-differentiable transforms:
-
         # RuntimeError: one of the variables needed for gradient computation has been modified by an inplace operation:
         # [torch.DoubleTensor [1, 5]], which is output 0 of IndexBackward, is at version 1; expected version 0 instead.
         # Hint: enable anomaly detection to find the operation that failed to compute its gradient,
         # with torch.autograd.set_detect_anomaly(True).
-        pytest.param(PeakNormalization(p=1.0), marks=pytest.mark.skip("Not differentiable")),
-    ]
+        pytest.param(
+            PeakNormalization(p=1.0), marks=pytest.mark.skip("Not differentiable")
+        ),
+    ],
 )
 def test_transform_is_differentiable(augment):
     sample_rate = 16000
@@ -46,9 +46,7 @@ def test_transform_is_differentiable(augment):
     optim = SGD([samples], lr=1.0)
     for i in range(10):
         optim.zero_grad()
-        transformed = augment(
-            samples=samples, sample_rate=sample_rate
-        )
+        transformed = augment(samples=samples, sample_rate=sample_rate)
         # Compute mean absolute error
         loss = torch.mean(torch.abs(samples - transformed))
         loss.backward()
