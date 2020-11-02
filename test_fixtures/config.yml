@@ -1,0 +1,3 @@
+Gain:
+  min_gain_in_db: -12.0
+  mode: per_channel
