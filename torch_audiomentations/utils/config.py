@@ -116,7 +116,9 @@ def from_yaml(file_yml: Union[Path, Text]) -> Transform:
     try:
         import yaml
     except ImportError as e:
-        raise ImportError("")
+        raise ImportError(
+            "PyYAML package is needed by `from_yaml`: please install it first."
+        )
 
     with open(file_yml, "r") as f:
         config = yaml.load(f, Loader=yaml.SafeLoader)
