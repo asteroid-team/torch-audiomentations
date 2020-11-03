@@ -9,3 +9,4 @@ py-cpuinfo>=7.0.0
 pytest==5.3.4
 pytest-cov==2.8.1
 coverage==4.5.2
+PyYAML>=5.3.1
