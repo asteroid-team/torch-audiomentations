@@ -1,70 +1,50 @@
 import warnings
-from typing import Any, Dict, Mapping, Text, Union
+from typing import Any, Dict, Text, Union
 from pathlib import Path
 import torch_audiomentations
+
 from torch_audiomentations.core.transforms_interface import BaseWaveformTransform
 
-# TODO: remove this try/except/else once Compose is available
-# https://github.com/asteroid-team/torch-audiomentations/issues/23
-try:
-    from torch_audiomentations import Compose
-except ImportError:
-    COMPOSE_NOT_IMPLEMENTED = True
-else:
-    COMPOSE_NOT_IMPLEMENTED = False
-
 # TODO: define this elsewhere?
-# TODO: update when a new type of transform is added (e.g. BaseSpectrogramTransform?)
-# TODO: remove this if/else once Compose is available
+# TODO: update when a new type of transform is added (e.g. BaseSpectrogramTransform? Compose? OneOf? SomeOf?)
 # https://github.com/asteroid-team/torch-audiomentations/issues/23
-if COMPOSE_NOT_IMPLEMENTED:
-    Transform = Union[BaseWaveformTransform]
-else:
-    Transform = Union[BaseWaveformTransform, Compose]
+# https://github.com/asteroid-team/torch-audiomentations/issues/26
+Transform = Union[BaseWaveformTransform]
 
 
-def from_dict(config: Dict[Text, Dict[Text, Any]]) -> Transform:
+def from_dict(config: Dict[Text, Union[Text, Dict[Text, Any]]]) -> Transform:
     """Instantiate a transform from a configuration dictionary.
 
     `from_dict` can be used to instantiate a transform from its class name.
     For instance, these two pieces of code are equivalent:
 
-    >>> from torch_audiomentations import TransformClassName
-    >>> transform = TransformClassName(param_name=param_value, ...)
+    >>> from torch_audiomentations import Gain
+    >>> transform = Gain(min_gain_in_db=-12.0)
 
-    >>> transform = from_dict({"TransformClassName": {"param_name": param_value, ...}}) 
+    >>> transform = from_dict({'transform': 'Gain', 
+    ...                        'params': {'min_gain_in_db': -12.0}}) 
 
     Transforms composition is also supported:
 
-    >>> compose = from_dict({"FirstTransform": {"param": value},
-    ...                      "SecondTransform": {"param": value}})
+    >>> compose = from_dict(
+    ...    {'transform': 'Compose',
+    ...     'params': {'transforms': [{'transform': 'Gain',
+    ...                                'params': {'min_gain_in_db': -12.0, 
+    ...                                           'mode': 'per_channel'}},
+    ...                               {'transform': 'PolarityInversion'}],
+    ...                'shuffle': True}})
 
     :param config: configuration - a configuration dictionary
     :returns: A transform.
     :rtype Transform:
     """
 
-    if len(config) > 1:
-
-        # TODO: remove this once Compose is available
-        # https://github.com/asteroid-team/torch-audiomentations/issues/23
-        if COMPOSE_NOT_IMPLEMENTED:
-            raise ValueError(
-                "torch_audiomentations does not implement Compose transforms"
-            )
-
-        # dictionary order is guaranteed to be insertion order since Python 3.7,
-        # and it was already the case in Python 3.6 but not officially.
-        # therefore, when `config` refers to more than one transform, we create
-        # a Compose transform using the dictionary order
-
-        transforms = [
-            from_dict({TransformClassName: transform_params})
-            for TransformClassName, transform_params in config.items()
-        ]
-        return Compose(transforms)
-
-    TransformClassName, transform_params = config.popitem()
+    try:
+        TransformClassName: Text = config["transform"]
+    except KeyError:
+        raise ValueError(
+            "A (currently missing) 'transform' key should be used to define the transform type."
+        )
 
     try:
         TransformClass = getattr(torch_audiomentations, TransformClassName)
@@ -73,10 +53,22 @@ def from_dict(config: Dict[Text, Dict[Text, Any]]) -> Transform:
             f"torch_audiomentations does not implement {TransformClassName} transform."
         )
 
+    transform_params: Dict = config.get("params", dict())
     if not isinstance(transform_params, dict):
         raise ValueError(
-            "Transform parameters must be provided as {'param_name': param_value'} dictionary."
+            "Transform parameters must be provided as {'param_name': param_value} dictionary."
         )
+
+    if TransformClassName in ["Compose", "OneOf", "SomeOf"]:
+
+        # TODO: update once Compose, OneOf and SomeOf are available
+        # https://github.com/asteroid-team/torch-audiomentations/issues/23
+        # https://github.com/asteroid-team/torch-audiomentations/issues/26
+        # For now, we assume that API will expect a "transforms" key
+        transform_params["transforms"] = [
+            from_dict(sub_transform_config)
+            for sub_transform_config in transform_params["transforms"]
+        ]
 
     return TransformClass(**transform_params)
 
@@ -87,25 +79,32 @@ def from_yaml(file_yml: Union[Path, Text]) -> Transform:
     `from_yaml` can be used to instantiate a transform from a YAML file.
     For instance, these two pieces of code are equivalent:
 
-    >>> from torch_audiomentations import TransformClassName
-    >>> transform = TransformClassName(param_name=param_value, ...)
+    >>> from torch_audiomentations import Gain
+    >>> transform = Gain(min_gain_in_db=-12.0, mode="per_channel")
 
     >>> transform = from_yaml("config.yml")
     
     where the content of `config.yml` is something like:
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     # config.yml
-    TransformClassName: 
-        param_name: param_value
+    transform: Gain
+    params:
+      min_gain_in_db: -12.0
+      mode: per_channel
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     Transforms composition is also supported:
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     # config.yml
-    FirstTransform:
-        param: value
-    SecondTransform:
-        param: value
+    transform: Compose
+    params:
+      shuffle: True
+      transforms:
+        - transform: Gain
+          params:
+            min_gain_in_db: -12.0
+            mode: per_channel
+        - transform: PolarityInversion
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     :param file_yml: configuration file - a path to a YAML file with the following structure:
