@@ -1,10 +1,9 @@
-import warnings
-from typing import Any, Dict, Text, Union
 from pathlib import Path
-import torch_audiomentations
+from typing import Any, Dict, Text, Union
 
-from torch_audiomentations.core.transforms_interface import BaseWaveformTransform
+import torch_audiomentations
 from torch_audiomentations import Compose
+from torch_audiomentations.core.transforms_interface import BaseWaveformTransform
 
 # TODO: define this elsewhere?
 # TODO: update when a new type of transform is added (e.g. BaseSpectrogramTransform? OneOf? SomeOf?)
