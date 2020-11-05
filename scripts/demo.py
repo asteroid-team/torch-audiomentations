@@ -8,7 +8,7 @@ import time
 import torch
 from scipy.io import wavfile
 
-from torch_audiomentations import PolarityInversion, Gain, PeakNormalization
+from torch_audiomentations import PolarityInversion, Gain, PeakNormalization, Compose
 
 SAMPLE_RATE = 44100
 
@@ -78,6 +78,32 @@ if __name__ == "__main__":
     modes = ["per_batch", "per_example", "per_channel"]
     for mode in modes:
         transforms = [
+            {
+                "instance": Compose(
+                    transforms=[
+                        Gain(
+                            min_gain_in_db=-18.0, max_gain_in_db=-16.0, mode=mode, p=1.0
+                        ),
+                        PeakNormalization(mode=mode, p=1.0),
+                    ],
+                    shuffle=True,
+                ),
+                "name": "Shuffled Compose with Gain and PeakNormalization",
+                "num_runs": 5,
+            },
+            {
+                "instance": Compose(
+                    transforms=[
+                        Gain(
+                            min_gain_in_db=-18.0, max_gain_in_db=-16.0, mode=mode, p=0.5
+                        ),
+                        PolarityInversion(mode=mode, p=0.5),
+                    ],
+                    shuffle=True,
+                ),
+                "name": "Compose with Gain and PolarityInversion",
+                "num_runs": 5,
+            },
             {"instance": Gain(mode=mode, p=1.0), "num_runs": 5},
             {"instance": PolarityInversion(mode=mode, p=1.0), "num_runs": 1},
             {"instance": PeakNormalization(mode=mode, p=1.0), "num_runs": 1},
@@ -103,7 +129,7 @@ if __name__ == "__main__":
                     output_file_path = os.path.join(
                         output_dir,
                         "{}_{}_{:03d}_{}.wav".format(
-                            transform_name, mode, i, Path(original_filename).stem,
+                            transform_name, mode, i, Path(original_filename).stem
                         ),
                     )
                     wavfile.write(
@@ -115,7 +141,7 @@ if __name__ == "__main__":
         for transform_name in execution_times:
             if len(execution_times[transform_name]) > 1:
                 print(
-                    "{:<32} {:.3f} s (std: {:.3f} s)".format(
+                    "{:<52} {:.3f} s (std: {:.3f} s)".format(
                         transform_name,
                         np.mean(execution_times[transform_name]),
                         np.std(execution_times[transform_name]),
@@ -123,5 +149,7 @@ if __name__ == "__main__":
                 )
             else:
                 print(
-                    "{:<32} {:.3f} s".format(transform_name, np.mean(execution_times[transform_name]))
+                    "{:<52} {:.3f} s".format(
+                        transform_name, np.mean(execution_times[transform_name])
+                    )
                 )
