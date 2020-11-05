@@ -12,6 +12,10 @@ Audio data augmentation in PyTorch. Inspired by [audiomentations](https://github
 
 # Setup
 
+![Python version support](https://img.shields.io/pypi/pyversions/torch-audiomentations)
+[![PyPI version](https://img.shields.io/pypi/v/torch-audiomentations.svg?style=flat)](https://pypi.org/project/torch-audiomentations/)
+[![Number of downloads from PyPI per month](https://img.shields.io/pypi/dm/torch-audiomentations.svg?style=flat)](https://pypi.org/project/torch-audiomentations/)
+
 `pip install torch-audiomentations`
 
 # Usage example
