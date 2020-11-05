@@ -38,6 +38,7 @@ setup(
     ),
     install_requires=["torch>=1.2.0"],
     tests_require=["pytest", "pytest-cov", "PyYAML"],
+    extras_require={"extras": ["PyYAML"]},
     python_requires=">=3.6",
     classifiers=[
         "Programming Language :: Python :: 3.6",
