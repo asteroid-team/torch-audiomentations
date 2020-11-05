@@ -29,7 +29,8 @@ class TestFromConfig(unittest.TestCase):
 
     def test_from_dict_compose(self):
         config = {
-            "Compose": {
+            "transform": "Compose",
+            "params": {
                 "shuffle": True,
                 "transforms": [
                     {
@@ -38,7 +39,7 @@ class TestFromConfig(unittest.TestCase):
                     },
                     {"transform": "PolarityInversion"},
                 ],
-            }
+            },
         }
         transform = from_dict(config)
         assert isinstance(transform, Compose)
