@@ -80,7 +80,7 @@ if __name__ == "__main__":
         transforms = [
             {
                 "instance": Compose(
-                    [
+                    transforms=[
                         Gain(
                             min_gain_in_db=-18.0, max_gain_in_db=-16.0, mode=mode, p=1.0
                         ),
@@ -93,7 +93,7 @@ if __name__ == "__main__":
             },
             {
                 "instance": Compose(
-                    [
+                    transforms=[
                         Gain(
                             min_gain_in_db=-18.0, max_gain_in_db=-16.0, mode=mode, p=0.5
                         ),
