@@ -4,12 +4,12 @@ from pathlib import Path
 import torch_audiomentations
 
 from torch_audiomentations.core.transforms_interface import BaseWaveformTransform
+from torch_audiomentations import Compose
 
 # TODO: define this elsewhere?
-# TODO: update when a new type of transform is added (e.g. BaseSpectrogramTransform? Compose? OneOf? SomeOf?)
-# https://github.com/asteroid-team/torch-audiomentations/issues/23
+# TODO: update when a new type of transform is added (e.g. BaseSpectrogramTransform? OneOf? SomeOf?)
 # https://github.com/asteroid-team/torch-audiomentations/issues/26
-Transform = Union[BaseWaveformTransform]
+Transform = Union[BaseWaveformTransform, Compose]
 
 
 def from_dict(config: Dict[Text, Union[Text, Dict[Text, Any]]]) -> Transform:
@@ -60,11 +60,6 @@ def from_dict(config: Dict[Text, Union[Text, Dict[Text, Any]]]) -> Transform:
         )
 
     if TransformClassName in ["Compose", "OneOf", "SomeOf"]:
-
-        # TODO: update once Compose, OneOf and SomeOf are available
-        # https://github.com/asteroid-team/torch-audiomentations/issues/23
-        # https://github.com/asteroid-team/torch-audiomentations/issues/26
-        # For now, we assume that API will expect a "transforms" key
         transform_params["transforms"] = [
             from_dict(sub_transform_config)
             for sub_transform_config in transform_params["transforms"]
