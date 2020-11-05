@@ -22,7 +22,7 @@ class Compose(torch.nn.Module):
         :param p_mode: Only "per_batch" is supported at the moment.
         """
         super().__init__()
-        self.transforms = transforms
+        self.transforms = torch.nn.ModuleList(transforms)
         self.p = p
         if p_mode != "per_batch":
             # TODO: Support per_example as well? And per_channel?

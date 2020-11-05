@@ -23,7 +23,7 @@ from torch_audiomentations import Compose, Gain, PolarityInversion
 
 # Initialize augmentation callable
 apply_augmentation = Compose(
-    [
+    transforms=[
         Gain(
             min_gain_in_db=-15.0,
             max_gain_in_db=5.0,
