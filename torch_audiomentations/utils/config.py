@@ -20,15 +20,15 @@ def from_dict(config: Dict[Text, Union[Text, Dict[Text, Any]]]) -> Transform:
     >>> from torch_audiomentations import Gain
     >>> transform = Gain(min_gain_in_db=-12.0)
 
-    >>> transform = from_dict({'transform': 'Gain', 
-    ...                        'params': {'min_gain_in_db': -12.0}}) 
+    >>> transform = from_dict({'transform': 'Gain',
+    ...                        'params': {'min_gain_in_db': -12.0}})
 
     Transforms composition is also supported:
 
     >>> compose = from_dict(
     ...    {'transform': 'Compose',
     ...     'params': {'transforms': [{'transform': 'Gain',
-    ...                                'params': {'min_gain_in_db': -12.0, 
+    ...                                'params': {'min_gain_in_db': -12.0,
     ...                                           'mode': 'per_channel'}},
     ...                               {'transform': 'PolarityInversion'}],
     ...                'shuffle': True}})
@@ -77,7 +77,7 @@ def from_yaml(file_yml: Union[Path, Text]) -> Transform:
     >>> transform = Gain(min_gain_in_db=-12.0, mode="per_channel")
 
     >>> transform = from_yaml("config.yml")
-    
+
     where the content of `config.yml` is something like:
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     # config.yml
