@@ -1,4 +1,7 @@
 # torch-audiomentations
+
+![Build status](https://img.shields.io/github/workflow/status/asteroid-team/torch-audiomentations/CI) [![Code coverage](https://img.shields.io/codecov/c/github/asteroid-team/torch-audiomentations/master.svg)](https://codecov.io/gh/asteroid-team/torch-audiomentations)
+
 Audio data augmentation in PyTorch. Inspired by [audiomentations](https://github.com/iver56/audiomentations).
 
 ✅ Supports CPU and GPU - speed is a priority  
