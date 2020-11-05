@@ -26,7 +26,7 @@ class Compose(torch.nn.Module):
         self.p = p
         if p_mode != "per_batch":
             # TODO: Support per_example as well? And per_channel?
-            raise Exception('p_mode = "{}" is not supported')
+            raise ValueError(f'p_mode = "{p_mode}" is not supported')
         self.p_mode = p_mode
         self.shuffle = shuffle
 
