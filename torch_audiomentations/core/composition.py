@@ -30,11 +30,6 @@ class Compose(torch.nn.Module):
         self.p_mode = p_mode
         self.shuffle = shuffle
 
-        name_list = []
-        for transform in self.transforms:
-            name_list.append(type(transform).__name__)
-        self.__name__ = "_".join(name_list)
-
     def forward(self, samples, sample_rate: int):
         if random.random() < self.p:
             transform_indexes = list(range(len(self.transforms)))
