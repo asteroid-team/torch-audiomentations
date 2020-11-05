@@ -23,12 +23,8 @@ IR_PATH = TEST_FIXTURES_DIR / "ir"
         ApplyBackgroundNoise(BG_NOISE_PATH, 20, p=1.0),
         Compose(
             transforms=[
-                Gain(
-                    min_gain_in_db=-15.0,
-                    max_gain_in_db=5.0,
-                    p=1.0,
-                ),
-                PolarityInversion(p=1.0)
+                Gain(min_gain_in_db=-15.0, max_gain_in_db=5.0, p=1.0),
+                PolarityInversion(p=1.0),
             ]
         ),
         # Non-differentiable transforms:
