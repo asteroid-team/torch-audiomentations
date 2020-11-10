@@ -120,6 +120,13 @@ training phase-aware machine learning models.
 
 # Version history
 
+## v0.4.0 (2020-11-10)
+
+* Implement `Compose` for applying multiple transforms
+* Implement utility functions `from_dict` and `from_yaml` for loading data augmentation
+configurations from dict, json or yaml
+* Officially support differentiability in most transforms
+
 ## v0.3.0 (2020-10-27)
 
 * Transforms now return the input unchanged when they are in eval mode
