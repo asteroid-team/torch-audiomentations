@@ -4,14 +4,14 @@
 
 Audio data augmentation in PyTorch. Inspired by [audiomentations](https://github.com/iver56/audiomentations).
 
-✅ Supports CPU and GPU - speed is a priority  
-✅ Supports batches of multichannel (or mono) audio  
-✅ Transforms extend `nn.Module`, so they can be integrated as a part of a pytorch neural network model  
-✅ Most transforms are differentiable  
-✅ Three modes: `per_batch`, `per_example` and `per_channel`  
-✅ Cross-platform compatibility  
-✅ Permissive MIT license  
-✅ High test coverage  
+* Supports CPU and GPU - speed is a priority  
+* Supports batches of multichannel (or mono) audio  
+* Transforms extend `nn.Module`, so they can be integrated as a part of a pytorch neural network model  
+* Most transforms are differentiable  
+* Three modes: `per_batch`, `per_example` and `per_channel`  
+* Cross-platform compatibility  
+* Permissive MIT license  
+* High test coverage  
 
 # Setup
 
