@@ -48,10 +48,7 @@ class Gain(BaseWaveformTransform):
 
     def apply_transform(self, selected_samples, sample_rate: int):
         num_dimensions = len(selected_samples.shape)
-        if num_dimensions == 1:
-            # TODO: We shouldn't support this
-            gain_factors = self.parameters["gain_factors"]
-        elif num_dimensions == 2:
+        if num_dimensions == 2:
             gain_factors = self.parameters["gain_factors"].unsqueeze(1)
         elif num_dimensions == 3:
             gain_factors = self.parameters["gain_factors"].unsqueeze(1).unsqueeze(1)
