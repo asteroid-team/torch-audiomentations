@@ -5,7 +5,13 @@ import torch
 from torch.optim import SGD
 
 from tests.utils import TEST_FIXTURES_DIR
-from torch_audiomentations import Gain, PeakNormalization, PolarityInversion, Compose, Shift
+from torch_audiomentations import (
+    Gain,
+    PeakNormalization,
+    PolarityInversion,
+    Compose,
+    Shift,
+)
 from torch_audiomentations.augmentations.background_noise import ApplyBackgroundNoise
 from torch_audiomentations.augmentations.impulse_response import ApplyImpulseResponse
 
