@@ -29,7 +29,7 @@ class Gain(BaseWaveformTransform):
         self.min_gain_in_db = min_gain_in_db
         self.max_gain_in_db = max_gain_in_db
         if self.min_gain_in_db >= self.max_gain_in_db:
-            raise ValueError("min_gain_in_db must be higher than max_gain_in_db")
+            raise ValueError("max_gain_in_db must be higher than min_gain_in_db")
 
     def randomize_parameters(self, selected_samples, sample_rate: int):
         distribution = torch.distributions.Uniform(
