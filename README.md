@@ -118,7 +118,17 @@ is sometimes used for audio cancellation or obtaining the difference between two
 However, in the context of audio data augmentation, this transform can be useful when
 training phase-aware machine learning models.
 
+## Shift
+
+_To be addded in v0.5.0_
+
+Shift the audio forwards or backwards, with or without rollover
+
 # Version history
+
+## v0.5.0 (not released yet)
+
+* Implement `Shift`
 
 ## v0.4.0 (2020-11-10)
 
