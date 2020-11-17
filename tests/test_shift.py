@@ -221,6 +221,41 @@ class TestShift(unittest.TestCase):
         )
         self.assertEqual(processed_samples.dtype, np.float32)
 
+    def test_shift_by_seconds_specify_sample_rate_in_both_init_and_forward(self):
+        samples = np.array(
+            [
+                [[0.75, 0.5, -0.25, -0.125], [0.9, 0.5, -0.25, -0.125]],
+                [[1, 0.5, 0.26, 0.125], [1, 0.5, 0.25, 0.125]],
+            ],
+            dtype=np.float32,
+        )
+        init_sample_rate = 42
+        forward_sample_rate = 1
+
+        augment = Shift(
+            min_shift=-3,
+            max_shift=-3,
+            shift_unit="seconds",
+            p=1.0,
+            sample_rate=init_sample_rate,
+        )
+        # If sample_rate is specified in both __init__ and forward, then the latter will be used
+        processed_samples = augment(
+            samples=torch.from_numpy(samples), sample_rate=forward_sample_rate
+        ).numpy()
+
+        assert_almost_equal(
+            processed_samples,
+            np.array(
+                [
+                    [[-0.125, 0.75, 0.5, -0.25], [-0.125, 0.9, 0.5, -0.25]],
+                    [[0.125, 1, 0.5, 0.26], [0.125, 1, 0.5, 0.25]],
+                ],
+                dtype=np.float32,
+            ),
+        )
+        self.assertEqual(processed_samples.dtype, np.float32)
+
     def test_shift_by_seconds_without_specifying_sample_rate(self):
         samples = np.array(
             [
