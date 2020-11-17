@@ -129,6 +129,7 @@ Shift the audio forwards or backwards, with or without rollover
 ## v0.5.0 (not released yet)
 
 * Implement `Shift`
+* Make `sample_rate` optional. Allow specifying `sample_rate` in `__init__` instead of `forward`
 
 ## v0.4.0 (2020-11-10)
 

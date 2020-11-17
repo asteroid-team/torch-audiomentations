@@ -225,7 +225,6 @@ class TestGain(unittest.TestCase):
             dtype=np.float32,
         )
         samples_batch = np.stack([samples] * 10000, axis=0)
-        sample_rate = 16000
 
         augment = Gain(
             min_gain_in_db=-30.0,
@@ -235,7 +234,7 @@ class TestGain(unittest.TestCase):
             p_mode="per_example",
         )
         processed_samples = augment(
-            samples=torch.from_numpy(samples_batch), sample_rate=sample_rate
+            samples=torch.from_numpy(samples_batch), sample_rate=None
         ).numpy()
 
         num_unprocessed_examples = 0
@@ -451,13 +450,13 @@ class TestGain(unittest.TestCase):
         samples_batch = np.vstack([samples] * 10000)
         sample_rate = 16000
 
-        augment = Gain(min_gain_in_db=-6, max_gain_in_db=6, p=0.5)
+        augment = Gain(
+            min_gain_in_db=-6, max_gain_in_db=6, p=0.5, sample_rate=sample_rate
+        )
         # Change the parameters after init
         augment.min_gain_in_db = -18
         augment.max_gain_in_db = 3
-        processed_samples = augment(
-            samples=torch.from_numpy(samples_batch), sample_rate=sample_rate
-        ).numpy()
+        processed_samples = augment(samples=torch.from_numpy(samples_batch)).numpy()
         self.assertEqual(processed_samples.dtype, np.float32)
 
         actual_gains_in_db = []

@@ -16,6 +16,8 @@ class ApplyBackgroundNoise(BaseWaveformTransform):
     Add background noise to the input audio.
     """
 
+    supports_multichannel = False  # TODO: Implement multichannel support
+
     def __init__(
         self,
         bg_path,
@@ -25,9 +27,10 @@ class ApplyBackgroundNoise(BaseWaveformTransform):
         mode: str = "per_example",
         p: float = 0.5,
         p_mode: typing.Optional[str] = None,
+        sample_rate: typing.Optional[int] = None,
     ):
         # TODO: infer device from the given samples instead
-        super(ApplyBackgroundNoise, self).__init__(mode, p, p_mode)
+        super(ApplyBackgroundNoise, self).__init__(mode, p, p_mode, sample_rate)
         self.bg_path = find_audio_files(bg_path)
 
         if len(self.bg_path) == 0:
@@ -40,7 +43,9 @@ class ApplyBackgroundNoise(BaseWaveformTransform):
         )
         self.device = device
 
-    def randomize_parameters(self, selected_samples, sample_rate: int):
+    def randomize_parameters(
+        self, selected_samples, sample_rate: typing.Optional[int] = None
+    ):
         selected_batch_size = selected_samples.size(0)
         bg_file_paths = random.choices(self.bg_path, k=selected_batch_size)
         bg_audios = []
@@ -95,7 +100,7 @@ class ApplyBackgroundNoise(BaseWaveformTransform):
         )
         self.parameters["bg_audios"] = torch.stack(bg_audios)
 
-    def apply_transform(self, selected_samples, sample_rate: int):
+    def apply_transform(self, selected_samples, sample_rate: typing.Optional[int] = None):
         selected_samples = selected_samples.to(self.device)
         bg_audios = self.parameters["bg_audios"].to(self.device)
 

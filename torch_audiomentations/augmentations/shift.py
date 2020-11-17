@@ -9,8 +9,6 @@ class Shift(BaseWaveformTransform):
     Shift the audio forwards or backwards, with or without rollover
     """
 
-    supports_multichannel = True
-
     def __init__(
         self,
         min_shift: float = -0.5,
@@ -20,6 +18,7 @@ class Shift(BaseWaveformTransform):
         mode: str = "per_example",
         p: float = 0.5,
         p_mode: typing.Optional[str] = None,
+        sample_rate: typing.Optional[int] = None,
     ):
         """
 
@@ -37,7 +36,7 @@ class Shift(BaseWaveformTransform):
         :param p:
         :param p_mode:
         """
-        super().__init__(mode, p, p_mode)
+        super().__init__(mode, p, p_mode, sample_rate)
         self.min_shift = min_shift
         self.max_shift = max_shift
         self.shift_unit = shift_unit
@@ -47,7 +46,9 @@ class Shift(BaseWaveformTransform):
         if self.shift_unit not in ("fraction", "samples", "seconds"):
             raise ValueError('shift_unit must be "samples", "fraction" or "seconds"')
 
-    def randomize_parameters(self, selected_samples, sample_rate: int):
+    def randomize_parameters(
+        self, selected_samples, sample_rate: typing.Optional[int] = None
+    ):
         if self.shift_unit == "samples":
             min_shift_in_samples = self.min_shift
             max_shift_in_samples = self.max_shift
@@ -88,7 +89,7 @@ class Shift(BaseWaveformTransform):
                 device=selected_samples.device,
             )
 
-    def apply_transform(self, selected_samples, sample_rate: int):
+    def apply_transform(self, selected_samples, sample_rate: typing.Optional[int] = None):
         selected_batch_size = selected_samples.size(0)
         for i in range(selected_batch_size):
             num_samples_to_shift = self.parameters["num_samples_to_shift"][i].item()
@@ -103,3 +104,7 @@ class Shift(BaseWaveformTransform):
                     selected_samples[i, ..., num_samples_to_shift:] = 0.0
 
         return selected_samples
+
+    def is_sample_rate_required(self) -> bool:
+        # Sample rate is required only if shift_unit is "seconds"
+        return self.shift_unit == "seconds"

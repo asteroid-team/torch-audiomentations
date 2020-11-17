@@ -2,6 +2,7 @@ import random
 from typing import List
 
 import torch
+import typing
 
 
 class Compose(torch.nn.Module):
@@ -30,7 +31,7 @@ class Compose(torch.nn.Module):
         self.p_mode = p_mode
         self.shuffle = shuffle
 
-    def forward(self, samples, sample_rate: int):
+    def forward(self, samples, sample_rate: typing.Optional[int] = None):
         if random.random() < self.p:
             transform_indexes = list(range(len(self.transforms)))
             if self.shuffle:

@@ -16,13 +16,15 @@ class EmptyPathException(Exception):
 
 
 class BaseWaveformTransform(torch.nn.Module):
-    supports_multichannel = False
+    supports_multichannel = True
+    requires_sample_rate = True
 
     def __init__(
         self,
         mode: str = "per_example",
         p: float = 0.5,
         p_mode: typing.Optional[str] = None,
+        sample_rate: typing.Optional[int] = None,
     ):
         """
 
@@ -40,6 +42,8 @@ class BaseWaveformTransform(torch.nn.Module):
             "per_example". In the latter case, the transform is applied to the randomly selected
             examples, but the channels in those examples will be processed independently, i.e.
             with different parameters. Default value: Same as mode.
+        :param sample_rate: sample_rate can be set either here or when
+            calling the transform.
         """
         super().__init__()
         assert 0.0 <= p <= 1.0
@@ -48,6 +52,7 @@ class BaseWaveformTransform(torch.nn.Module):
         self.p_mode = p_mode
         if self.p_mode is None:
             self.p_mode = self.mode
+        self.sample_rate = sample_rate
 
         # Check validity of mode/p_mode combination
         if self.p_mode == "per_batch":
@@ -73,7 +78,7 @@ class BaseWaveformTransform(torch.nn.Module):
         # Update the Bernoulli distribution accordingly
         self.bernoulli_distribution = Bernoulli(self._p)
 
-    def forward(self, samples, sample_rate: int):
+    def forward(self, samples, sample_rate: typing.Optional[int] = None):
         if not self.training:
             return samples
 
@@ -96,6 +101,10 @@ class BaseWaveformTransform(torch.nn.Module):
                         self.__class__.__name__
                     )
                 )
+
+        sample_rate = sample_rate or self.sample_rate
+        if sample_rate is None and self.is_sample_rate_required():
+            raise RuntimeError("sample_rate is required")
 
         if not self.are_parameters_frozen:
             if self.p_mode == "per_example":
@@ -216,10 +225,12 @@ class BaseWaveformTransform(torch.nn.Module):
         # See also https://github.com/python/mypy/issues/8795#issuecomment-691658758
         pass
 
-    def randomize_parameters(self, selected_samples, sample_rate: int):
+    def randomize_parameters(
+        self, selected_samples, sample_rate: typing.Optional[int] = None
+    ):
         pass
 
-    def apply_transform(self, selected_samples, sample_rate: int):
+    def apply_transform(self, selected_samples, sample_rate: typing.Optional[int] = None):
         raise NotImplementedError()
 
     def serialize_parameters(self):
@@ -240,3 +251,6 @@ class BaseWaveformTransform(torch.nn.Module):
         Unmark all parameters as frozen, i.e. let them be randomized for each call.
         """
         self.are_parameters_frozen = False
+
+    def is_sample_rate_required(self) -> bool:
+        return self.requires_sample_rate
