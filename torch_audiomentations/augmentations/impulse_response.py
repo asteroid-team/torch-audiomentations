@@ -13,6 +13,8 @@ class ApplyImpulseResponse(BaseWaveformTransform):
     Convolve the given audio with impulse responses.
     """
 
+    supports_multichannel = False  # TODO: Implement multichannel support
+
     def __init__(
         self,
         ir_path,
@@ -21,9 +23,10 @@ class ApplyImpulseResponse(BaseWaveformTransform):
         mode: str = "per_example",
         p: float = 0.5,
         p_mode: typing.Optional[str] = None,
+        sample_rate: typing.Optional[int] = None,
     ):
         # TODO: infer device from the given samples instead
-        super(ApplyImpulseResponse, self).__init__(mode, p, p_mode)
+        super(ApplyImpulseResponse, self).__init__(mode, p, p_mode, sample_rate)
 
         self.ir_path = find_audio_files(ir_path)
 
@@ -33,7 +36,9 @@ class ApplyImpulseResponse(BaseWaveformTransform):
         self.convolve_mode = convolve_mode
         self.device = device
 
-    def randomize_parameters(self, selected_samples, sample_rate: int):
+    def randomize_parameters(
+        self, selected_samples, sample_rate: typing.Optional[int] = None
+    ):
         ir_paths = random.choices(self.ir_path, k=selected_samples.size(0))
         ir_sounds = []
         max_ir_sound_length = 0
@@ -48,7 +53,7 @@ class ApplyImpulseResponse(BaseWaveformTransform):
             ir_sounds[i] = placeholder
         self.parameters["ir_sounds"] = torch.stack(ir_sounds)
 
-    def apply_transform(self, selected_samples, sample_rate: int):
+    def apply_transform(self, selected_samples, sample_rate: typing.Optional[int] = None):
         selected_samples = selected_samples.to(self.device)
         original_length = selected_samples.shape[-1]
         ir = self.parameters["ir_sounds"].to(self.device)

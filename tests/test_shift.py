@@ -139,6 +139,30 @@ class TestShift(unittest.TestCase):
         )
         self.assertEqual(processed_samples.dtype, np.float32)
 
+    def test_shift_by_fraction_without_specifying_sample_rate(self):
+        samples = np.array(
+            [
+                [[0.75, 0.5, -0.25, -0.125], [0.9, 0.5, -0.25, -0.125]],
+                [[1, 0.5, 0.26, 0.125], [1, 0.5, 0.25, 0.125]],
+            ],
+            dtype=np.float32,
+        )
+
+        augment = Shift(min_shift=0.5, max_shift=0.5, shift_unit="fraction", p=1.0)
+        processed_samples = augment(samples=torch.from_numpy(samples)).numpy()
+
+        assert_almost_equal(
+            processed_samples,
+            np.array(
+                [
+                    [[-0.25, -0.125, 0.75, 0.5], [-0.25, -0.125, 0.9, 0.5]],
+                    [[0.26, 0.125, 1, 0.5], [0.25, 0.125, 1, 0.5]],
+                ],
+                dtype=np.float32,
+            ),
+        )
+        self.assertEqual(processed_samples.dtype, np.float32)
+
     def test_shift_by_seconds(self):
         samples = np.array(
             [
@@ -165,6 +189,53 @@ class TestShift(unittest.TestCase):
             ),
         )
         self.assertEqual(processed_samples.dtype, np.float32)
+
+    def test_shift_by_seconds_specify_sample_rate_in_init(self):
+        samples = np.array(
+            [
+                [[0.75, 0.5, -0.25, -0.125], [0.9, 0.5, -0.25, -0.125]],
+                [[1, 0.5, 0.26, 0.125], [1, 0.5, 0.25, 0.125]],
+            ],
+            dtype=np.float32,
+        )
+        sample_rate = 1
+
+        augment = Shift(
+            min_shift=-3,
+            max_shift=-3,
+            shift_unit="seconds",
+            p=1.0,
+            sample_rate=sample_rate,
+        )
+        processed_samples = augment(samples=torch.from_numpy(samples)).numpy()
+
+        assert_almost_equal(
+            processed_samples,
+            np.array(
+                [
+                    [[-0.125, 0.75, 0.5, -0.25], [-0.125, 0.9, 0.5, -0.25]],
+                    [[0.125, 1, 0.5, 0.26], [0.125, 1, 0.5, 0.25]],
+                ],
+                dtype=np.float32,
+            ),
+        )
+        self.assertEqual(processed_samples.dtype, np.float32)
+
+    def test_shift_by_seconds_without_specifying_sample_rate(self):
+        samples = np.array(
+            [
+                [[0.75, 0.5, -0.25, -0.125], [0.9, 0.5, -0.25, -0.125]],
+                [[1, 0.5, 0.26, 0.125], [1, 0.5, 0.25, 0.125]],
+            ],
+            dtype=np.float32,
+        )
+
+        augment = Shift(min_shift=-3, max_shift=-3, shift_unit="seconds", p=1.0)
+        with self.assertRaises(RuntimeError):
+            _ = augment(samples=torch.from_numpy(samples)).numpy()
+
+        with self.assertRaises(RuntimeError):
+            _ = augment(samples=torch.from_numpy(samples), sample_rate=None).numpy()
 
     def test_variability_within_batch(self):
         torch.manual_seed(42)

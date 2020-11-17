@@ -15,17 +15,19 @@ class PolarityInversion(BaseWaveformTransform):
     """
 
     supports_multichannel = True
+    requires_sample_rate = False
 
     def __init__(
         self,
         mode: str = "per_example",
         p: float = 0.5,
         p_mode: typing.Optional[str] = None,
+        sample_rate: typing.Optional[int] = None,
     ):
         """
         :param p:
         """
-        super().__init__(mode, p, p_mode)
+        super().__init__(mode, p, p_mode, sample_rate)
 
-    def apply_transform(self, selected_samples, sample_rate: int):
+    def apply_transform(self, selected_samples, sample_rate: typing.Optional[int] = None):
         return -selected_samples
