@@ -45,16 +45,16 @@ class Gain(BaseWaveformTransform):
             validate_args=True,
         )
         selected_batch_size = selected_samples.size(0)
-        self.parameters["gain_factors"] = convert_decibels_to_amplitude_ratio(
+        self.transform_parameters["gain_factors"] = convert_decibels_to_amplitude_ratio(
             distribution.sample(sample_shape=(selected_batch_size,))
         )
 
     def apply_transform(self, selected_samples, sample_rate: typing.Optional[int] = None):
         num_dimensions = len(selected_samples.shape)
         if num_dimensions == 2:
-            gain_factors = self.parameters["gain_factors"].unsqueeze(1)
+            gain_factors = self.transform_parameters["gain_factors"].unsqueeze(1)
         elif num_dimensions == 3:
-            gain_factors = self.parameters["gain_factors"].unsqueeze(1).unsqueeze(1)
+            gain_factors = self.transform_parameters["gain_factors"].unsqueeze(1).unsqueeze(1)
         else:
             raise Exception(
                 "Invalid number of dimensions ({}) in input tensor".format(num_dimensions)
