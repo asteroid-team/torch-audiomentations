@@ -16,7 +16,7 @@ class PeakNormalization(BaseWaveformTransform):
     untouched.
     """
 
-    supports_multichannel = True
+    requires_sample_rate = False
 
     def __init__(
         self,
@@ -24,15 +24,18 @@ class PeakNormalization(BaseWaveformTransform):
         mode: str = "per_example",
         p: float = 0.5,
         p_mode: typing.Optional[str] = None,
+        sample_rate: typing.Optional[int] = None,
     ):
         """
         :param p:
         """
-        super().__init__(mode, p, p_mode)
+        super().__init__(mode, p, p_mode, sample_rate)
         assert apply_to in ("all", "only_too_loud_sounds")
         self.apply_to = apply_to
 
-    def randomize_parameters(self, selected_samples, sample_rate: int):
+    def randomize_parameters(
+        self, selected_samples, sample_rate: typing.Optional[int] = None
+    ):
         num_dimensions = len(selected_samples.shape)
         assert 2 <= num_dimensions <= 3
 
@@ -68,7 +71,7 @@ class PeakNormalization(BaseWaveformTransform):
                     "1-dimensional data is not supported by PeakNormalization"
                 )
 
-    def apply_transform(self, selected_samples, sample_rate: int):
+    def apply_transform(self, selected_samples, sample_rate: typing.Optional[int] = None):
         if "divisors" in self.parameters:
             selected_samples[self.parameters["selector"]] /= self.parameters["divisors"]
         return selected_samples

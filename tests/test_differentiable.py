@@ -5,7 +5,13 @@ import torch
 from torch.optim import SGD
 
 from tests.utils import TEST_FIXTURES_DIR
-from torch_audiomentations import Gain, PeakNormalization, PolarityInversion
+from torch_audiomentations import (
+    Gain,
+    PeakNormalization,
+    PolarityInversion,
+    Compose,
+    Shift,
+)
 from torch_audiomentations.augmentations.background_noise import ApplyBackgroundNoise
 from torch_audiomentations.augmentations.impulse_response import ApplyImpulseResponse
 
@@ -17,10 +23,17 @@ IR_PATH = TEST_FIXTURES_DIR / "ir"
     "augment",
     [
         # Differentiable transforms:
-        PolarityInversion(p=1.0),
-        Gain(min_gain_in_db=-6.000001, max_gain_in_db=-6, p=1.0),
-        ApplyImpulseResponse(IR_PATH, p=1.0),
         ApplyBackgroundNoise(BG_NOISE_PATH, 20, p=1.0),
+        ApplyImpulseResponse(IR_PATH, p=1.0),
+        Compose(
+            transforms=[
+                Gain(min_gain_in_db=-15.0, max_gain_in_db=5.0, p=1.0),
+                PolarityInversion(p=1.0),
+            ]
+        ),
+        Gain(min_gain_in_db=-6.000001, max_gain_in_db=-6, p=1.0),
+        PolarityInversion(p=1.0),
+        Shift(p=1.0),
         # Non-differentiable transforms:
         # RuntimeError: one of the variables needed for gradient computation has been modified by an inplace operation:
         # [torch.DoubleTensor [1, 5]], which is output 0 of IndexBackward, is at version 1; expected version 0 instead.

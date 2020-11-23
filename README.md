@@ -1,16 +1,24 @@
-# torch-audiomentations
+![torch-audiomentations](images/torch_audiomentations_logo.png)
+---
+
+![Build status](https://img.shields.io/github/workflow/status/asteroid-team/torch-audiomentations/CI) [![Code coverage](https://img.shields.io/codecov/c/github/asteroid-team/torch-audiomentations/master.svg)](https://codecov.io/gh/asteroid-team/torch-audiomentations) [![Code Style: Black](https://img.shields.io/badge/code%20style-black-black.svg)](https://github.com/ambv/black)
+
 Audio data augmentation in PyTorch. Inspired by [audiomentations](https://github.com/iver56/audiomentations).
 
-✅ Supports CPU and GPU - speed is a priority  
-✅ Supports batches of multichannel (or mono) audio  
-✅ Transforms extend `nn.Module`, so they can be integrated as a part of a pytorch neural network model  
-✅ Most transforms are differentiable  
-✅ Three modes: `per_batch`, `per_example` and `per_channel`  
-✅ Cross-platform compatibility  
-✅ Permissive MIT license  
-✅ High test coverage  
+* Supports CPU and GPU - speed is a priority  
+* Supports batches of multichannel (or mono) audio  
+* Transforms extend `nn.Module`, so they can be integrated as a part of a pytorch neural network model  
+* Most transforms are differentiable  
+* Three modes: `per_batch`, `per_example` and `per_channel`  
+* Cross-platform compatibility  
+* Permissive MIT license  
+* High test coverage  
 
 # Setup
+
+![Python version support](https://img.shields.io/pypi/pyversions/torch-audiomentations)
+[![PyPI version](https://img.shields.io/pypi/v/torch-audiomentations.svg?style=flat)](https://pypi.org/project/torch-audiomentations/)
+[![Number of downloads from PyPI per month](https://img.shields.io/pypi/dm/torch-audiomentations.svg?style=flat)](https://pypi.org/project/torch-audiomentations/)
 
 `pip install torch-audiomentations`
 
@@ -18,24 +26,30 @@ Audio data augmentation in PyTorch. Inspired by [audiomentations](https://github
 
 ```python
 import torch
-from torch_audiomentations import Gain
+from torch_audiomentations import Compose, Gain, PolarityInversion
 
 
 # Initialize augmentation callable
-apply_gain_augmentation = Gain(
-    min_gain_in_db=-15.0,
-    max_gain_in_db=5.0,
-    p=0.5,
+apply_augmentation = Compose(
+    transforms=[
+        Gain(
+            min_gain_in_db=-15.0,
+            max_gain_in_db=5.0,
+            p=0.5,
+        ),
+        PolarityInversion(p=0.5)
+    ]
 )
 
 torch_device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # Make an example tensor with white noise.
-# This tensor represents 8 audio snippets with 2 channels (stereo) and 2 seconds of 16 kHz audio.
+# This tensor represents 8 audio snippets with 2 channels (stereo) and 2 s of 16 kHz audio.
 audio_samples = torch.rand(size=(8, 2, 32000), dtype=torch.float32, device=torch_device) - 0.5
 
-# Apply gain augmentation. This varies the gain of (some of) the audio snippets in the batch independently.
-perturbed_audio_samples = apply_gain_augmentation(audio_samples, sample_rate=16000)
+# Apply augmentation. This varies the gain and polarity of (some of)
+# the audio snippets in the batch independently.
+perturbed_audio_samples = apply_augmentation(audio_samples, sample_rate=16000)
 ```
 
 # Contribute
@@ -105,7 +119,25 @@ is sometimes used for audio cancellation or obtaining the difference between two
 However, in the context of audio data augmentation, this transform can be useful when
 training phase-aware machine learning models.
 
+## Shift
+
+_To be addded in v0.5.0_
+
+Shift the audio forwards or backwards, with or without rollover
+
 # Version history
+
+## v0.5.0 (not released yet)
+
+* Implement `Shift`
+* Make `sample_rate` optional. Allow specifying `sample_rate` in `__init__` instead of `forward`
+
+## v0.4.0 (2020-11-10)
+
+* Implement `Compose` for applying multiple transforms
+* Implement utility functions `from_dict` and `from_yaml` for loading data augmentation
+configurations from dict, json or yaml
+* Officially support differentiability in most transforms
 
 ## v0.3.0 (2020-10-27)
 
