@@ -64,7 +64,7 @@ class BaseWaveformTransform(torch.nn.Module):
         else:
             raise Exception("Unknown mode/p_mode {}".format(self.p_mode))
 
-        self.parameters = {}
+        self.transform_parameters = {}
         self.are_parameters_frozen = False
         self.bernoulli_distribution = Bernoulli(self._p)
 
@@ -115,13 +115,13 @@ class BaseWaveformTransform(torch.nn.Module):
                 p_sample_size = 1
             else:
                 raise Exception("Invalid mode")
-            self.parameters = {
+            self.transform_parameters = {
                 "should_apply": self.bernoulli_distribution.sample(
                     sample_shape=(p_sample_size,)
                 ).to(torch.bool)
             }
 
-        if self.parameters["should_apply"].any():
+        if self.transform_parameters["should_apply"].any():
             cloned_samples = samples.clone()
 
             if self.p_mode == "per_channel":
@@ -130,12 +130,12 @@ class BaseWaveformTransform(torch.nn.Module):
                 cloned_samples = cloned_samples.reshape(
                     batch_size * num_channels, 1, cloned_samples.shape[2]
                 )
-                selected_samples = cloned_samples[self.parameters["should_apply"]]
+                selected_samples = cloned_samples[self.transform_parameters["should_apply"]]
 
                 if not self.are_parameters_frozen:
                     self.randomize_parameters(selected_samples, sample_rate)
 
-                cloned_samples[self.parameters["should_apply"]] = self.apply_transform(
+                cloned_samples[self.transform_parameters["should_apply"]] = self.apply_transform(
                     selected_samples, sample_rate
                 )
 
@@ -146,14 +146,14 @@ class BaseWaveformTransform(torch.nn.Module):
                 return cloned_samples
 
             elif self.p_mode == "per_example":
-                selected_samples = cloned_samples[self.parameters["should_apply"]]
+                selected_samples = cloned_samples[self.transform_parameters["should_apply"]]
 
                 if self.mode == "per_example":
                     if not self.are_parameters_frozen:
                         self.randomize_parameters(selected_samples, sample_rate)
 
                     cloned_samples[
-                        self.parameters["should_apply"]
+                        self.transform_parameters["should_apply"]
                     ] = self.apply_transform(selected_samples, sample_rate)
                     return cloned_samples
                 elif self.mode == "per_channel":
@@ -173,7 +173,7 @@ class BaseWaveformTransform(torch.nn.Module):
                         batch_size, num_channels, selected_samples.shape[2]
                     )
 
-                    cloned_samples[self.parameters["should_apply"]] = perturbed_samples
+                    cloned_samples[self.transform_parameters["should_apply"]] = perturbed_samples
                     return cloned_samples
                 else:
                     raise Exception("Invalid mode/p_mode combination")
@@ -237,7 +237,7 @@ class BaseWaveformTransform(torch.nn.Module):
         """Return the parameters as a JSON-serializable dict."""
         raise NotImplementedError()
         # TODO: Clone the params and convert any tensors into json-serializable lists
-        # return self.parameters
+        # return self.transform_parameters
 
     def freeze_parameters(self):
         """

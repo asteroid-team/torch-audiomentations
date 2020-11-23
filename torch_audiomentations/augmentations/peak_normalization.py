@@ -46,25 +46,25 @@ class PeakNormalization(BaseWaveformTransform):
 
         if self.apply_to == "all":
             # Avoid division by zero
-            self.parameters["selector"] = (
+            self.transform_parameters["selector"] = (
                 most_extreme_values > 0.0
             )  # type: torch.BoolTensor
         elif self.apply_to == "only_too_loud_sounds":
             # Apply peak normalization only to audio examples with
             # values outside the [-1, 1] range
-            self.parameters["selector"] = (
+            self.transform_parameters["selector"] = (
                 most_extreme_values > 1.0
             )  # type: torch.BoolTensor
         else:
             raise Exception("Unknown value of apply_to in PeakNormalization instance!")
-        if self.parameters["selector"].any():
+        if self.transform_parameters["selector"].any():
             if num_dimensions == 3:
-                self.parameters["divisors"] = torch.reshape(
-                    most_extreme_values[self.parameters["selector"]], (-1, 1, 1)
+                self.transform_parameters["divisors"] = torch.reshape(
+                    most_extreme_values[self.transform_parameters["selector"]], (-1, 1, 1)
                 )
             elif num_dimensions == 2:
-                self.parameters["divisors"] = torch.reshape(
-                    most_extreme_values[self.parameters["selector"]], (-1, 1)
+                self.transform_parameters["divisors"] = torch.reshape(
+                    most_extreme_values[self.transform_parameters["selector"]], (-1, 1)
                 )
             else:
                 raise Exception(
@@ -72,6 +72,6 @@ class PeakNormalization(BaseWaveformTransform):
                 )
 
     def apply_transform(self, selected_samples, sample_rate: typing.Optional[int] = None):
-        if "divisors" in self.parameters:
-            selected_samples[self.parameters["selector"]] /= self.parameters["divisors"]
+        if "divisors" in self.transform_parameters:
+            selected_samples[self.transform_parameters["selector"]] /= self.transform_parameters["divisors"]
         return selected_samples

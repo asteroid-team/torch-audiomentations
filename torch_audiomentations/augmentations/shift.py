@@ -74,14 +74,14 @@ class Shift(BaseWaveformTransform):
 
         selected_batch_size = selected_samples.size(0)
         if min_shift_in_samples == max_shift_in_samples:
-            self.parameters["num_samples_to_shift"] = torch.full(
+            self.transform_parameters["num_samples_to_shift"] = torch.full(
                 size=(selected_batch_size,),
                 fill_value=min_shift_in_samples,
                 dtype=torch.int32,
                 device=selected_samples.device,
             )
         else:
-            self.parameters["num_samples_to_shift"] = torch.randint(
+            self.transform_parameters["num_samples_to_shift"] = torch.randint(
                 low=min_shift_in_samples,
                 high=max_shift_in_samples + 1,
                 size=(selected_batch_size,),
@@ -92,7 +92,7 @@ class Shift(BaseWaveformTransform):
     def apply_transform(self, selected_samples, sample_rate: typing.Optional[int] = None):
         selected_batch_size = selected_samples.size(0)
         for i in range(selected_batch_size):
-            num_samples_to_shift = self.parameters["num_samples_to_shift"][i].item()
+            num_samples_to_shift = self.transform_parameters["num_samples_to_shift"][i].item()
             selected_samples[i] = torch.roll(
                 selected_samples[i], shifts=num_samples_to_shift, dims=-1
             )

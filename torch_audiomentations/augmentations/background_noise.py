@@ -95,21 +95,21 @@ class ApplyBackgroundNoise(BaseWaveformTransform):
 
             bg_audios.append(torch.from_numpy(bg_audio))
 
-        self.parameters["snr_in_db"] = self.snr_distribution.sample(
+        self.transform_parameters["snr_in_db"] = self.snr_distribution.sample(
             sample_shape=(selected_batch_size,)
         )
-        self.parameters["bg_audios"] = torch.stack(bg_audios)
+        self.transform_parameters["bg_audios"] = torch.stack(bg_audios)
 
     def apply_transform(self, selected_samples, sample_rate: typing.Optional[int] = None):
         selected_samples = selected_samples.to(self.device)
-        bg_audios = self.parameters["bg_audios"].to(self.device)
+        bg_audios = self.transform_parameters["bg_audios"].to(self.device)
 
         # calculate sample and background audio RMS
         samples_rms = calculate_rms(selected_samples).squeeze()
         bg_audios_rms = calculate_rms(bg_audios).squeeze()
 
         desired_bg_audios_rms = calculate_desired_noise_rms(
-            samples_rms, self.parameters["snr_in_db"]
+            samples_rms, self.transform_parameters["snr_in_db"]
         )
         bg_audios = bg_audios * (desired_bg_audios_rms / bg_audios_rms).unsqueeze(1)
 
