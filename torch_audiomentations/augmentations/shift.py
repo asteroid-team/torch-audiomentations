@@ -74,14 +74,14 @@ class Shift(BaseWaveformTransform):
 
         selected_batch_size = selected_samples.size(0)
         if min_shift_in_samples == max_shift_in_samples:
-            self.parameters["num_samples_to_shift"] = torch.full(
+            self.transform_parameters["num_samples_to_shift"] = torch.full(
                 size=(selected_batch_size,),
                 fill_value=min_shift_in_samples,
                 dtype=torch.int32,
                 device=selected_samples.device,
             )
         else:
-            self.parameters["num_samples_to_shift"] = torch.randint(
+            self.transform_parameters["num_samples_to_shift"] = torch.randint(
                 low=min_shift_in_samples,
                 high=max_shift_in_samples + 1,
                 size=(selected_batch_size,),
@@ -90,7 +90,7 @@ class Shift(BaseWaveformTransform):
             )
 
     def apply_transform(self, selected_samples, sample_rate: typing.Optional[int] = None):
-        high = self.parameters["num_samples_to_shift"]  
+        high = self.transform_parameters["num_samples_to_shift"]  
         return self.shift(selected_samples, high, self.rollover)
     
     # @torch.jit.script
@@ -114,7 +114,6 @@ class Shift(BaseWaveformTransform):
         # Back to flattened indexes
         add = (torch.arange(b) * t)[:,None,None].repeat(1, c, t)
         flat_idxs = add + idxs.long() % t 
-
         ret = tensor.flatten()[flat_idxs.flatten()].view(b,c,t)
 
         if rolling:

@@ -129,8 +129,10 @@ Shift the audio forwards or backwards, with or without rollover
 
 ## v0.5.0 (not released yet)
 
+* Fix a bug where one could not use the parameters method of the nn.Module subclass
 * Implement `Shift`
 * Make `sample_rate` optional. Allow specifying `sample_rate` in `__init__` instead of `forward`
+* Remove support for 1-dimensional tensors
 
 ## v0.4.0 (2020-11-10)
 

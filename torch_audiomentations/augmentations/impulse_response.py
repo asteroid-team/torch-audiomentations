@@ -51,11 +51,11 @@ class ApplyImpulseResponse(BaseWaveformTransform):
             placeholder = torch.zeros(size=(max_ir_sound_length,), dtype=torch.float32)
             placeholder[0 : len(ir_sounds[i])] = ir_sounds[i]
             ir_sounds[i] = placeholder
-        self.parameters["ir_sounds"] = torch.stack(ir_sounds)
+        self.transform_parameters["ir_sounds"] = torch.stack(ir_sounds)
 
     def apply_transform(self, selected_samples, sample_rate: typing.Optional[int] = None):
         selected_samples = selected_samples.to(self.device)
         original_length = selected_samples.shape[-1]
-        ir = self.parameters["ir_sounds"].to(self.device)
+        ir = self.transform_parameters["ir_sounds"].to(self.device)
         convolved_samples = convolve(selected_samples, ir, mode=self.convolve_mode)
         return convolved_samples[..., :original_length]
