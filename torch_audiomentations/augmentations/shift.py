@@ -90,20 +90,41 @@ class Shift(BaseWaveformTransform):
             )
 
     def apply_transform(self, selected_samples, sample_rate: typing.Optional[int] = None):
-        selected_batch_size = selected_samples.size(0)
-        for i in range(selected_batch_size):
-            num_samples_to_shift = self.parameters["num_samples_to_shift"][i].item()
-            selected_samples[i] = torch.roll(
-                selected_samples[i], shifts=num_samples_to_shift, dims=-1
-            )
+        high = self.parameters["num_samples_to_shift"]  
+        return self.shift(selected_samples, high, self.rollover)
+    
+    # @torch.jit.script
+    def shift(tensor: torch.Tensor, high:int, rolling:bool=False):
+        """ Shift or roll a batch of tensors
 
-            if not self.rollover:
-                if num_samples_to_shift > 0:
-                    selected_samples[i, ..., :num_samples_to_shift] = 0.0
-                elif num_samples_to_shift < 0:
-                    selected_samples[i, ..., num_samples_to_shift:] = 0.0
+        """
+        b, c, t = tensor.shape
+        
+        # Max to roll by
+        
+        # Arange indexes
+        x = torch.arange(t)[None, None, :].repeat(b, c, 1)
+        
+        # for per channel 
+        r = torch.randint(high, (b,1,1)) - int(high/2)
+        
+        # Force to be in range -t/2 < i < t/2
+        idxs = (x + r)
+        
+        # Back to flattened indexes
+        add = (torch.arange(b) * t)[:,None,None].repeat(1, c, t)
+        flat_idxs = add + idxs.long() % t 
 
-        return selected_samples
+        ret = tensor.flatten()[flat_idxs.flatten()].view(b,c,t)
+
+        if rolling:
+            return ret
+        
+        # Cut where we've rolled over
+        cut_points = (x + r + 1).clamp(0)
+        cut_points[cut_points>t] = 0
+        ret[cut_points==0] = 0
+        return ret
 
     def is_sample_rate_required(self) -> bool:
         # Sample rate is required only if shift_unit is "seconds"
