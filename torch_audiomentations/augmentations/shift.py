@@ -88,13 +88,14 @@ class Shift(BaseWaveformTransform):
                 dtype=torch.int32,
                 device=selected_samples.device,
             )
+        print(f'{self.transform_parameters["num_samples_to_shift"].shape=}')
 
     def apply_transform(self, selected_samples, sample_rate: typing.Optional[int] = None):
-        high = self.transform_parameters["num_samples_to_shift"]  
-        return self.shift(selected_samples, high, self.rollover)
+        r = self.transform_parameters["num_samples_to_shift"]  
+        return self.shift(selected_samples, r, self.rollover)
     
     # @torch.jit.script
-    def shift(tensor: torch.Tensor, high:int, rolling:bool=False):
+    def shift(self, tensor: torch.Tensor, r: torch.Tensor, rolling:bool=False):
         """ Shift or roll a batch of tensors
 
         """
@@ -105,10 +106,9 @@ class Shift(BaseWaveformTransform):
         # Arange indexes
         x = torch.arange(t)[None, None, :].repeat(b, c, 1)
         
-        # for per channel 
-        r = torch.randint(high, (b,1,1)) - int(high/2)
-        
-        # Force to be in range -t/2 < i < t/2
+        # Apply Roll
+        breakpoint()
+        r = r[:, None, None]
         idxs = (x + r)
         
         # Back to flattened indexes

@@ -18,7 +18,7 @@ class TestShift(unittest.TestCase):
         )
         sample_rate = 16000
 
-        augment = Shift(min_shift=1, max_shift=1, shift_unit="samples", p=1.0)
+        augment = Shift(max_shift=1, shift_unit="samples", p=1.0)
         processed_samples = augment(
             samples=torch.from_numpy(samples), sample_rate=sample_rate
         ).numpy()
@@ -42,7 +42,7 @@ class TestShift(unittest.TestCase):
         )
         sample_rate = 16000
 
-        augment = Shift(min_shift=1, max_shift=1, shift_unit="samples", p=1.0)
+        augment = Shift(max_shift=1, shift_unit="samples", p=1.0)
         processed_samples = augment(
             samples=torch.from_numpy(samples), sample_rate=sample_rate
         ).numpy()
@@ -67,7 +67,7 @@ class TestShift(unittest.TestCase):
         sample_rate = 16000
 
         augment = Shift(
-            min_shift=1, max_shift=1, shift_unit="samples", rollover=False, p=1.0
+            max_shift=1, shift_unit="samples", rollover=False, p=1.0
         )
         processed_samples = augment(
             samples=torch.from_numpy(samples), sample_rate=sample_rate
@@ -95,7 +95,7 @@ class TestShift(unittest.TestCase):
         )
         sample_rate = 16000
 
-        augment = Shift(min_shift=-2, max_shift=-2, shift_unit="samples", p=1.0)
+        augment = Shift(max_shift=-2, shift_unit="samples", p=1.0)
         processed_samples = augment(
             samples=torch.from_numpy(samples), sample_rate=sample_rate
         ).numpy()
@@ -122,7 +122,7 @@ class TestShift(unittest.TestCase):
         )
         sample_rate = 16000
 
-        augment = Shift(min_shift=0.5, max_shift=0.5, shift_unit="fraction", p=1.0)
+        augment = Shift(max_shift=0.5, shift_unit="fraction", p=1.0)
         processed_samples = augment(
             samples=torch.from_numpy(samples), sample_rate=sample_rate
         ).numpy()
@@ -148,7 +148,7 @@ class TestShift(unittest.TestCase):
             dtype=np.float32,
         )
 
-        augment = Shift(min_shift=0.5, max_shift=0.5, shift_unit="fraction", p=1.0)
+        augment = Shift(max_shift=0.5, shift_unit="fraction", p=1.0)
         processed_samples = augment(samples=torch.from_numpy(samples)).numpy()
 
         assert_almost_equal(
@@ -173,7 +173,7 @@ class TestShift(unittest.TestCase):
         )
         sample_rate = 1
 
-        augment = Shift(min_shift=-3, max_shift=-3, shift_unit="seconds", p=1.0)
+        augment = Shift(max_shift=-3, shift_unit="seconds", p=1.0)
         processed_samples = augment(
             samples=torch.from_numpy(samples), sample_rate=sample_rate
         ).numpy()
@@ -201,7 +201,6 @@ class TestShift(unittest.TestCase):
         sample_rate = 1
 
         augment = Shift(
-            min_shift=-3,
             max_shift=-3,
             shift_unit="seconds",
             p=1.0,
@@ -233,7 +232,6 @@ class TestShift(unittest.TestCase):
         forward_sample_rate = 1
 
         augment = Shift(
-            min_shift=-3,
             max_shift=-3,
             shift_unit="seconds",
             p=1.0,
@@ -265,7 +263,7 @@ class TestShift(unittest.TestCase):
             dtype=np.float32,
         )
 
-        augment = Shift(min_shift=-3, max_shift=-3, shift_unit="seconds", p=1.0)
+        augment = Shift(max_shift=-3, shift_unit="seconds", p=1.0)
         with self.assertRaises(RuntimeError):
             _ = augment(samples=torch.from_numpy(samples)).numpy()
 
@@ -282,7 +280,7 @@ class TestShift(unittest.TestCase):
         samples = np.stack([samples] * 1000, axis=0)
         sample_rate = 16000
 
-        augment = Shift(min_shift=-1, max_shift=1, shift_unit="samples", p=1.0)
+        augment = Shift(max_shift=1, shift_unit="samples", p=1.0)
         processed_samples = augment(
             samples=torch.from_numpy(samples), sample_rate=sample_rate
         ).numpy()
@@ -291,7 +289,7 @@ class TestShift(unittest.TestCase):
         applied_shift_counts = {-1: 0, 0: 0, 1: 0}
         for i in range(samples.shape[0]):
             applied_shift = None
-            for shift in range(augment.min_shift, augment.max_shift + 1):
+            for shift in range(0, augment.max_shift + 1):
                 if np.array_equal(
                     np.roll(samples[i], shift, axis=-1), processed_samples[i]
                 ):
@@ -301,5 +299,5 @@ class TestShift(unittest.TestCase):
 
             applied_shift_counts[applied_shift] += 1
 
-        for shift in range(augment.min_shift, augment.max_shift + 1):
+        for shift in range(0, augment.max_shift + 1):
             self.assertGreater(applied_shift_counts[shift], 50)
