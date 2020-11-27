@@ -81,6 +81,7 @@ class Shift(BaseWaveformTransform):
                 device=selected_samples.device,
             )
         else:
+            breakpoint()
             self.transform_parameters["num_samples_to_shift"] = torch.randint(
                 low=min_shift_in_samples,
                 high=max_shift_in_samples + 1,
@@ -92,6 +93,8 @@ class Shift(BaseWaveformTransform):
 
     def apply_transform(self, selected_samples, sample_rate: typing.Optional[int] = None):
         r = self.transform_parameters["num_samples_to_shift"]  
+        if selected_samples.dim() < 3:
+            selected_samples = selected_samples[None]
         return self.shift(selected_samples, r, self.rollover)
     
     # @torch.jit.script
@@ -100,27 +103,26 @@ class Shift(BaseWaveformTransform):
 
         """
         b, c, t = tensor.shape
-        
         # Max to roll by
         
         # Arange indexes
         x = torch.arange(t)[None, None, :].repeat(b, c, 1)
         
         # Apply Roll
+        r = r[:, None, None].repeat(1,c,1)
         breakpoint()
-        r = r[:, None, None]
-        idxs = (x + r)
+        idxs = (x - r)
         
         # Back to flattened indexes
-        add = (torch.arange(b) * t)[:,None,None].repeat(1, c, t)
+        add = (torch.arange(b) * t * c)[:,None,None].repeat(1, c, t)
         flat_idxs = add + idxs.long() % t 
+        breakpoint()
         ret = tensor.flatten()[flat_idxs.flatten()].view(b,c,t)
-
         if rolling:
             return ret
         
         # Cut where we've rolled over
-        cut_points = (x + r + 1).clamp(0)
+        cut_points = (x - r + 1).clamp(0)
         cut_points[cut_points>t] = 0
         ret[cut_points==0] = 0
         return ret

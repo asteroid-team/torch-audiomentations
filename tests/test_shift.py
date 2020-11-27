@@ -9,282 +9,173 @@ from torch_audiomentations import Shift
 
 class TestShift(unittest.TestCase):
     def test_shift_by_1_sample_3dim(self):
-        samples = np.array(
-            [
-                [[0.75, 0.5, -0.25, -0.125, 0.0], [0.9, 0.5, -0.25, -0.125, 0.0]],
-                [[1, 0.5, 0.25, 0.125, 0.0], [1, 0.5, 0.25, 0.125, 0.06]],
-            ],
-            dtype=np.float32,
-        )
+        samples = torch.arange(4)[None, None].repeat(2, 2, 1)
+        samples[1] += 1
+
         sample_rate = 16000
 
-        augment = Shift(max_shift=1, shift_unit="samples", p=1.0)
-        processed_samples = augment(
-            samples=torch.from_numpy(samples), sample_rate=sample_rate
-        ).numpy()
+        augment = Shift(min_shift=1, max_shift=1, shift_unit="samples", p=1.0)
+        processed_samples = augment(samples)
 
         assert_almost_equal(
             processed_samples,
-            np.array(
-                [
-                    [[0.0, 0.75, 0.5, -0.25, -0.125], [0.0, 0.9, 0.5, -0.25, -0.125]],
-                    [[0.0, 1, 0.5, 0.25, 0.125], [0.06, 1, 0.5, 0.25, 0.125]],
-                ],
-                dtype=np.float32,
-            ),
+            [
+                [[3, 0, 1, 2], [3, 0, 1, 2]],
+                [[4, 1, 2, 3], [4, 1, 2, 3]],
+            ],
         )
-        self.assertEqual(processed_samples.dtype, np.float32)
+
+        # self.assertEqual(processed_samples, np.int)
 
     def test_shift_by_1_sample_2dim(self):
-        samples = np.array(
-            [[0.75, 0.5, -0.25, -0.125, 0.77], [0.9, 0.5, -0.25, -0.125, 0.33]],
-            dtype=np.float32,
-        )
+        samples = torch.arange(4)[None].repeat(2, 1)
+
         sample_rate = 16000
 
-        augment = Shift(max_shift=1, shift_unit="samples", p=1.0)
-        processed_samples = augment(
-            samples=torch.from_numpy(samples), sample_rate=sample_rate
-        ).numpy()
+        augment = Shift(min_shift=1, max_shift=1, shift_unit="samples", p=1.0)
+        processed_samples = augment(samples)
 
         assert_almost_equal(
             processed_samples,
-            np.array(
-                [[0.77, 0.75, 0.5, -0.25, -0.125], [0.33, 0.9, 0.5, -0.25, -0.125]],
-                dtype=np.float32,
-            ),
+            [[3, 0, 1, 2], [3, 0, 1, 2]],
         )
-        self.assertEqual(processed_samples.dtype, np.float32)
 
     def test_shift_by_1_sample_without_rollover(self):
-        samples = np.array(
-            [
-                [[0.75, 0.5, -0.25, -0.125, 0.0], [0.9, 0.5, -0.25, -0.125, 0.0]],
-                [[1, 0.5, 0.25, 0.125, 0.0], [1, 0.5, 0.25, 0.125, 0.06]],
-            ],
-            dtype=np.float32,
-        )
+        samples = torch.arange(4)[None, None].repeat(2, 2, 1)
+        samples[1] += 1
         sample_rate = 16000
 
         augment = Shift(
-            max_shift=1, shift_unit="samples", rollover=False, p=1.0
+            min_shift=1,
+            max_shift=1,
+            shift_unit="samples",
+            rollover=False,
+            p=1.0,
         )
-        processed_samples = augment(
-            samples=torch.from_numpy(samples), sample_rate=sample_rate
-        ).numpy()
 
+        processed_samples = augment(samples=samples)
         assert_almost_equal(
             processed_samples,
-            np.array(
-                [
-                    [[0.0, 0.75, 0.5, -0.25, -0.125], [0.0, 0.9, 0.5, -0.25, -0.125]],
-                    [[0.0, 1, 0.5, 0.25, 0.125], [0.00, 1, 0.5, 0.25, 0.125]],
-                ],
-                dtype=np.float32,
-            ),
+            [
+                [[0, 0, 1, 2], [0, 0, 1, 2]],
+                [[0, 1, 2, 3], [0, 1, 2, 3]],
+            ],
         )
-        self.assertEqual(processed_samples.dtype, np.float32)
 
     def test_negative_shift_by_2_samples(self):
-        samples = np.array(
-            [
-                [[0.75, 0.5, -0.25, -0.125, 0.0], [0.9, 0.5, -0.25, -0.125, 0.0]],
-                [[1, 0.5, 0.25, 0.125, 0.0], [1, 0.5, 0.25, 0.125, 0.06]],
-            ],
-            dtype=np.float32,
-        )
+        samples = torch.arange(4)[None, None].repeat(2, 2, 1)
+        samples[1] += 1
         sample_rate = 16000
 
-        augment = Shift(max_shift=-2, shift_unit="samples", p=1.0)
-        processed_samples = augment(
-            samples=torch.from_numpy(samples), sample_rate=sample_rate
-        ).numpy()
+        augment = Shift(
+            min_shift=-2,
+            max_shift=-2,
+            shift_unit="samples",
+            rollover=True,
+            p=1.0,
+        )
 
+        processed_samples = augment(samples=samples)
         assert_almost_equal(
             processed_samples,
-            np.array(
-                [
-                    [[-0.25, -0.125, 0.0, 0.75, 0.5], [-0.25, -0.125, 0.0, 0.9, 0.5]],
-                    [[0.25, 0.125, 0.0, 1, 0.5], [0.25, 0.125, 0.06, 1, 0.5]],
-                ],
-                dtype=np.float32,
-            ),
+            [
+                [[2, 3, 0, 1], [2, 3, 0, 1]],
+                [[3, 4, 1, 2], [3, 4, 1, 2]],
+            ],
         )
-        self.assertEqual(processed_samples.dtype, np.float32)
 
     def test_shift_by_fraction(self):
-        samples = np.array(
-            [
-                [[0.75, 0.5, -0.25, -0.125], [0.9, 0.5, -0.25, -0.125]],
-                [[1, 0.5, 0.26, 0.125], [1, 0.5, 0.25, 0.125]],
-            ],
-            dtype=np.float32,
-        )
+        samples = torch.arange(4)[None, None].repeat(2, 2, 1)
+        samples[1] += 1
         sample_rate = 16000
 
-        augment = Shift(max_shift=0.5, shift_unit="fraction", p=1.0)
-        processed_samples = augment(
-            samples=torch.from_numpy(samples), sample_rate=sample_rate
-        ).numpy()
+        augment = Shift(
+            min_shift=0.5,
+            max_shift=0.5,
+            shift_unit="fraction",
+            rollover=True,
+            p=1.0,
+        )
 
+        processed_samples = augment(samples=samples)
         assert_almost_equal(
             processed_samples,
-            np.array(
-                [
-                    [[-0.25, -0.125, 0.75, 0.5], [-0.25, -0.125, 0.9, 0.5]],
-                    [[0.26, 0.125, 1, 0.5], [0.25, 0.125, 1, 0.5]],
-                ],
-                dtype=np.float32,
-            ),
-        )
-        self.assertEqual(processed_samples.dtype, np.float32)
-
-    def test_shift_by_fraction_without_specifying_sample_rate(self):
-        samples = np.array(
             [
-                [[0.75, 0.5, -0.25, -0.125], [0.9, 0.5, -0.25, -0.125]],
-                [[1, 0.5, 0.26, 0.125], [1, 0.5, 0.25, 0.125]],
+                [[2, 3, 0, 1], [2, 3, 0, 1]],
+                [[3, 4, 1, 2], [3, 4, 1, 2]],
             ],
-            dtype=np.float32,
         )
-
-        augment = Shift(max_shift=0.5, shift_unit="fraction", p=1.0)
-        processed_samples = augment(samples=torch.from_numpy(samples)).numpy()
-
-        assert_almost_equal(
-            processed_samples,
-            np.array(
-                [
-                    [[-0.25, -0.125, 0.75, 0.5], [-0.25, -0.125, 0.9, 0.5]],
-                    [[0.26, 0.125, 1, 0.5], [0.25, 0.125, 1, 0.5]],
-                ],
-                dtype=np.float32,
-            ),
-        )
-        self.assertEqual(processed_samples.dtype, np.float32)
 
     def test_shift_by_seconds(self):
-        samples = np.array(
-            [
-                [[0.75, 0.5, -0.25, -0.125], [0.9, 0.5, -0.25, -0.125]],
-                [[1, 0.5, 0.26, 0.125], [1, 0.5, 0.25, 0.125]],
-            ],
-            dtype=np.float32,
-        )
-        sample_rate = 1
+        samples = torch.arange(4)[None, None].repeat(2, 2, 1)
+        samples[1] += 1
 
-        augment = Shift(max_shift=-3, shift_unit="seconds", p=1.0)
-        processed_samples = augment(
-            samples=torch.from_numpy(samples), sample_rate=sample_rate
-        ).numpy()
-
+        augment = Shift(max_shift=-2, shift_unit="seconds", p=1.0, sample_rate=1)
+        processed_samples = augment(samples)
+        
         assert_almost_equal(
             processed_samples,
-            np.array(
-                [
-                    [[-0.125, 0.75, 0.5, -0.25], [-0.125, 0.9, 0.5, -0.25]],
-                    [[0.125, 1, 0.5, 0.26], [0.125, 1, 0.5, 0.25]],
-                ],
-                dtype=np.float32,
-            ),
-        )
-        self.assertEqual(processed_samples.dtype, np.float32)
-
-    def test_shift_by_seconds_specify_sample_rate_in_init(self):
-        samples = np.array(
             [
-                [[0.75, 0.5, -0.25, -0.125], [0.9, 0.5, -0.25, -0.125]],
-                [[1, 0.5, 0.26, 0.125], [1, 0.5, 0.25, 0.125]],
-            ],
-            dtype=np.float32,
-        )
-        sample_rate = 1
-
-        augment = Shift(
-            max_shift=-3,
-            shift_unit="seconds",
-            p=1.0,
-            sample_rate=sample_rate,
-        )
-        processed_samples = augment(samples=torch.from_numpy(samples)).numpy()
-
-        assert_almost_equal(
-            processed_samples,
-            np.array(
                 [
-                    [[-0.125, 0.75, 0.5, -0.25], [-0.125, 0.9, 0.5, -0.25]],
-                    [[0.125, 1, 0.5, 0.26], [0.125, 1, 0.5, 0.25]],
+                    [2, 3, 0, 1], 
+                    [2, 3, 0, 1]
                 ],
-                dtype=np.float32,
-            ),
+                [
+                    [3, 4, 1, 2], 
+                    [3, 4, 1, 2]
+                ],
+            ],
         )
-        self.assertEqual(processed_samples.dtype, np.float32)
 
     def test_shift_by_seconds_specify_sample_rate_in_both_init_and_forward(self):
-        samples = np.array(
-            [
-                [[0.75, 0.5, -0.25, -0.125], [0.9, 0.5, -0.25, -0.125]],
-                [[1, 0.5, 0.26, 0.125], [1, 0.5, 0.25, 0.125]],
-            ],
-            dtype=np.float32,
-        )
-        init_sample_rate = 42
-        forward_sample_rate = 1
+        samples = torch.arange(4)[None, None].repeat(2, 2, 1)
+        samples[1] += 1
+        init_sample_rate = 1
+        forward_sample_rate = 2
 
         augment = Shift(
-            max_shift=-3,
+            min_shift=1,
+            max_shift=1,
             shift_unit="seconds",
             p=1.0,
             sample_rate=init_sample_rate,
         )
         # If sample_rate is specified in both __init__ and forward, then the latter will be used
-        processed_samples = augment(
-            samples=torch.from_numpy(samples), sample_rate=forward_sample_rate
-        ).numpy()
+        processed_samples = augment(samples, samples=forward_sample_rate)
 
         assert_almost_equal(
             processed_samples,
-            np.array(
+            [
                 [
-                    [[-0.125, 0.75, 0.5, -0.25], [-0.125, 0.9, 0.5, -0.25]],
-                    [[0.125, 1, 0.5, 0.26], [0.125, 1, 0.5, 0.25]],
+                    [0,0, 0, 1], 
+                    [0,0, 0, 1], 
                 ],
-                dtype=np.float32,
-            ),
+                [
+                    [0, 0, 1, 2], 
+                    [0, 0, 1, 2], 
+                ],
+            ],
         )
-        self.assertEqual(processed_samples.dtype, np.float32)
 
     def test_shift_by_seconds_without_specifying_sample_rate(self):
-        samples = np.array(
-            [
-                [[0.75, 0.5, -0.25, -0.125], [0.9, 0.5, -0.25, -0.125]],
-                [[1, 0.5, 0.26, 0.125], [1, 0.5, 0.25, 0.125]],
-            ],
-            dtype=np.float32,
-        )
+        samples = torch.arange(4)[None, None].repeat(2, 2, 1)
+        samples[1] += 1
 
         augment = Shift(max_shift=-3, shift_unit="seconds", p=1.0)
         with self.assertRaises(RuntimeError):
-            _ = augment(samples=torch.from_numpy(samples)).numpy()
+            augment(samples)
 
         with self.assertRaises(RuntimeError):
-            _ = augment(samples=torch.from_numpy(samples), sample_rate=None).numpy()
+            augment(samples, sample_rate=None)
 
     def test_variability_within_batch(self):
         torch.manual_seed(42)
-
-        samples = np.array(
-            [[-0.25, -0.125, 0.0, 0.75, 0.5], [-0.25, -0.125, 0.0, 0.9, 0.5]],
-            dtype=np.float32,
-        )
-        samples = np.stack([samples] * 1000, axis=0)
-        sample_rate = 16000
-
-        augment = Shift(max_shift=1, shift_unit="samples", p=1.0)
-        processed_samples = augment(
-            samples=torch.from_numpy(samples), sample_rate=sample_rate
-        ).numpy()
-        self.assertEqual(processed_samples.dtype, np.float32)
+        
+        samples = torch.arange(4)[None, None].repeat(1000, 2, 1)
+        samples[1] += 1
+        breakpoint()
+        augment = Shift(min_shift=-1, max_shift=1, shift_unit="samples", p=1.0)
+        processed_samples = augment(samples)
 
         applied_shift_counts = {-1: 0, 0: 0, 1: 0}
         for i in range(samples.shape[0]):
