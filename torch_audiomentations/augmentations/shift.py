@@ -90,7 +90,6 @@ class Shift(BaseWaveformTransform):
                 dtype=torch.int32,
                 device=selected_samples.device,
             )
-        print(f'{self.transform_parameters["num_samples_to_shift"].shape=}')
 
     def apply_transform(self, selected_samples, sample_rate: typing.Optional[int] = None):
         r = self.transform_parameters["num_samples_to_shift"]  
