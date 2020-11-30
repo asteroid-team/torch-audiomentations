@@ -132,4 +132,5 @@ dmypy.json
 .idea
 
 # Scripts/demo output
-scripts/output/**/*.wav
+scripts/**/*.wav
+scripts/**/*.png
