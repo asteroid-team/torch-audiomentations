@@ -109,12 +109,12 @@ class ApplyBackgroundNoise(BaseWaveformTransform):
 
         # (batch_size, num_samples) RMS-normalized background noise
         audio = self.audio if hasattr(self, "audio") else Audio(sample_rate, mono=True)
-        self.parameters["background"] = torch.stack(
+        self.transform_parameters["background"] = torch.stack(
             [self.random_background(audio, num_samples) for _ in range(batch_size)]
         )
 
         # (batch_size, ) SNRs
-        self.parameters["snr_in_db"] = self.snr_distribution.sample(
+        self.transform_parameters["snr_in_db"] = self.snr_distribution.sample(
             sample_shape=(batch_size,)
         )
 
@@ -123,11 +123,11 @@ class ApplyBackgroundNoise(BaseWaveformTransform):
         batch_size, num_channels, num_samples = selected_samples.shape
 
         # (batch_size, num_samples)
-        background = self.parameters["background"].to(selected_samples.device)
+        background = self.transform_parameters["background"].to(selected_samples.device)
 
         # (batch_size, num_channels)
         background_rms = calculate_rms(selected_samples) / (
-            10 ** (self.parameters["snr_in_db"].unsqueeze(dim=-1) / 20)
+            10 ** (self.transform_parameters["snr_in_db"].unsqueeze(dim=-1) / 20)
         )
 
         return selected_samples + background_rms.unsqueeze(-1) * background.view(
