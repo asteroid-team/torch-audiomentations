@@ -11,6 +11,7 @@ from ..core.transforms_interface import BaseWaveformTransform, EmptyPathExceptio
 from ..utils.dsp import calculate_rms, calculate_desired_noise_rms
 from ..utils.file import find_audio_files
 from ..utils.io import Audio
+from ..utils.dsp import calculate_rms
 
 
 class ApplyBackgroundNoise(BaseWaveformTransform):
@@ -62,17 +63,6 @@ class ApplyBackgroundNoise(BaseWaveformTransform):
             raise ValueError("min_snr_in_db must not be greater than max_snr_in_db")
         self.snr_distribution = torch.distributions.Uniform(
             low=min_snr_in_db, high=max_snr_in_db, validate_args=True
-        )
-
-    def rms(self, selected_samples: torch.Tensor) -> torch.Tensor:
-        """Calculate root mean square
-
-        :param selected_samples: (batch_size, num_channels, num_samples) samples
-        :return rms: (batch_size, num_channels) root mean square
-        """
-
-        return torch.sqrt(
-            torch.mean(torch.square(selected_samples), dim=-1, keepdim=False)
         )
 
     def random_background(self, audio: Audio, target_num_samples: int) -> torch.Tensor:
@@ -136,7 +126,7 @@ class ApplyBackgroundNoise(BaseWaveformTransform):
         background = self.parameters["background"].to(selected_samples.device)
 
         # (batch_size, num_channels)
-        background_rms = self.rms(selected_samples) / (
+        background_rms = calculate_rms(selected_samples) / (
             10 ** (self.parameters["snr_in_db"].unsqueeze(dim=-1) / 20)
         )
 
