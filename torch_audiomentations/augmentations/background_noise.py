@@ -24,7 +24,7 @@ class ApplyBackgroundNoise(BaseWaveformTransform):
 
     def __init__(
         self,
-        background_paths: Union[List[Path], Path],
+        background_paths: Union[List[Path], List[str], Path, str],
         min_snr_in_db: float = 3.0,
         max_snr_in_db: float = 30.0,
         mode: str = "per_example",
@@ -143,4 +143,3 @@ class ApplyBackgroundNoise(BaseWaveformTransform):
         return selected_samples + background_rms.unsqueeze(-1) * background.view(
             batch_size, 1, num_samples
         ).expand(-1, num_channels, -1)
-
