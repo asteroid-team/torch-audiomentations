@@ -1,3 +1,4 @@
+from .augmentations.background_noise import ApplyBackgroundNoise
 from .augmentations.gain import Gain
 from .augmentations.peak_normalization import PeakNormalization
 from .augmentations.polarity_inversion import PolarityInversion
