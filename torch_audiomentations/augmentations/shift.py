@@ -3,6 +3,35 @@ import typing
 
 from ..core.transforms_interface import BaseWaveformTransform
 
+@torch.jit.script
+def shift(tensor: torch.Tensor, r: torch.Tensor, rolling:bool=False):
+    """ Shift or roll a batch of tensors
+
+    """
+    b, c, t = tensor.shape
+    # Max to roll by
+    
+    # Arange indexes
+    x = torch.arange(t)[None, None, :].repeat(b, c, 1)
+    
+
+    # Apply Roll
+    r = r[:, None, None]
+    idxs = (x - r)
+    
+    # Back to flattened indexes
+    add = (torch.arange(b) * t * c)[:,None,None].repeat(1, c, t)
+    flat_idxs = add + idxs.long() % t 
+    ret = tensor.flatten()[flat_idxs.flatten()].view(b,c,t)
+    if rolling:
+        return ret
+    
+    # Cut where we've rolled over
+    cut_points = (x - r + 1).clamp(0)
+    cut_points[cut_points>t] = 0
+    ret[cut_points==0] = 0
+    return ret
+
 
 class Shift(BaseWaveformTransform):
     """
@@ -95,37 +124,8 @@ class Shift(BaseWaveformTransform):
         r = self.transform_parameters["num_samples_to_shift"]  
         if selected_samples.dim() < 3:
             selected_samples = selected_samples[None]
-        return self.shift(selected_samples, r, self.rollover)
-    
-    # @torch.jit.script
-    def shift(self, tensor: torch.Tensor, r: torch.Tensor, rolling:bool=False):
-        """ Shift or roll a batch of tensors
-
-        """
-        b, c, t = tensor.shape
-        # Max to roll by
-        
-        # Arange indexes
-        x = torch.arange(t)[None, None, :].repeat(b, c, 1)
-        
-    
-        # Apply Roll
-        r = r[:, None, None]
-        idxs = (x - r)
-        
-        # Back to flattened indexes
-        add = (torch.arange(b) * t * c)[:,None,None].repeat(1, c, t)
-        flat_idxs = add + idxs.long() % t 
-        ret = tensor.flatten()[flat_idxs.flatten()].view(b,c,t)
-        if rolling:
-            return ret
-        
-        # Cut where we've rolled over
-        cut_points = (x - r + 1).clamp(0)
-        cut_points[cut_points>t] = 0
-        ret[cut_points==0] = 0
-        return ret
-
+        return shift(selected_samples, r, self.rollover)
+ 
     def is_sample_rate_required(self) -> bool:
         # Sample rate is required only if shift_unit is "seconds"
         return self.shift_unit == "seconds"
