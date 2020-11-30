@@ -34,7 +34,7 @@ class ApplyBackgroundNoise(BaseWaveformTransform):
     ):
         """
 
-        :param background_paths: list of paths to background audio files. 
+        :param background_paths: Either a path to a folder with audio files or a list of paths to audio files. 
         :param min_snr_in_db: minimum SNR in dB. 
         :param max_snr_in_db: maximium SNR in dB.
         :param mode:
