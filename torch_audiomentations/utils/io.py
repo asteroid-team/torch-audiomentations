@@ -240,11 +240,19 @@ class Audio:
             raise ValueError()
 
         if original_samples is None:
-            original_data, _ = torchaudio.load(
-                audio_path,
-                frame_offset=original_sample_offset,
-                num_frames=original_num_samples,
-            )
+            try:
+                original_data, _ = torchaudio.load(
+                    audio_path,
+                    frame_offset=original_sample_offset,
+                    num_frames=original_num_samples,
+                )
+            except TypeError:
+                # Support legacy interface. See also https://github.com/pytorch/audio/issues/903
+                original_data, _ = torchaudio.load(
+                    audio_path,
+                    offset=original_sample_offset,
+                    num_frames=original_num_samples,
+                )
 
         else:
             original_data = original_samples[
