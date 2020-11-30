@@ -93,6 +93,21 @@ class Audio:
         rms = samples.square().mean(dim=1).sqrt()
         return (samples.t() / (rms + 1e-8)).t()
 
+    @staticmethod
+    def get_audio_metadata(file_path) -> tuple:
+        """Return (num_samples, sample_rate)."""
+        info = torchaudio.info(file_path)
+        # Deal with backwards-incompatible signature change.
+        # See https://github.com/pytorch/audio/issues/903 for more information.
+        if type(info) is tuple:
+            si, ei = info
+            num_samples = si.length
+            sample_rate = si.rate
+        else:
+            num_samples = info.num_frames
+            sample_rate = info.sample_rate
+        return num_samples, sample_rate
+
     def get_num_samples(self, file: AudioFile) -> int:
         """Number of samples (in target sample rate)
 
@@ -111,15 +126,11 @@ class Audio:
 
             # file = {"audio": str or Path, [ "channel": int ]}
             else:
-                info = torchaudio.info(file["audio"])
-                num_samples = info.num_frames
-                sample_rate = info.sample_rate
+                num_samples, sample_rate = self.get_audio_metadata(file["audio"])
 
         #  file = str or Path
         else:
-            info = torchaudio.info(file)
-            num_samples = info.num_frames
-            sample_rate = info.sample_rate
+            num_samples, sample_rate = self.get_audio_metadata(file)
 
         return num_samples * self.sample_rate / sample_rate
 
@@ -166,7 +177,7 @@ class Audio:
         return samples
 
     def __call__(
-        self, file: AudioFile, sample_offset: int = 0, num_samples: int = None,
+        self, file: AudioFile, sample_offset: int = 0, num_samples: int = None
     ) -> Tensor:
         """
 
@@ -202,17 +213,17 @@ class Audio:
             # file = {"audio": str or Path, [ "channel": int ]}
             else:
                 audio_path = str(file["audio"])
-                info = torchaudio.info(audio_path)
-                original_sample_rate = info.sample_rate
-                original_total_num_samples = info.num_frames
+                original_sample_rate, original_total_num_samples = self.get_audio_metadata(
+                    audio_path
+                )
                 channel = file.get("channel", None)
 
         #  file = str or Path
         else:
             audio_path = str(file)
-            info = torchaudio.info(audio_path)
-            original_sample_rate = info.sample_rate
-            original_total_num_samples = info.num_frames
+            original_sample_rate, original_total_num_samples = self.get_audio_metadata(
+                audio_path
+            )
             channel = None
 
         original_sample_offset = round(
