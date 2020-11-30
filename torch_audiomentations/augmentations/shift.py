@@ -3,7 +3,7 @@ import typing
 
 from ..core.transforms_interface import BaseWaveformTransform
 
-@torch.jit.script
+# @torch.jit.script
 def shift(tensor: torch.Tensor, r: torch.Tensor, rolling:bool=False):
     """ Shift or roll a batch of tensors
 
@@ -12,22 +12,17 @@ def shift(tensor: torch.Tensor, r: torch.Tensor, rolling:bool=False):
     # Max to roll by
     
     # Arange indexes
-    x = torch.arange(t)[None, None, :].repeat(b, c, 1)
-    
+    x = torch.arange(t, device=tensor.device)
 
     # Apply Roll
     r = r[:, None, None]
-    idxs = (x - r)
-    
-    # Back to flattened indexes
-    add = (torch.arange(b) * t * c)[:,None,None].repeat(1, c, t)
-    flat_idxs = add + idxs.long() % t 
-    ret = tensor.flatten()[flat_idxs.flatten()].view(b,c,t)
+    idxs = (x - r).expand([b,c,t])
+    ret = torch.gather(tensor, 2, idxs%t)
     if rolling:
         return ret
     
     # Cut where we've rolled over
-    cut_points = (x - r + 1).clamp(0)
+    cut_points = (idxs + 1).clamp(0)
     cut_points[cut_points>t] = 0
     ret[cut_points==0] = 0
     return ret

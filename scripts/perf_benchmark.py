@@ -9,7 +9,7 @@ import pandas as pd
 import time
 import torch
 from tqdm import tqdm
-
+from old_shift import OldShift
 from torch_audiomentations import PolarityInversion, Gain, PeakNormalization, Shift
 
 BASE_DIR = Path(os.path.abspath(os.path.dirname(os.path.dirname(__file__))))
@@ -61,6 +61,7 @@ def measure_execution_time(
     samples = torch.rand(
         (batch_size, num_channels, num_samples), dtype=torch.float32, device=device
     )
+    transform.to(device=device_name)
     perf_objects = []
     for i in range(3):
         perf_obj = {
@@ -76,7 +77,8 @@ def measure_execution_time(
             },
         }
         with timer() as t:
-            transform(samples=samples, sample_rate=sample_rate).cpu()
+            transform(samples=samples, sample_rate=sample_rate)
+            torch.cuda.synchronize()
         perf_obj["metrics"]["execution_time"] = t.execution_time
         perf_objects.append(perf_obj)
     return perf_objects
@@ -94,7 +96,7 @@ if __name__ == "__main__":
     os.makedirs(output_dir, exist_ok=True)
 
     params = dict(
-        batch_sizes=[1, 2, 4, 8, 16],
+        batch_sizes=[16, 32, 64],
         channels=[1, 2, 4, 8],
         durations=[1, 2, 4, 8, 16],
         sample_rates=[16000],
@@ -109,9 +111,7 @@ if __name__ == "__main__":
     }
 
     transforms = [
-        Gain(p=1.0),
-        PolarityInversion(p=1.0),
-        PeakNormalization(p=1.0),
+        OldShift(p=1.0),
         Shift(p=1.0),
     ]
 
