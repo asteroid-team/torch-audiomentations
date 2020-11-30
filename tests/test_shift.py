@@ -29,9 +29,7 @@ class TestShift(unittest.TestCase):
 
     def test_shift_by_1_sample_2dim(self):
         samples = torch.arange(4)[None].repeat(2, 1)
-
         sample_rate = 16000
-
         augment = Shift(min_shift=1, max_shift=1, shift_unit="samples", p=1.0)
         processed_samples = augment(samples)
 
@@ -110,7 +108,7 @@ class TestShift(unittest.TestCase):
         samples = torch.arange(4)[None, None].repeat(2, 2, 1)
         samples[1] += 1
 
-        augment = Shift(max_shift=-2, shift_unit="seconds", p=1.0, sample_rate=1)
+        augment = Shift(min_shift=-2, max_shift=-2, shift_unit="seconds", p=1.0, sample_rate=1)
         processed_samples = augment(samples)
         
         assert_almost_equal(
@@ -139,10 +137,10 @@ class TestShift(unittest.TestCase):
             shift_unit="seconds",
             p=1.0,
             sample_rate=init_sample_rate,
+            rollover=False,
         )
         # If sample_rate is specified in both __init__ and forward, then the latter will be used
-        processed_samples = augment(samples, samples=forward_sample_rate)
-
+        processed_samples = augment(samples, sample_rate=forward_sample_rate)
         assert_almost_equal(
             processed_samples,
             [
@@ -161,7 +159,7 @@ class TestShift(unittest.TestCase):
         samples = torch.arange(4)[None, None].repeat(2, 2, 1)
         samples[1] += 1
 
-        augment = Shift(max_shift=-3, shift_unit="seconds", p=1.0)
+        augment = Shift(min_shift=-3, max_shift=-3, shift_unit="seconds", p=1.0)
         with self.assertRaises(RuntimeError):
             augment(samples)
 
@@ -172,22 +170,18 @@ class TestShift(unittest.TestCase):
         torch.manual_seed(42)
         
         samples = torch.arange(4)[None, None].repeat(1000, 2, 1)
-        samples[1] += 1
-        breakpoint()
         augment = Shift(min_shift=-1, max_shift=1, shift_unit="samples", p=1.0)
         processed_samples = augment(samples)
 
         applied_shift_counts = {-1: 0, 0: 0, 1: 0}
         for i in range(samples.shape[0]):
             applied_shift = None
-            for shift in range(0, augment.max_shift + 1):
-                if np.array_equal(
-                    np.roll(samples[i], shift, axis=-1), processed_samples[i]
-                ):
+            for shift in range(augment.min_shift, augment.max_shift + 1):
+                rolled = np.roll(samples[i], shift, axis=1)
+                if np.array_equal(rolled, processed_samples[i]):
                     applied_shift = shift
                     break
             self.assertIsNotNone(applied_shift)
-
             applied_shift_counts[applied_shift] += 1
 
         for shift in range(0, augment.max_shift + 1):
