@@ -1,4 +1,4 @@
-name: torch-audiomentations
+name: torch-audiomentations-gpu
 channels:
 - defaults
 - pytorch
@@ -10,6 +10,7 @@ dependencies:
 - pip>=20.1,<=21
 - python=3.7.3
 - scipy=1.5.2
+- seaborn>=0.9,<1
 - pytorch=1.6.0
 - torchaudio>=0.6.0
 - pip:
@@ -19,6 +20,7 @@ dependencies:
   - coverage==5.3
   - ffmpeg-python
   - librosa>=0.6.1,<=0.8
+  - pandas==1.1.4
   - py-cpuinfo==7.0.0
   - pytest==5.3.4
   - pytest-cov==2.8.1

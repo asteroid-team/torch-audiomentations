@@ -65,7 +65,7 @@ if __name__ == "__main__":
     For each transformation, apply it to an example sound and write the transformed sounds to
     an output folder. Also crudely measure and print execution time.
     """
-    output_dir = os.path.join(SCRIPTS_DIR, "output")
+    output_dir = os.path.join(SCRIPTS_DIR, "demo_output")
     os.makedirs(output_dir, exist_ok=True)
 
     np.random.seed(42)
