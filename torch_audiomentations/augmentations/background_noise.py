@@ -4,113 +4,132 @@ import math
 import numpy as np
 import soundfile
 import torch
-import typing
+from typing import Union, List
+from pathlib import Path
 
 from ..core.transforms_interface import BaseWaveformTransform, EmptyPathException
 from ..utils.dsp import calculate_rms, calculate_desired_noise_rms
-from ..utils.file import find_audio_files, load_audio
+from ..utils.file import find_audio_files
+from ..utils.io import Audio
+from ..utils.dsp import calculate_rms
 
 
 class ApplyBackgroundNoise(BaseWaveformTransform):
     """
     Add background noise to the input audio.
+
     """
 
-    supports_multichannel = False  # TODO: Implement multichannel support
+    supports_multichannel = True  # TODO: Implement multichannel support
+    requires_sample_rate = True
 
     def __init__(
         self,
-        bg_path,
+        background_paths: Union[List[Path], List[str], Path, str],
         min_snr_in_db: float = 3.0,
         max_snr_in_db: float = 30.0,
-        device=torch.device("cpu"),
         mode: str = "per_example",
         p: float = 0.5,
-        p_mode: typing.Optional[str] = None,
-        sample_rate: typing.Optional[int] = None,
+        p_mode: str = None,
+        sample_rate: int = None,
     ):
-        # TODO: infer device from the given samples instead
-        super(ApplyBackgroundNoise, self).__init__(mode, p, p_mode, sample_rate)
-        self.bg_path = find_audio_files(bg_path)
+        """
 
-        if len(self.bg_path) == 0:
+        :param background_paths: Either a path to a folder with audio files or a list of paths to audio files. 
+        :param min_snr_in_db: minimum SNR in dB. 
+        :param max_snr_in_db: maximium SNR in dB.
+        :param mode:
+        :param p:
+        :param p_mode:
+        """
+
+        super().__init__(mode, p, p_mode, sample_rate)
+
+        if isinstance(background_paths, (list, tuple, set)):
+            # TODO: check that one can read audio files
+            self.background_paths = list(background_paths)
+        else:
+            self.background_paths = find_audio_files(background_paths)
+
+        if sample_rate is not None:
+            self.audio = Audio(sample_rate=sample_rate, mono=True)
+
+        if len(self.background_paths) == 0:
             raise EmptyPathException("There are no supported audio files found.")
 
         self.min_snr_in_db = min_snr_in_db
         self.max_snr_in_db = max_snr_in_db
+        if self.min_snr_in_db > self.max_snr_in_db:
+            raise ValueError("min_snr_in_db must not be greater than max_snr_in_db")
         self.snr_distribution = torch.distributions.Uniform(
             low=min_snr_in_db, high=max_snr_in_db, validate_args=True
         )
-        self.device = device
+
+    def random_background(self, audio: Audio, target_num_samples: int) -> torch.Tensor:
+        pieces = []
+
+        # TODO: support repeat short samples instead of concatenating from different files
+
+        missing_num_samples = target_num_samples
+        while missing_num_samples > 0:
+            background_path = random.choice(self.background_paths)
+            background_num_samples = audio.get_num_samples(background_path)
+
+            if background_num_samples > missing_num_samples:
+                sample_offset = random.randint(
+                    0, background_num_samples - missing_num_samples
+                )
+                num_samples = missing_num_samples
+                background_samples = audio(
+                    background_path, sample_offset=sample_offset, num_samples=num_samples,
+                )
+                missing_num_samples = 0
+            else:
+                background_samples = audio(background_path)
+                missing_num_samples -= background_num_samples
+
+            pieces.append(background_samples)
+
+        #  the inner call to rms_normalize ensures concatenated pieces share the same RMS (1)
+        #  the outer call to rms_normalize ensures that the resulting background has an RMS of 1
+        #  (this simplifies "apply_transform" logic)
+        return audio.rms_normalize(
+            torch.cat([audio.rms_normalize(piece) for piece in pieces], dim=1)
+        )
 
     def randomize_parameters(
-        self, selected_samples, sample_rate: typing.Optional[int] = None
+        self, selected_samples: torch.Tensor, sample_rate: int = None
     ):
-        selected_batch_size = selected_samples.size(0)
-        bg_file_paths = random.choices(self.bg_path, k=selected_batch_size)
-        bg_audios = []
-        for index, bg_file_path in enumerate(bg_file_paths):
-            bg_audio_info = soundfile.info(bg_file_path, verbose=True)
-            bg_audio_num_samples = math.ceil(
-                sample_rate * bg_audio_info.frames / bg_audio_info.samplerate
-            )
-            samples_num_samples = selected_samples[index].size(0)
+        """
 
-            # ensure that background noise has the same length as the sample
-            if bg_audio_num_samples < samples_num_samples:
-                bg_start_index = 0
-                bg_stop_index = bg_audio_info.frames
-                loaded_bg_audio_num_samples = bg_audio_num_samples
+        :params selected_samples: (batch_size, num_channels, num_samples)
+        """
 
-                current_bg_audio = load_audio(
-                    bg_file_path,
-                    sample_rate=sample_rate,
-                    start=bg_start_index,
-                    stop=bg_stop_index,
-                )
-                bg_audio = [current_bg_audio]
+        batch_size, _, num_samples = selected_samples.shape
 
-                # TODO: Factor out this bit that repeats the audio until the desired length
-                #  has been reached, and then trims away any excess audio from the end
-                while loaded_bg_audio_num_samples < samples_num_samples:
-                    current_bg_audio = bg_audio[-1]
-                    loaded_bg_audio_num_samples += current_bg_audio.shape[0]
-                    bg_audio.append(current_bg_audio)
+        # (batch_size, num_samples) RMS-normalized background noise
+        audio = self.audio if hasattr(self, "audio") else Audio(sample_rate, mono=True)
+        self.transform_parameters["background"] = torch.stack(
+            [self.random_background(audio, num_samples) for _ in range(batch_size)]
+        )
 
-                bg_audio = np.concatenate(bg_audio)
-                bg_audio = bg_audio[:samples_num_samples]
-            else:
-                factor = int(bg_audio_info.samplerate / sample_rate)
-                max_bg_offset = max(
-                    0, bg_audio_info.frames - samples_num_samples * factor
-                )
-                bg_start_index = random.randint(0, max_bg_offset)
-                bg_stop_index = bg_start_index + samples_num_samples * factor
-                bg_audio = load_audio(
-                    bg_file_path,
-                    sample_rate=sample_rate,
-                    start=bg_start_index,
-                    stop=bg_stop_index,
-                )
-
-            bg_audios.append(torch.from_numpy(bg_audio))
-
+        # (batch_size, ) SNRs
         self.transform_parameters["snr_in_db"] = self.snr_distribution.sample(
-            sample_shape=(selected_batch_size,)
+            sample_shape=(batch_size,)
         )
-        self.transform_parameters["bg_audios"] = torch.stack(bg_audios)
 
-    def apply_transform(self, selected_samples, sample_rate: typing.Optional[int] = None):
-        selected_samples = selected_samples.to(self.device)
-        bg_audios = self.transform_parameters["bg_audios"].to(self.device)
+    def apply_transform(self, selected_samples: torch.Tensor, sample_rate: int = None):
 
-        # calculate sample and background audio RMS
-        samples_rms = calculate_rms(selected_samples).squeeze()
-        bg_audios_rms = calculate_rms(bg_audios).squeeze()
+        batch_size, num_channels, num_samples = selected_samples.shape
 
-        desired_bg_audios_rms = calculate_desired_noise_rms(
-            samples_rms, self.transform_parameters["snr_in_db"]
+        # (batch_size, num_samples)
+        background = self.transform_parameters["background"].to(selected_samples.device)
+
+        # (batch_size, num_channels)
+        background_rms = calculate_rms(selected_samples) / (
+            10 ** (self.transform_parameters["snr_in_db"].unsqueeze(dim=-1) / 20)
         )
-        bg_audios = bg_audios * (desired_bg_audios_rms / bg_audios_rms).unsqueeze(1)
 
-        return selected_samples + bg_audios
+        return selected_samples + background_rms.unsqueeze(-1) * background.view(
+            batch_size, 1, num_samples
+        ).expand(-1, num_channels, -1)

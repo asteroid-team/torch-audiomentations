@@ -7,7 +7,7 @@ def calculate_rms(samples):
 
     Based on https://github.com/iver56/audiomentations/blob/master/audiomentations/core/utils.py
     """
-    return torch.sqrt(torch.mean(torch.square(samples), -1, keepdim=True))
+    return torch.sqrt(torch.mean(torch.square(samples), dim=-1, keepdim=False))
 
 
 def calculate_desired_noise_rms(clean_rms, snr):

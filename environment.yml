@@ -12,6 +12,7 @@ dependencies:
 - scipy=1.5.2
 - seaborn>=0.9,<1
 - pytorch=1.6.0
+- torchaudio>=0.6.0
 - pip:
   - audiomentations==0.12.1
   - audioread==2.1.8
