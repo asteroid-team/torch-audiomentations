@@ -31,7 +31,7 @@ class Audio:
     Parameters
     ----------
     sample_rate: int
-        Target sample rate. 
+        Target sample rate.
     mono : int, optional
         Convert multi-channel to mono. Defaults to True.
 
@@ -213,15 +213,16 @@ class Audio:
             # file = {"audio": str or Path, [ "channel": int ]}
             else:
                 audio_path = str(file["audio"])
-                original_sample_rate, original_total_num_samples = self.get_audio_metadata(
-                    audio_path
-                )
+                (
+                    original_total_num_samples,
+                    original_sample_rate,
+                ) = self.get_audio_metadata(audio_path)
                 channel = file.get("channel", None)
 
         #  file = str or Path
         else:
             audio_path = str(file)
-            original_sample_rate, original_total_num_samples = self.get_audio_metadata(
+            original_total_num_samples, original_sample_rate = self.get_audio_metadata(
                 audio_path
             )
             channel = None
