@@ -9,9 +9,9 @@ dependencies:
 - numpy>=1.14,<1.18
 - pip>=20.1,<=21
 - python=3.7.3
+- pytorch=1.6.0
 - scipy=1.5.2
 - seaborn>=0.9,<1
-- pytorch=1.6.0
 - torchaudio>=0.6.0
 - pip:
   - audiomentations==0.12.1
@@ -24,7 +24,7 @@ dependencies:
   - py-cpuinfo==7.0.0
   - pytest==5.3.4
   - pytest-cov==2.8.1
+  - PyYAML==5.3.1
   - setuptools>=41.0.0
   - tqdm==4.49.0
   - twine
-  - PyYAML==5.3.1
