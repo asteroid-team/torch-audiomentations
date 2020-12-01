@@ -121,7 +121,7 @@ training phase-aware machine learning models.
 
 ## Shift
 
-_To be addded in v0.5.0_
+_To be added in v0.5.0_
 
 Shift the audio forwards or backwards, with or without rollover
 
@@ -129,10 +129,12 @@ Shift the audio forwards or backwards, with or without rollover
 
 ## v0.5.0 (not released yet)
 
-* Fix a bug where one could not use the parameters method of the nn.Module subclass
+* Fix a bug where one could not use the `parameters` method of the nn.Module subclass
 * Implement `Shift`
 * Make `sample_rate` optional. Allow specifying `sample_rate` in `__init__` instead of `forward`
-* Remove support for 1-dimensional tensors
+* Remove support for 1-dimensional and 2-dimensional audio tensors. Only 3-dimensional audio
+ tensors are supported now.
+* Release `ApplyBackgroundNoise`
 
 ## v0.4.0 (2020-11-10)
 
