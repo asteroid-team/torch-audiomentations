@@ -15,6 +15,7 @@ from torch_audiomentations import (
     Compose,
     Shift,
     ApplyBackgroundNoise,
+    ApplyImpulseResponse,
 )
 
 SAMPLE_RATE = 44100
@@ -90,6 +91,12 @@ if __name__ == "__main__":
                     background_paths=TEST_FIXTURES_DIR / "bg", mode=mode, p=1.0
                 ),
                 "num_runs": 5,
+            },
+            {
+                "instance": ApplyImpulseResponse(
+                    ir_paths=TEST_FIXTURES_DIR / "ir", mode=mode, p=1.0
+                ),
+                "num_runs": 1,
             },
             {
                 "instance": Compose(

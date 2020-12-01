@@ -1,15 +1,13 @@
 import random
-
-import torch
-from typing import Union, List
 from pathlib import Path
+from typing import Union, List
+
+from torch.nn.utils.rnn import pad_sequence
 
 from ..core.transforms_interface import BaseWaveformTransform, EmptyPathException
 from ..utils.convolution import convolve
 from ..utils.file import find_audio_files
 from ..utils.io import Audio
-
-from torch.nn.utils.rnn import pad_sequence
 
 
 class ApplyImpulseResponse(BaseWaveformTransform):
