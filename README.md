@@ -73,7 +73,7 @@ torch-audiomentations is in an early development stage, so the APIs are subject 
 
 ## ApplyBackgroundNoise
 
-_Not released yet_
+_To be added in v0.5.0_
 
 Add background noise to the input audio.
 
