@@ -35,8 +35,8 @@ class ApplyBackgroundNoise(BaseWaveformTransform):
     ):
         """
 
-        :param background_paths: Either a path to a folder with audio files or a list of paths to audio files. 
-        :param min_snr_in_db: minimum SNR in dB. 
+        :param background_paths: Either a path to a folder with audio files or a list of paths to audio files.
+        :param min_snr_in_db: minimum SNR in dB.
         :param max_snr_in_db: maximium SNR in dB.
         :param mode:
         :param p:
@@ -81,7 +81,9 @@ class ApplyBackgroundNoise(BaseWaveformTransform):
                 )
                 num_samples = missing_num_samples
                 background_samples = audio(
-                    background_path, sample_offset=sample_offset, num_samples=num_samples,
+                    background_path,
+                    sample_offset=sample_offset,
+                    num_samples=num_samples,
                 )
                 missing_num_samples = 0
             else:
