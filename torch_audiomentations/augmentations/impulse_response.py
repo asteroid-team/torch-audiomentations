@@ -1,11 +1,13 @@
 import random
+from pathlib import Path
+from typing import Union, List
 
-import torch
-import typing
+from torch.nn.utils.rnn import pad_sequence
 
 from ..core.transforms_interface import BaseWaveformTransform, EmptyPathException
 from ..utils.convolution import convolve
-from ..utils.file import find_audio_files, load_audio
+from ..utils.file import find_audio_files
+from ..utils.io import Audio
 
 
 class ApplyImpulseResponse(BaseWaveformTransform):
@@ -13,49 +15,67 @@ class ApplyImpulseResponse(BaseWaveformTransform):
     Convolve the given audio with impulse responses.
     """
 
-    supports_multichannel = False  # TODO: Implement multichannel support
+    supports_multichannel = True  # TODO: Implement multichannel support
+    requires_sample_rate = True
 
     def __init__(
         self,
-        ir_path,
-        device=torch.device("cpu"),
-        convolve_mode="full",
+        ir_paths: Union[List[Path], List[str], Path, str],
+        convolve_mode: str = "full",
         mode: str = "per_example",
         p: float = 0.5,
-        p_mode: typing.Optional[str] = None,
-        sample_rate: typing.Optional[int] = None,
+        p_mode: str = None,
+        sample_rate: int = None,
     ):
-        # TODO: infer device from the given samples instead
-        super(ApplyImpulseResponse, self).__init__(mode, p, p_mode, sample_rate)
+        """
 
-        self.ir_path = find_audio_files(ir_path)
+        :param ir_paths: Either a path to a folder with audio files or a list of paths to audio files.
+        :convolve_mode:
+        :param mode:
+        :param p:
+        :param p_mode:
+        """
 
-        if len(self.ir_path) == 0:
+        super().__init__(mode, p, p_mode, sample_rate)
+
+        if isinstance(ir_paths, (list, tuple, set)):
+            # TODO: check that one can read audio files
+            self.ir_paths = list(ir_paths)
+        else:
+            self.ir_paths = find_audio_files(ir_paths)
+
+        if sample_rate is not None:
+            self.audio = Audio(sample_rate=sample_rate, mono=True)
+
+        if len(self.ir_paths) == 0:
             raise EmptyPathException("There are no supported audio files found.")
 
         self.convolve_mode = convolve_mode
-        self.device = device
 
-    def randomize_parameters(
-        self, selected_samples, sample_rate: typing.Optional[int] = None
-    ):
-        ir_paths = random.choices(self.ir_path, k=selected_samples.size(0))
-        ir_sounds = []
-        max_ir_sound_length = 0
-        for ir_path in ir_paths:
-            ir_samples = load_audio(ir_path, sample_rate)
-            max_ir_sound_length = max(max_ir_sound_length, len(ir_samples))
-            ir_samples = torch.from_numpy(ir_samples)
-            ir_sounds.append(ir_samples)
-        for i in range(len(ir_sounds)):
-            placeholder = torch.zeros(size=(max_ir_sound_length,), dtype=torch.float32)
-            placeholder[0 : len(ir_sounds[i])] = ir_sounds[i]
-            ir_sounds[i] = placeholder
-        self.transform_parameters["ir_sounds"] = torch.stack(ir_sounds)
+    def randomize_parameters(self, selected_samples, sample_rate: int = None):
 
-    def apply_transform(self, selected_samples, sample_rate: typing.Optional[int] = None):
-        selected_samples = selected_samples.to(self.device)
-        original_length = selected_samples.shape[-1]
-        ir = self.transform_parameters["ir_sounds"].to(self.device)
-        convolved_samples = convolve(selected_samples, ir, mode=self.convolve_mode)
-        return convolved_samples[..., :original_length]
+        batch_size, _, _ = selected_samples.shape
+
+        audio = self.audio if hasattr(self, "audio") else Audio(sample_rate, mono=True)
+
+        self.transform_parameters["ir"] = pad_sequence(
+            [
+                audio(ir_path).transpose(0, 1)
+                for ir_path in random.choices(self.ir_paths, k=batch_size)
+            ],
+            batch_first=True,
+            padding_value=0.0,
+        ).transpose(1, 2)
+
+    def apply_transform(self, selected_samples, sample_rate: int = None):
+
+        batch_size, num_channels, num_samples = selected_samples.shape
+
+        # (batch_size, max_ir_length, 1)
+        ir = self.transform_parameters["ir"].to(selected_samples.device)
+
+        convolved_samples = convolve(
+            selected_samples, ir.expand(-1, num_channels, -1), mode=self.convolve_mode
+        )
+
+        return convolved_samples[..., :num_samples]
