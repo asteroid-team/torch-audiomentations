@@ -7,7 +7,7 @@ from torch.optim import SGD
 from tests.utils import TEST_FIXTURES_DIR
 from torch_audiomentations import (
     ApplyBackgroundNoise,
-    # ApplyImpulseResponse,
+    ApplyImpulseResponse,
     Gain,
     PeakNormalization,
     PolarityInversion,
@@ -24,7 +24,7 @@ IR_PATH = TEST_FIXTURES_DIR / "ir"
     [
         # Differentiable transforms:
         ApplyBackgroundNoise(BG_NOISE_PATH, 20, p=1.0),
-        # ApplyImpulseResponse(IR_PATH, p=1.0),
+        ApplyImpulseResponse(IR_PATH, p=1.0),
         Compose(
             transforms=[
                 Gain(min_gain_in_db=-15.0, max_gain_in_db=5.0, p=1.0),
