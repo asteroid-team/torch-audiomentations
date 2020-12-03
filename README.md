@@ -90,7 +90,7 @@ See also https://en.wikipedia.org/wiki/Clipping_(audio)#Digital_clipping
 
 ## ApplyImpulseResponse
 
-_Not released yet_
+_To be added in v0.5.0_
 
 Convolve the given audio with impulse responses.
 
@@ -134,7 +134,7 @@ Shift the audio forwards or backwards, with or without rollover
 * Make `sample_rate` optional. Allow specifying `sample_rate` in `__init__` instead of `forward`
 * Remove support for 1-dimensional and 2-dimensional audio tensors. Only 3-dimensional audio
  tensors are supported now.
-* Release `ApplyBackgroundNoise`
+* Release `ApplyBackgroundNoise` and `ApplyImpulseResponse`
 
 ## v0.4.0 (2020-11-10)
 
