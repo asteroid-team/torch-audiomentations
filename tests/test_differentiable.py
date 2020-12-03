@@ -6,7 +6,7 @@ from torch.optim import SGD
 
 from tests.utils import TEST_FIXTURES_DIR
 from torch_audiomentations import (
-    ApplyBackgroundNoise,
+    AddBackgroundNoise,
     ApplyImpulseResponse,
     Gain,
     PeakNormalization,
@@ -23,7 +23,7 @@ IR_PATH = TEST_FIXTURES_DIR / "ir"
     "augment",
     [
         # Differentiable transforms:
-        ApplyBackgroundNoise(BG_NOISE_PATH, 20, p=1.0),
+        AddBackgroundNoise(BG_NOISE_PATH, 20, p=1.0),
         ApplyImpulseResponse(IR_PATH, p=1.0),
         Compose(
             transforms=[
@@ -46,7 +46,7 @@ IR_PATH = TEST_FIXTURES_DIR / "ir"
 )
 def test_transform_is_differentiable(augment):
     sample_rate = 16000
-    # Note: using float64 dtype to be compatible with ApplyBackgroundNoise fixtures
+    # Note: using float64 dtype to be compatible with AddBackgroundNoise fixtures
     samples = torch.tensor(
         [[1.0, 0.5, -0.25, -0.125, 0.0]], dtype=torch.float64
     ).unsqueeze(1)

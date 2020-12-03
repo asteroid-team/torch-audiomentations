@@ -14,7 +14,7 @@ from torch_audiomentations import (
     PeakNormalization,
     Compose,
     Shift,
-    ApplyBackgroundNoise,
+    AddBackgroundNoise,
     ApplyImpulseResponse,
 )
 
@@ -87,7 +87,7 @@ if __name__ == "__main__":
     for mode in modes:
         transforms = [
             {
-                "instance": ApplyBackgroundNoise(
+                "instance": AddBackgroundNoise(
                     background_paths=TEST_FIXTURES_DIR / "bg", mode=mode, p=1.0
                 ),
                 "num_runs": 5,

@@ -1,4 +1,4 @@
-from .augmentations.background_noise import ApplyBackgroundNoise
+from .augmentations.background_noise import AddBackgroundNoise
 from .augmentations.gain import Gain
 from .augmentations.impulse_response import ApplyImpulseResponse
 from .augmentations.peak_normalization import PeakNormalization

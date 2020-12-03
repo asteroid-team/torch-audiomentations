@@ -71,7 +71,7 @@ torch-audiomentations is in an early development stage, so the APIs are subject 
 
 # Waveform transforms
 
-## ApplyBackgroundNoise
+## AddBackgroundNoise
 
 _To be added in v0.5.0_
 
@@ -134,7 +134,7 @@ Shift the audio forwards or backwards, with or without rollover
 * Make `sample_rate` optional. Allow specifying `sample_rate` in `__init__` instead of `forward`
 * Remove support for 1-dimensional and 2-dimensional audio tensors. Only 3-dimensional audio
  tensors are supported now.
-* Release `ApplyBackgroundNoise` and `ApplyImpulseResponse`
+* Release `AddBackgroundNoise` and `ApplyImpulseResponse`
 
 ## v0.4.0 (2020-11-10)
 

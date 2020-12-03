@@ -2,13 +2,13 @@ import unittest
 
 import torch
 
-from torch_audiomentations import ApplyBackgroundNoise
+from torch_audiomentations import AddBackgroundNoise
 from torch_audiomentations.utils.dsp import calculate_rms
 from torch_audiomentations.utils.file import load_audio
 from .utils import TEST_FIXTURES_DIR
 
 
-class TestApplyBackgroundNoise(unittest.TestCase):
+class TestAddBackgroundNoise(unittest.TestCase):
     def setUp(self):
         self.sample_rate = 16000
         self.batch_size = 32
@@ -29,11 +29,11 @@ class TestApplyBackgroundNoise(unittest.TestCase):
 
         self.bg_path = TEST_FIXTURES_DIR / "bg"
         self.bg_short_path = TEST_FIXTURES_DIR / "bg_short"
-        self.bg_noise_transform_guaranteed = ApplyBackgroundNoise(self.bg_path, 20, p=1.0)
-        self.bg_short_noise_transform_guaranteed = ApplyBackgroundNoise(
+        self.bg_noise_transform_guaranteed = AddBackgroundNoise(self.bg_path, 20, p=1.0)
+        self.bg_short_noise_transform_guaranteed = AddBackgroundNoise(
             self.bg_short_path, 20, p=1.0
         )
-        self.bg_noise_transform_no_guarantee = ApplyBackgroundNoise(
+        self.bg_noise_transform_no_guarantee = AddBackgroundNoise(
             self.bg_path, 20, p=0.0
         )
 
@@ -98,7 +98,7 @@ class TestApplyBackgroundNoise(unittest.TestCase):
     def test_varying_snr_within_batch(self):
         min_snr_in_db = 3
         max_snr_in_db = 30
-        augment = ApplyBackgroundNoise(
+        augment = AddBackgroundNoise(
             self.bg_path, min_snr_in_db=3, max_snr_in_db=30, p=1.0
         )
         augmented_audios = augment(self.input_audios, self.sample_rate)
@@ -122,6 +122,6 @@ class TestApplyBackgroundNoise(unittest.TestCase):
 
     def test_invalid_params(self):
         with self.assertRaises(ValueError):
-            augment = ApplyBackgroundNoise(
+            augment = AddBackgroundNoise(
                 self.bg_path, min_snr_in_db=30, max_snr_in_db=3, p=1.0
             )

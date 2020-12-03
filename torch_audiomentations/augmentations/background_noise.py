@@ -14,7 +14,7 @@ from ..utils.io import Audio
 from ..utils.dsp import calculate_rms
 
 
-class ApplyBackgroundNoise(BaseWaveformTransform):
+class AddBackgroundNoise(BaseWaveformTransform):
     """
     Add background noise to the input audio.
 
