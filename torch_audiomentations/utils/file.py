@@ -1,25 +1,34 @@
-import glob
+import os
 from pathlib import Path
 
 import soundfile
 
 from .dsp import resample_audio
 
-SUPPORTED_EXTENSIONS = [".wav"]
+SUPPORTED_EXTENSIONS = (".wav",)
 
 
-def find_audio_files(path):
-    """Finds all audio files of supported extensions in the given path."""
-    files = []
+def find_audio_files(
+    root_path, filename_endings=SUPPORTED_EXTENSIONS, traverse_subdirectories=True
+):
+    """Return a list of paths to all audio files with the given extension(s) in a directory.
+    Also traverses subdirectories by default.
+    """
+    file_paths = []
 
-    for supported_extension in SUPPORTED_EXTENSIONS:
-        files.extend(
-            glob.glob(
-                str(Path(path) / "**" / ("*" + supported_extension)), recursive=True
-            )
-        )
+    for root, dirs, filenames in os.walk(root_path):
+        filenames = sorted(filenames)
+        for filename in filenames:
+            input_path = os.path.abspath(root)
+            file_path = os.path.join(input_path, filename)
 
-    return files
+            if filename.lower().endswith(filename_endings):
+                file_paths.append(Path(file_path))
+        if not traverse_subdirectories:
+            # prevent descending into subfolders
+            break
+
+    return file_paths
 
 
 def load_audio(audio_file_path, sample_rate=None, start=0, stop=None):
