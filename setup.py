@@ -38,7 +38,7 @@ setup(
     ),
     install_requires=["torch>=1.2.0", "torchaudio>=0.6.0"],
     extras_require={"extras": ["PyYAML"]},
-    python_requires=">=3.6",
+    python_requires=">=3.6,<3.9",
     classifiers=[
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
