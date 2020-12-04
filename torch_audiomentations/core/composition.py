@@ -4,6 +4,8 @@ from typing import List
 import torch
 import typing
 
+from torch_audiomentations.core.transforms_interface import BaseWaveformTransform
+
 
 class Compose(torch.nn.Module):
     """This class can apply a sequence of transforms to waveforms."""
