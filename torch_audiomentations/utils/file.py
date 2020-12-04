@@ -1,5 +1,4 @@
 import glob
-import os
 from pathlib import Path
 
 import soundfile
@@ -10,7 +9,7 @@ SUPPORTED_EXTENSIONS = [".wav"]
 
 
 def find_audio_files(path):
-    """Finds all audio files of supported extensions."""
+    """Finds all audio files of supported extensions in the given path."""
     files = []
 
     for supported_extension in SUPPORTED_EXTENSIONS:
