@@ -44,8 +44,6 @@ class Compose(torch.nn.Module):
                     samples = self.transforms[i](samples, sample_rate)
                 else:
                     samples = self.transforms[i](samples)
-
-                samples = self.transforms[i](samples, sample_rate)
         return samples
 
     def freeze_parameters(self):
