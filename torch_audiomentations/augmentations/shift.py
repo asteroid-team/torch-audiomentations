@@ -111,10 +111,7 @@ class Shift(BaseWaveformTransform):
             <= max_shift_in_samples
             <= torch.iinfo(torch.int32).max
         )
-        if selected_samples.dim() == 2:
-            selected_batch_size = 1
-        else:
-            selected_batch_size = selected_samples.size(0)
+        selected_batch_size = selected_samples.size(0)
         if min_shift_in_samples == max_shift_in_samples:
             self.transform_parameters["num_samples_to_shift"] = torch.full(
                 size=(selected_batch_size,),
