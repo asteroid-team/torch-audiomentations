@@ -130,7 +130,8 @@ class Shift(BaseWaveformTransform):
 
 
     def apply_transform(self, selected_samples, sample_rate: typing.Optional[int] = None):
-        r = self.transform_parameters["num_samples_to_shift"]  
+        r = self.transform_parameters["num_samples_to_shift"]
+        # Select fastest implementation based on device
         shift = shift_gpu if selected_samples.device.type == "cuda" else shift_cpu
         return shift(selected_samples, r, self.rollover)
  
