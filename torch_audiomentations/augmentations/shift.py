@@ -4,32 +4,33 @@ import typing
 from ..core.transforms_interface import BaseWaveformTransform
 
 # @torch.jit.script
-def shift_gpu(tensor: torch.Tensor, r: torch.Tensor, rollover:bool=False):
-    """ Shift or roll a batch of tensors
-
-    """
+def shift_gpu(tensor: torch.Tensor, r: torch.Tensor, rollover: bool = False):
+    """Shift or roll a batch of tensors"""
     b, c, t = tensor.shape
     # Max to roll by
-    
+
     # Arange indexes
     x = torch.arange(t, device=tensor.device)
 
     # Apply Roll
     r = r[:, None, None]
-    idxs = (x - r).expand([b,c,t])
-    ret = torch.gather(tensor, 2, idxs%t)
+    idxs = (x - r).expand([b, c, t])
+    ret = torch.gather(tensor, 2, idxs % t)
     if rollover:
         return ret
-    
+
     # Cut where we've rolled over
     cut_points = (idxs + 1).clamp(0)
-    cut_points[cut_points>t] = 0
-    ret[cut_points==0] = 0
+    cut_points[cut_points > t] = 0
+    ret[cut_points == 0] = 0
     return ret
 
-def shift_cpu(selected_samples:torch.Tensor, shift_samples:torch.Tensor, rollover:bool=False):
+
+def shift_cpu(
+    selected_samples: torch.Tensor, shift_samples: torch.Tensor, rollover: bool = False
+):
     selected_batch_size = selected_samples.size(0)
-      
+
     for i in range(selected_batch_size):
         num_samples_to_shift = shift_samples[i].item()
         selected_samples[i] = torch.roll(
@@ -43,6 +44,7 @@ def shift_cpu(selected_samples:torch.Tensor, shift_samples:torch.Tensor, rollove
                 selected_samples[i, ..., num_samples_to_shift:] = 0.0
 
     return selected_samples
+
 
 class Shift(BaseWaveformTransform):
     """
@@ -128,13 +130,12 @@ class Shift(BaseWaveformTransform):
                 device=selected_samples.device,
             )
 
-
     def apply_transform(self, selected_samples, sample_rate: typing.Optional[int] = None):
         r = self.transform_parameters["num_samples_to_shift"]
         # Select fastest implementation based on device
         shift = shift_gpu if selected_samples.device.type == "cuda" else shift_cpu
         return shift(selected_samples, r, self.rollover)
- 
+
     def is_sample_rate_required(self) -> bool:
         # Sample rate is required only if shift_unit is "seconds"
         return self.shift_unit == "seconds"

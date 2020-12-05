@@ -37,9 +37,7 @@ class TestCompose(unittest.TestCase):
         samples = np.array([[[1.0, 0.5, -0.25, -0.125, 0.0]]], dtype=np.float32)
         sample_rate = 16000
 
-        augment = Compose(
-            [Vol(gain=-6, gain_type="db"), PolarityInversion(p=1.0)]
-        )
+        augment = Compose([Vol(gain=-6, gain_type="db"), PolarityInversion(p=1.0)])
         processed_samples = augment(
             samples=torch.from_numpy(samples), sample_rate=sample_rate
         ).numpy()

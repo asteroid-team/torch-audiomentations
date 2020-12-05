@@ -33,9 +33,7 @@ class TestAddBackgroundNoise(unittest.TestCase):
         self.bg_short_noise_transform_guaranteed = AddBackgroundNoise(
             self.bg_short_path, 20, p=1.0
         )
-        self.bg_noise_transform_no_guarantee = AddBackgroundNoise(
-            self.bg_path, 20, p=0.0
-        )
+        self.bg_noise_transform_no_guarantee = AddBackgroundNoise(self.bg_path, 20, p=0.0)
 
     def test_background_noise_no_guarantee_with_single_tensor(self):
         mixed_input = self.bg_noise_transform_no_guarantee(
