@@ -5,14 +5,14 @@
 
 Audio data augmentation in PyTorch. Inspired by [audiomentations](https://github.com/iver56/audiomentations).
 
-* Supports CPU and GPU - speed is a priority  
-* Supports batches of multichannel (or mono) audio  
-* Transforms extend `nn.Module`, so they can be integrated as a part of a pytorch neural network model  
-* Most transforms are differentiable  
-* Three modes: `per_batch`, `per_example` and `per_channel`  
-* Cross-platform compatibility  
-* Permissive MIT license  
-* High test coverage  
+* Supports CPU and GPU - speed is a priority
+* Supports batches of multichannel (or mono) audio
+* Transforms extend `nn.Module`, so they can be integrated as a part of a pytorch neural network model
+* Most transforms are differentiable
+* Three modes: `per_batch`, `per_example` and `per_channel`
+* Cross-platform compatibility
+* Permissive MIT license
+* Aiming for high test coverage
 
 # Setup
 
@@ -131,7 +131,7 @@ Shift the audio forwards or backwards, with or without rollover
 
 * Fix a bug where one could not use the `parameters` method of the nn.Module subclass
 * Implement `Shift`
-* Make `sample_rate` optional. Allow specifying `sample_rate` in `__init__` instead of `forward`
+* Make `sample_rate` optional. Allow specifying `sample_rate` in `__init__` instead of `forward`. This means torchaudio transforms can be used in `Compose` now.
 * Remove support for 1-dimensional and 2-dimensional audio tensors. Only 3-dimensional audio
  tensors are supported now.
 * Release `AddBackgroundNoise` and `ApplyImpulseResponse`
