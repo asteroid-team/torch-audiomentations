@@ -4,7 +4,7 @@ import typing
 from ..core.transforms_interface import BaseWaveformTransform
 
 # @torch.jit.script
-def shift(tensor: torch.Tensor, r: torch.Tensor, rolling:bool=False):
+def shift_gpu(tensor: torch.Tensor, r: torch.Tensor, rollover:bool=False):
     """ Shift or roll a batch of tensors
 
     """
@@ -18,7 +18,7 @@ def shift(tensor: torch.Tensor, r: torch.Tensor, rolling:bool=False):
     r = r[:, None, None]
     idxs = (x - r).expand([b,c,t])
     ret = torch.gather(tensor, 2, idxs%t)
-    if rolling:
+    if rollover:
         return ret
     
     # Cut where we've rolled over
@@ -27,6 +27,22 @@ def shift(tensor: torch.Tensor, r: torch.Tensor, rolling:bool=False):
     ret[cut_points==0] = 0
     return ret
 
+def shift_cpu(selected_samples:torch.Tensor, shift_samples:torch.Tensor, rollover:bool=False):
+    selected_batch_size = selected_samples.size(0)
+      
+    for i in range(selected_batch_size):
+        num_samples_to_shift = shift_samples[i].item()
+        selected_samples[i] = torch.roll(
+            selected_samples[i], shifts=num_samples_to_shift, dims=-1
+        )
+
+        if not rollover:
+            if num_samples_to_shift > 0:
+                selected_samples[i, ..., :num_samples_to_shift] = 0.0
+            elif num_samples_to_shift < 0:
+                selected_samples[i, ..., num_samples_to_shift:] = 0.0
+
+    return selected_samples
 
 class Shift(BaseWaveformTransform):
     """
@@ -115,10 +131,10 @@ class Shift(BaseWaveformTransform):
                 device=selected_samples.device,
             )
 
+
     def apply_transform(self, selected_samples, sample_rate: typing.Optional[int] = None):
         r = self.transform_parameters["num_samples_to_shift"]  
-        if selected_samples.dim() < 3:
-            selected_samples = selected_samples[None]
+        shift = shift_gpu if selected_samples.device.type == "cuda" else shift_cpu
         return shift(selected_samples, r, self.rollover)
  
     def is_sample_rate_required(self) -> bool:
