@@ -27,17 +27,6 @@ class TestShift(unittest.TestCase):
 
         # self.assertEqual(processed_samples, np.int)
 
-    def test_shift_by_1_sample_2dim(self):
-        samples = torch.arange(4)[None].repeat(2, 1)
-        sample_rate = 16000
-        augment = Shift(min_shift=1, max_shift=1, shift_unit="samples", p=1.0)
-        processed_samples = augment(samples)
-
-        assert_almost_equal(
-            processed_samples,
-            [[3, 0, 1, 2], [3, 0, 1, 2]],
-        )
-
     def test_shift_by_1_sample_without_rollover(self):
         samples = torch.arange(4)[None, None].repeat(2, 2, 1)
         samples[1] += 1
