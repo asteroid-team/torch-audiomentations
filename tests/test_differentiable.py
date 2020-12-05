@@ -6,14 +6,14 @@ from torch.optim import SGD
 
 from tests.utils import TEST_FIXTURES_DIR
 from torch_audiomentations import (
+    AddBackgroundNoise,
+    ApplyImpulseResponse,
     Gain,
     PeakNormalization,
     PolarityInversion,
     Compose,
     Shift,
 )
-from torch_audiomentations.augmentations.background_noise import ApplyBackgroundNoise
-from torch_audiomentations.augmentations.impulse_response import ApplyImpulseResponse
 
 BG_NOISE_PATH = TEST_FIXTURES_DIR / "bg"
 IR_PATH = TEST_FIXTURES_DIR / "ir"
@@ -23,7 +23,7 @@ IR_PATH = TEST_FIXTURES_DIR / "ir"
     "augment",
     [
         # Differentiable transforms:
-        ApplyBackgroundNoise(BG_NOISE_PATH, 20, p=1.0),
+        AddBackgroundNoise(BG_NOISE_PATH, 20, p=1.0),
         ApplyImpulseResponse(IR_PATH, p=1.0),
         Compose(
             transforms=[
@@ -46,8 +46,10 @@ IR_PATH = TEST_FIXTURES_DIR / "ir"
 )
 def test_transform_is_differentiable(augment):
     sample_rate = 16000
-    # Note: using float64 dtype to be compatible with ApplyBackgroundNoise fixtures
-    samples = torch.tensor([[1.0, 0.5, -0.25, -0.125, 0.0]], dtype=torch.float64)
+    # Note: using float64 dtype to be compatible with AddBackgroundNoise fixtures
+    samples = torch.tensor(
+        [[1.0, 0.5, -0.25, -0.125, 0.0]], dtype=torch.float64
+    ).unsqueeze(1)
     samples_cpy = deepcopy(samples)
 
     # We are going to convert the input tensor to a nn.Parameter so that we can

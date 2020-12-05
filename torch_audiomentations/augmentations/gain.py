@@ -54,7 +54,9 @@ class Gain(BaseWaveformTransform):
         if num_dimensions == 2:
             gain_factors = self.transform_parameters["gain_factors"].unsqueeze(1)
         elif num_dimensions == 3:
-            gain_factors = self.transform_parameters["gain_factors"].unsqueeze(1).unsqueeze(1)
+            gain_factors = (
+                self.transform_parameters["gain_factors"].unsqueeze(1).unsqueeze(1)
+            )
         else:
             raise Exception(
                 "Invalid number of dimensions ({}) in input tensor".format(num_dimensions)

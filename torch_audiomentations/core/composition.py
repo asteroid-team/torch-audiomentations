@@ -4,6 +4,8 @@ from typing import List
 import torch
 import typing
 
+from torch_audiomentations.core.transforms_interface import BaseWaveformTransform
+
 
 class Compose(torch.nn.Module):
     """This class can apply a sequence of transforms to waveforms."""
@@ -37,8 +39,11 @@ class Compose(torch.nn.Module):
             if self.shuffle:
                 random.shuffle(transform_indexes)
             for i in transform_indexes:
-                samples = self.transforms[i](samples, sample_rate)
-
+                tfm = self.transforms[i]
+                if isinstance(tfm, BaseWaveformTransform):
+                    samples = self.transforms[i](samples, sample_rate)
+                else:
+                    samples = self.transforms[i](samples)
         return samples
 
     def freeze_parameters(self):

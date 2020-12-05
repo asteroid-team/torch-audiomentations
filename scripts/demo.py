@@ -14,6 +14,8 @@ from torch_audiomentations import (
     PeakNormalization,
     Compose,
     Shift,
+    AddBackgroundNoise,
+    ApplyImpulseResponse,
 )
 
 SAMPLE_RATE = 44100
@@ -84,6 +86,18 @@ if __name__ == "__main__":
     modes = ["per_batch", "per_example", "per_channel"]
     for mode in modes:
         transforms = [
+            {
+                "instance": AddBackgroundNoise(
+                    background_paths=TEST_FIXTURES_DIR / "bg", mode=mode, p=1.0
+                ),
+                "num_runs": 5,
+            },
+            {
+                "instance": ApplyImpulseResponse(
+                    ir_paths=TEST_FIXTURES_DIR / "ir", mode=mode, p=1.0
+                ),
+                "num_runs": 1,
+            },
             {
                 "instance": Compose(
                     transforms=[

@@ -4,6 +4,7 @@ import unittest
 import numpy as np
 import torch
 from numpy.testing import assert_almost_equal, assert_array_equal
+from torchaudio.transforms import Vol
 
 from torch_audiomentations import PolarityInversion, Compose, PeakNormalization, Gain
 from torch_audiomentations.utils.dsp import convert_decibels_to_amplitude_ratio
@@ -19,6 +20,25 @@ class TestCompose(unittest.TestCase):
                 Gain(min_gain_in_db=-6.000001, max_gain_in_db=-6, p=1.0),
                 PolarityInversion(p=1.0),
             ]
+        )
+        processed_samples = augment(
+            samples=torch.from_numpy(samples), sample_rate=sample_rate
+        ).numpy()
+        expected_factor = -convert_decibels_to_amplitude_ratio(-6)
+        assert_almost_equal(
+            processed_samples,
+            expected_factor
+            * np.array([[[1.0, 0.5, -0.25, -0.125, 0.0]]], dtype=np.float32),
+            decimal=6,
+        )
+        self.assertEqual(processed_samples.dtype, np.float32)
+
+    def test_compose_with_torchaudio_transform(self):
+        samples = np.array([[[1.0, 0.5, -0.25, -0.125, 0.0]]], dtype=np.float32)
+        sample_rate = 16000
+
+        augment = Compose(
+            [Vol(gain=-6, gain_type="db"), PolarityInversion(p=1.0)]
         )
         processed_samples = augment(
             samples=torch.from_numpy(samples), sample_rate=sample_rate

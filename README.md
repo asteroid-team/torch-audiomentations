@@ -71,9 +71,9 @@ torch-audiomentations is in an early development stage, so the APIs are subject 
 
 # Waveform transforms
 
-## ApplyBackgroundNoise
+## AddBackgroundNoise
 
-_Not released yet_
+_To be added in v0.5.0_
 
 Add background noise to the input audio.
 
@@ -90,7 +90,7 @@ See also https://en.wikipedia.org/wiki/Clipping_(audio)#Digital_clipping
 
 ## ApplyImpulseResponse
 
-_Not released yet_
+_To be added in v0.5.0_
 
 Convolve the given audio with impulse responses.
 
@@ -121,7 +121,7 @@ training phase-aware machine learning models.
 
 ## Shift
 
-_To be addded in v0.5.0_
+_To be added in v0.5.0_
 
 Shift the audio forwards or backwards, with or without rollover
 
@@ -129,10 +129,12 @@ Shift the audio forwards or backwards, with or without rollover
 
 ## v0.5.0 (not released yet)
 
-* Fix a bug where one could not use the parameters method of the nn.Module subclass
+* Fix a bug where one could not use the `parameters` method of the nn.Module subclass
 * Implement `Shift`
 * Make `sample_rate` optional. Allow specifying `sample_rate` in `__init__` instead of `forward`
-* Remove support for 1-dimensional tensors
+* Remove support for 1-dimensional and 2-dimensional audio tensors. Only 3-dimensional audio
+ tensors are supported now.
+* Release `AddBackgroundNoise` and `ApplyImpulseResponse`
 
 ## v0.4.0 (2020-11-10)
 
@@ -162,8 +164,8 @@ configurations from dict, json or yaml
 
 A GPU-enabled development environment for torch-audiomentations can be created with conda:
 
-* `conda create --name torch-audiomentations python=3.7.3`
-* `conda activate torch-audiomentations`
+* `conda create --name torch-audiomentations-gpu python=3.7.3`
+* `conda activate torch-audiomentations-gpu`
 * `conda install pytorch cudatoolkit=10.1 -c pytorch`
 * `conda env update`
 
