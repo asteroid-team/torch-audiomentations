@@ -60,7 +60,7 @@ to start discussing about `torch-audiomentations` with us.
 
 # Motivation: Speed
 
-We don't want data augmentation to be a bottle neck in model training speed. Here is a
+We don't want data augmentation to be a bottleneck in model training speed. Here is a
 comparison of the time it takes to run 1D convolution:
 
 ![Convolve execution times](images/convolve_exec_time_plot.png)
