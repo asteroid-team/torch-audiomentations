@@ -88,6 +88,13 @@ class BaseWaveformTransform(torch.nn.Module):
             )
             return samples
 
+        if len(samples.shape) != 3:
+            raise RuntimeError(
+                "torch-audiomentations expects input tensors to be three-dimensional, with"
+                " dimension ordering like [batch_size, num_channels, num_samples]. If your"
+                " audio is mono, you can use a shape like [batch_size, 1, num_samples]."
+            )
+
         if is_multichannel(samples):
             if samples.shape[1] > samples.shape[2]:
                 warnings.warn(

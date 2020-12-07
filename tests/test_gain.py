@@ -359,8 +359,8 @@ class TestGain(unittest.TestCase):
         np.testing.assert_array_equal(samples, processed_samples)
 
     def test_variability_within_batch(self):
-        samples = np.array([1.0, 0.5, 0.25, 0.125, 0.01], dtype=np.float32)
-        samples_batch = np.vstack([samples] * 10000)
+        samples = np.array([[1.0, 0.5, 0.25, 0.125, 0.01]], dtype=np.float32)
+        samples_batch = np.stack([samples] * 10000, axis=0)
         sample_rate = 16000
 
         augment = Gain(min_gain_in_db=-6, max_gain_in_db=6, p=0.5)
@@ -396,8 +396,8 @@ class TestGain(unittest.TestCase):
         self.assertLess(num_processed_examples, 8000)
 
     def test_variability_within_batch_with_p_mode_per_batch(self):
-        samples = np.array([1.0, 0.5, 0.25, 0.125, 0.01], dtype=np.float32)
-        samples_batch = np.vstack([samples] * 100)
+        samples = np.array([[1.0, 0.5, 0.25, 0.125, 0.01]], dtype=np.float32)
+        samples_batch = np.stack([samples] * 100, axis=0)
         sample_rate = 16000
 
         augment = Gain(min_gain_in_db=-6, max_gain_in_db=6, p=0.5, p_mode="per_batch")
@@ -446,8 +446,8 @@ class TestGain(unittest.TestCase):
         self.assertLess(num_processed_batches, 90)
 
     def test_reset_distribution(self):
-        samples = np.array([1.0, 0.5, 0.25, 0.125, 0.01], dtype=np.float32)
-        samples_batch = np.vstack([samples] * 10000)
+        samples = np.array([[1.0, 0.5, 0.25, 0.125, 0.01]], dtype=np.float32)
+        samples_batch = np.stack([samples] * 10000, axis=0)
         sample_rate = 16000
 
         augment = Gain(
@@ -478,8 +478,8 @@ class TestGain(unittest.TestCase):
 
     @pytest.mark.skipif(not torch.cuda.is_available(), reason="Requires CUDA")
     def test_cuda_reset_distribution(self):
-        samples = np.array([1.0, 0.5, 0.25, 0.125, 0.01], dtype=np.float32)
-        samples_batch = np.vstack([samples] * 10000)
+        samples = np.array([[1.0, 0.5, 0.25, 0.125, 0.01]], dtype=np.float32)
+        samples_batch = np.stack([samples] * 10000, axis=0)
         sample_rate = 16000
 
         augment = Gain(min_gain_in_db=-6, max_gain_in_db=6, p=0.5).cuda()

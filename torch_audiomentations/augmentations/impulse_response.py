@@ -15,7 +15,9 @@ class ApplyImpulseResponse(BaseWaveformTransform):
     Convolve the given audio with impulse responses.
     """
 
-    supports_multichannel = True  # TODO: Implement multichannel support
+    # Note: This transform has only partial support for multichannel audio. IRs that are not
+    # mono get mixed down to mono before they are convolved with all channels in the input.
+    supports_multichannel = True
     requires_sample_rate = True
 
     def __init__(

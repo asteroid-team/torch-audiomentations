@@ -11,5 +11,11 @@ class TestFileUtils(unittest.TestCase):
         file_paths = [Path(fp).name for fp in file_paths]
         self.assertEqual(
             set(file_paths),
-            {"acoustic_guitar_0.wav", "bg.wav", "bg_short.WAV", "impulse_response_0.wav"},
+            {
+                "acoustic_guitar_0.wav",
+                "bg.wav",
+                "bg_short.WAV",
+                "impulse_response_0.wav",
+                "stereo_noise.wav",
+            },
         )
