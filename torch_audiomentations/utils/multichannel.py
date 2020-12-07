@@ -1,7 +1,2 @@
-def is_multichannel(samples):
-    """
-
-    :param samples:
-    :return:
-    """
-    return len(samples.shape) > 2 and samples.shape[1] > 1
+def is_multichannel(samples) -> bool:
+    return samples.shape[1] > 1
