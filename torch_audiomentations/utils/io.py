@@ -1,6 +1,5 @@
-import math
-from typing import Text, Union
 from pathlib import Path
+from typing import Text, Union
 
 import librosa
 import torch
@@ -171,7 +170,7 @@ class Audio:
                 samples = librosa.core.resample(
                     samples.T, sample_rate, self.sample_rate
                 ).T
-            sample_rate = self.sample_rate
+
             samples = torch.tensor(samples)
 
         return samples
@@ -263,4 +262,14 @@ class Audio:
         if channel is not None:
             original_data = original_data[channel - 1 : channel, :]
 
-        return self.downmix_and_resample(original_data, original_sample_rate)
+        result = self.downmix_and_resample(original_data, original_sample_rate)
+
+        if num_samples is not None:
+            # If there is an off-by-one error in the length (e.g. due to resampling), fix it.
+            if result.shape[-1] > num_samples:
+                result = result[:, :num_samples]
+            elif result.shape[-1] < num_samples:
+                diff = num_samples - result.shape[-1]
+                result = torch.nn.functional.pad(result, (0, diff))
+
+        return result

@@ -4,9 +4,6 @@ import unittest
 import torch
 
 from torch_audiomentations import ApplyImpulseResponse
-from torch_audiomentations.core.transforms_interface import (
-    MultichannelAudioNotSupportedException,
-)
 from torch_audiomentations.utils.file import load_audio
 from .utils import TEST_FIXTURES_DIR
 

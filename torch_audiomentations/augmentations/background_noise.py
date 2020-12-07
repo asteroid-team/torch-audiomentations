@@ -79,9 +79,7 @@ class AddBackgroundNoise(BaseWaveformTransform):
                 )
                 num_samples = missing_num_samples
                 background_samples = audio(
-                    background_path,
-                    sample_offset=sample_offset,
-                    num_samples=num_samples,
+                    background_path, sample_offset=sample_offset, num_samples=num_samples
                 )
                 missing_num_samples = 0
             else:

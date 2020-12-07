@@ -1,11 +1,9 @@
+import random
 import unittest
 
 import torch
 
 from torch_audiomentations import AddBackgroundNoise
-from torch_audiomentations.core.transforms_interface import (
-    MultichannelAudioNotSupportedException,
-)
 from torch_audiomentations.utils.dsp import calculate_rms
 from torch_audiomentations.utils.file import load_audio
 from .utils import TEST_FIXTURES_DIR
@@ -81,6 +79,7 @@ class TestAddBackgroundNoise(unittest.TestCase):
         self.assertEqual(mixed_input.size(1), self.input_audio.size(1))
 
     def test_background_noise_guaranteed_with_batched_tensor(self):
+        random.seed(42)
         mixed_inputs = self.bg_noise_transform_guaranteed(
             self.input_audios, self.sample_rate
         )
