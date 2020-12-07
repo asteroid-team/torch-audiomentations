@@ -88,7 +88,7 @@ class BaseWaveformTransform(torch.nn.Module):
             )
             return samples
 
-        if len(samples.shape) < 3:
+        if len(samples.shape) != 3:
             raise RuntimeError(
                 "torch-audiomentations expects input tensors to be three-dimensional, with"
                 " dimension ordering like [batch_size, num_channels, num_samples]. If your"
