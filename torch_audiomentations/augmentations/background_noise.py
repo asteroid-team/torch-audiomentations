@@ -13,10 +13,11 @@ from ..utils.io import Audio
 class AddBackgroundNoise(BaseWaveformTransform):
     """
     Add background noise to the input audio.
-
     """
 
-    supports_multichannel = False  # TODO: Implement multichannel support
+    # Note: This transform has only partial support for multichannel audio. Noises that are not
+    # mono get mixed down to mono before they are added to all channels in the input.
+    supports_multichannel = True
     requires_sample_rate = True
 
     def __init__(
@@ -31,7 +32,8 @@ class AddBackgroundNoise(BaseWaveformTransform):
     ):
         """
 
-        :param background_paths: Either a path to a folder with audio files or a list of paths to audio files.
+        :param background_paths: Either a path to a folder with audio files or a list of paths
+            to audio files.
         :param min_snr_in_db: minimum SNR in dB.
         :param max_snr_in_db: maximium SNR in dB.
         :param mode:

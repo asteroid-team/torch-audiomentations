@@ -1,6 +1,5 @@
 import unittest
 
-import pytest
 import torch
 
 from torch_audiomentations import AddBackgroundNoise
@@ -127,9 +126,3 @@ class TestAddBackgroundNoise(unittest.TestCase):
             augment = AddBackgroundNoise(
                 self.bg_path, min_snr_in_db=30, max_snr_in_db=3, p=1.0
             )
-
-    def test_multichannel_not_supported(self):
-        # TODO: Remove this test when it supports multichannel audio
-        audio = torch.rand(4, 2, 16000, dtype=torch.float32)
-        with self.assertRaises(MultichannelAudioNotSupportedException):
-            AddBackgroundNoise(self.bg_path, p=1.0)(audio)
