@@ -9,12 +9,12 @@ from torch_audiomentations.augmentations.peak_normalization import PeakNormaliza
 
 
 class TestPeakNormalization(unittest.TestCase):
-    def test_apply_to_all_2_dim(self):
+    def test_apply_to_all(self):
         samples = np.array(
             [
-                [0.75, 0.5, -0.25, -0.125, 0.0],
-                [0.9, 0.5, -0.25, -0.125, 0.0],
-                [0.9, 0.5, -0.25, -1.12, 0.0],
+                [[0.75, 0.5, -0.25, -0.125, 0.0]],
+                [[0.9, 0.5, -0.25, -0.125, 0.0]],
+                [[0.9, 0.5, -0.25, -1.12, 0.0]],
             ],
             dtype=np.float32,
         )
@@ -29,45 +29,16 @@ class TestPeakNormalization(unittest.TestCase):
             processed_samples,
             np.array(
                 [
-                    [0.75 / 0.75, 0.5 / 0.75, -0.25 / 0.75, -0.125 / 0.75, 0.0 / 0.75],
-                    [0.9 / 0.9, 0.5 / 0.9, -0.25 / 0.9, -0.125 / 0.9, 0.0 / 0.9],
-                    [0.9 / 1.12, 0.5 / 1.12, -0.25 / 1.12, -1.12 / 1.12, 0.0 / 1.12],
+                    [[0.75 / 0.75, 0.5 / 0.75, -0.25 / 0.75, -0.125 / 0.75, 0.0 / 0.75]],
+                    [[0.9 / 0.9, 0.5 / 0.9, -0.25 / 0.9, -0.125 / 0.9, 0.0 / 0.9]],
+                    [[0.9 / 1.12, 0.5 / 1.12, -0.25 / 1.12, -1.12 / 1.12, 0.0 / 1.12]],
                 ],
                 dtype=np.float32,
             ),
         )
         self.assertEqual(processed_samples.dtype, np.float32)
 
-    def test_apply_to_only_too_loud_sounds_2_dim(self):
-        samples = np.array(
-            [
-                [0.75, 0.5, -0.25, -0.125, 0.0],
-                [1.9, 0.5, -0.25, -0.125, 0.0],
-                [0.9, 0.5, -0.25, -1.12, 0.0],
-            ],
-            dtype=np.float32,
-        )
-        sample_rate = 16000
-
-        augment = PeakNormalization(apply_to="only_too_loud_sounds", p=1.0)
-        processed_samples = augment(
-            samples=torch.from_numpy(samples), sample_rate=sample_rate
-        ).numpy()
-
-        assert_almost_equal(
-            processed_samples,
-            np.array(
-                [
-                    [0.75, 0.5, -0.25, -0.125, 0.0],
-                    [1.9 / 1.9, 0.5 / 1.9, -0.25 / 1.9, -0.125 / 1.9, 0.0 / 1.9],
-                    [0.9 / 1.12, 0.5 / 1.12, -0.25 / 1.12, -1.12 / 1.12, 0.0 / 1.12],
-                ],
-                dtype=np.float32,
-            ),
-        )
-        self.assertEqual(processed_samples.dtype, np.float32)
-
-    def test_apply_to_only_too_loud_sounds_3_dim(self):
+    def test_apply_to_only_too_loud_sounds(self):
         samples = np.array(
             [
                 [[0.75, 0.5, -0.25, -0.125, 0.0]],
@@ -99,7 +70,8 @@ class TestPeakNormalization(unittest.TestCase):
     def test_digital_silence_in_batch(self):
         """Check that there is no division by zero in case of digital silence (all zeros)."""
         samples = np.array(
-            [[0.75, 0.5, -0.25, -0.125, 0.0], [0.0, 0.0, 0.0, 0.0, 0.0]], dtype=np.float32
+            [[[0.75, 0.5, -0.25, -0.125, 0.0]], [[0.0, 0.0, 0.0, 0.0, 0.0]]],
+            dtype=np.float32,
         )
         sample_rate = 16000
 
@@ -112,8 +84,8 @@ class TestPeakNormalization(unittest.TestCase):
             processed_samples,
             np.array(
                 [
-                    [0.75 / 0.75, 0.5 / 0.75, -0.25 / 0.75, -0.125 / 0.75, 0.0 / 0.75],
-                    [0.0, 0.0, 0.0, 0.0, 0.0],
+                    [[0.75 / 0.75, 0.5 / 0.75, -0.25 / 0.75, -0.125 / 0.75, 0.0 / 0.75]],
+                    [[0.0, 0.0, 0.0, 0.0, 0.0]],
                 ],
                 dtype=np.float32,
             ),
@@ -123,7 +95,7 @@ class TestPeakNormalization(unittest.TestCase):
     def test_only_digital_silence(self):
         """Check that an exception is not thrown is selector is all False."""
         samples = np.array(
-            [[0.0, 0.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, 0.0, 0.0]], dtype=np.float32
+            [[[0.0, 0.0, 0.0, 0.0, 0.0]], [[0.0, 0.0, 0.0, 0.0, 0.0]]], dtype=np.float32
         )
         sample_rate = 16000
 
@@ -135,7 +107,8 @@ class TestPeakNormalization(unittest.TestCase):
         assert_almost_equal(
             processed_samples,
             np.array(
-                [[0.0, 0.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, 0.0, 0.0]], dtype=np.float32
+                [[[0.0, 0.0, 0.0, 0.0, 0.0]], [[0.0, 0.0, 0.0, 0.0, 0.0]]],
+                dtype=np.float32,
             ),
         )
         self.assertEqual(processed_samples.dtype, np.float32)
@@ -143,9 +116,9 @@ class TestPeakNormalization(unittest.TestCase):
     def test_never_apply(self):
         samples = np.array(
             [
-                [0.75, 0.5, -0.25, -0.125, 0.0],
-                [0.9, 0.5, -0.25, -0.125, 0.0],
-                [0.9, 0.5, -0.25, -1.12, 0.0],
+                [[0.75, 0.5, -0.25, -0.125, 0.0]],
+                [[0.9, 0.5, -0.25, -0.125, 0.0]],
+                [[0.9, 0.5, -0.25, -1.12, 0.0]],
             ],
             dtype=np.float32,
         )
@@ -160,9 +133,9 @@ class TestPeakNormalization(unittest.TestCase):
             processed_samples,
             np.array(
                 [
-                    [0.75, 0.5, -0.25, -0.125, 0.0],
-                    [0.9, 0.5, -0.25, -0.125, 0.0],
-                    [0.9, 0.5, -0.25, -1.12, 0.0],
+                    [[0.75, 0.5, -0.25, -0.125, 0.0]],
+                    [[0.9, 0.5, -0.25, -0.125, 0.0]],
+                    [[0.9, 0.5, -0.25, -1.12, 0.0]],
                 ],
                 dtype=np.float32,
             ),
@@ -170,7 +143,7 @@ class TestPeakNormalization(unittest.TestCase):
         self.assertEqual(processed_samples.dtype, np.float32)
 
     @pytest.mark.skipif(not torch.cuda.is_available(), reason="Requires CUDA")
-    def test_apply_to_all_3_dim_cuda(self):
+    def test_apply_to_all_cuda(self):
         samples = np.array(
             [
                 [[0.75, 0.5, -0.25, -0.125, 0.0]],
@@ -202,8 +175,8 @@ class TestPeakNormalization(unittest.TestCase):
         self.assertEqual(processed_samples.dtype, np.float32)
 
     def test_variability_within_batch(self):
-        samples = np.array([0.75, 0.5, 0.25, 0.125, 0.01], dtype=np.float32)
-        samples_batch = np.vstack([samples] * 1337)
+        samples = np.array([[0.75, 0.5, 0.25, 0.125, 0.01]], dtype=np.float32)
+        samples_batch = np.stack([samples] * 1337, axis=0)
         sample_rate = 16000
 
         augment = PeakNormalization(p=0.5)
@@ -226,11 +199,11 @@ class TestPeakNormalization(unittest.TestCase):
 
     def test_freeze_parameters(self):
         samples1 = np.array(
-            [[0.9, 0.5, -0.25, -0.125, 0.0], [0.9, 0.5, -0.25, -1.12, 0.0]],
+            [[[0.9, 0.5, -0.25, -0.125, 0.0]], [[0.9, 0.5, -0.25, -1.12, 0.0]]],
             dtype=np.float32,
         )
         samples2 = np.array(
-            [[0.1, -0.2, -0.35, -0.625, 2.0], [0.2, 0.9, -0.05, -0.12, 0.0]],
+            [[[0.1, -0.2, -0.35, -0.625, 2.0]], [[0.2, 0.9, -0.05, -0.12, 0.0]]],
             dtype=np.float32,
         )
         sample_rate = 16000
@@ -247,8 +220,8 @@ class TestPeakNormalization(unittest.TestCase):
             processed_samples2,
             np.array(
                 [
-                    [0.1 / 0.9, -0.2 / 0.9, -0.35 / 0.9, -0.625 / 0.9, 2.0 / 0.9],
-                    [0.2 / 1.12, 0.9 / 1.12, -0.05 / 1.12, -0.12 / 1.12, 0.0 / 1.12],
+                    [[0.1 / 0.9, -0.2 / 0.9, -0.35 / 0.9, -0.625 / 0.9, 2.0 / 0.9]],
+                    [[0.2 / 1.12, 0.9 / 1.12, -0.05 / 1.12, -0.12 / 1.12, 0.0 / 1.12]],
                 ],
                 dtype=np.float32,
             ),

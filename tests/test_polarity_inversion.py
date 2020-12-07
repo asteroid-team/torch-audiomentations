@@ -10,7 +10,7 @@ from torch_audiomentations import PolarityInversion
 
 class TestPolarityInversion(unittest.TestCase):
     def test_polarity_inversion(self):
-        samples = np.array([[1.0, 0.5, -0.25, -0.125, 0.0]], dtype=np.float32)
+        samples = np.array([[[1.0, 0.5, -0.25, -0.125, 0.0]]], dtype=np.float32)
         sample_rate = 16000
 
         augment = PolarityInversion(p=1.0)
@@ -18,12 +18,13 @@ class TestPolarityInversion(unittest.TestCase):
             samples=torch.from_numpy(samples), sample_rate=sample_rate
         ).numpy()
         assert_almost_equal(
-            inverted_samples, np.array([[-1.0, -0.5, 0.25, 0.125, 0.0]], dtype=np.float32)
+            inverted_samples,
+            np.array([[[-1.0, -0.5, 0.25, 0.125, 0.0]]], dtype=np.float32),
         )
         self.assertEqual(inverted_samples.dtype, np.float32)
 
     def test_polarity_inversion_zero_probability(self):
-        samples = np.array([[1.0, 0.5, -0.25, -0.125, 0.0]], dtype=np.float32)
+        samples = np.array([[[1.0, 0.5, -0.25, -0.125, 0.0]]], dtype=np.float32)
         sample_rate = 16000
 
         augment = PolarityInversion(p=0.0)
@@ -32,13 +33,13 @@ class TestPolarityInversion(unittest.TestCase):
         ).numpy()
         assert_almost_equal(
             processed_samples,
-            np.array([[1.0, 0.5, -0.25, -0.125, 0.0]], dtype=np.float32),
+            np.array([[[1.0, 0.5, -0.25, -0.125, 0.0]]], dtype=np.float32),
         )
         self.assertEqual(processed_samples.dtype, np.float32)
 
     def test_polarity_inversion_variability_within_batch(self):
-        samples = np.array([1.0, 0.5, 0.25, 0.125, 0.0], dtype=np.float32)
-        samples_batch = np.vstack([samples] * 10000)
+        samples = np.array([[1.0, 0.5, 0.25, 0.125, 0.0]], dtype=np.float32)
+        samples_batch = np.stack([samples] * 10000, axis=0)
         sample_rate = 16000
 
         augment = PolarityInversion(p=0.5)
@@ -49,7 +50,7 @@ class TestPolarityInversion(unittest.TestCase):
         num_unprocessed_examples = 0
         num_processed_examples = 0
         for i in range(processed_samples.shape[0]):
-            if sum(processed_samples[i]) > 0:
+            if np.sum(processed_samples[i]) > 0:
                 num_unprocessed_examples += 1
             else:
                 num_processed_examples += 1
@@ -62,7 +63,7 @@ class TestPolarityInversion(unittest.TestCase):
 
     def test_polarity_inversion_multichannel(self):
         samples = np.array(
-            [[1.0, 0.5, -0.25, -0.125, 0.0], [1.0, 0.5, -0.25, -0.125, 0.0]],
+            [[[1.0, 0.5, -0.25, -0.125, 0.0]], [[1.0, 0.5, -0.25, -0.125, 0.0]]],
             dtype=np.float32,
         )
         sample_rate = 16000
@@ -74,7 +75,7 @@ class TestPolarityInversion(unittest.TestCase):
         assert_almost_equal(
             inverted_samples,
             np.array(
-                [[-1.0, -0.5, 0.25, 0.125, 0.0], [-1.0, -0.5, 0.25, 0.125, 0.0]],
+                [[[-1.0, -0.5, 0.25, 0.125, 0.0]], [[-1.0, -0.5, 0.25, 0.125, 0.0]]],
                 dtype=np.float32,
             ),
         )
@@ -82,7 +83,7 @@ class TestPolarityInversion(unittest.TestCase):
 
     @pytest.mark.skipif(not torch.cuda.is_available(), reason="Requires CUDA")
     def test_polarity_inversion_cuda(self):
-        samples = np.array([[1.0, 0.5, -0.25, -0.125, 0.0]], dtype=np.float32)
+        samples = np.array([[[1.0, 0.5, -0.25, -0.125, 0.0]]], dtype=np.float32)
         sample_rate = 16000
 
         augment = PolarityInversion(p=1.0).cuda()
@@ -92,6 +93,7 @@ class TestPolarityInversion(unittest.TestCase):
             .numpy()
         )
         assert_almost_equal(
-            inverted_samples, np.array([[-1.0, -0.5, 0.25, 0.125, 0.0]], dtype=np.float32)
+            inverted_samples,
+            np.array([[[-1.0, -0.5, 0.25, 0.125, 0.0]]], dtype=np.float32),
         )
         self.assertEqual(inverted_samples.dtype, np.float32)
