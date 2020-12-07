@@ -1,17 +1,13 @@
 import random
-
-import math
-import numpy as np
-import soundfile
-import torch
-from typing import Union, List
 from pathlib import Path
+from typing import Union, List
+
+import torch
 
 from ..core.transforms_interface import BaseWaveformTransform, EmptyPathException
-from ..utils.dsp import calculate_rms, calculate_desired_noise_rms
+from ..utils.dsp import calculate_rms
 from ..utils.file import find_audio_files
 from ..utils.io import Audio
-from ..utils.dsp import calculate_rms
 
 
 class AddBackgroundNoise(BaseWaveformTransform):
@@ -20,7 +16,7 @@ class AddBackgroundNoise(BaseWaveformTransform):
 
     """
 
-    supports_multichannel = True  # TODO: Implement multichannel support
+    supports_multichannel = False  # TODO: Implement multichannel support
     requires_sample_rate = True
 
     def __init__(

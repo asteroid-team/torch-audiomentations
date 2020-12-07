@@ -4,6 +4,9 @@ import unittest
 import torch
 
 from torch_audiomentations import ApplyImpulseResponse
+from torch_audiomentations.core.transforms_interface import (
+    MultichannelAudioNotSupportedException,
+)
 from torch_audiomentations.utils.file import load_audio
 from .utils import TEST_FIXTURES_DIR
 
@@ -61,3 +64,9 @@ class TestApplyImpulseResponse(unittest.TestCase):
         )
 
         self.assertTrue(torch.equal(mixed_inputs, self.empty_input_audio))
+
+    def test_multichannel_not_supported(self):
+        # TODO: Remove this test when it supports multichannel audio
+        audio = torch.rand(4, 2, 16000, dtype=torch.float32)
+        with self.assertRaises(MultichannelAudioNotSupportedException):
+            ApplyImpulseResponse(self.ir_path, p=1.0)(audio)

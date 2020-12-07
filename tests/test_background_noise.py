@@ -1,8 +1,12 @@
 import unittest
 
+import pytest
 import torch
 
 from torch_audiomentations import AddBackgroundNoise
+from torch_audiomentations.core.transforms_interface import (
+    MultichannelAudioNotSupportedException,
+)
 from torch_audiomentations.utils.dsp import calculate_rms
 from torch_audiomentations.utils.file import load_audio
 from .utils import TEST_FIXTURES_DIR
@@ -11,7 +15,7 @@ from .utils import TEST_FIXTURES_DIR
 class TestAddBackgroundNoise(unittest.TestCase):
     def setUp(self):
         self.sample_rate = 16000
-        self.batch_size = 32
+        self.batch_size = 16
         self.empty_input_audio = torch.empty(0)
         # TODO: use utils.io.Audio
         self.input_audio = (
@@ -123,3 +127,9 @@ class TestAddBackgroundNoise(unittest.TestCase):
             augment = AddBackgroundNoise(
                 self.bg_path, min_snr_in_db=30, max_snr_in_db=3, p=1.0
             )
+
+    def test_multichannel_not_supported(self):
+        # TODO: Remove this test when it supports multichannel audio
+        audio = torch.rand(4, 2, 16000, dtype=torch.float32)
+        with self.assertRaises(MultichannelAudioNotSupportedException):
+            AddBackgroundNoise(self.bg_path, p=1.0)(audio)
