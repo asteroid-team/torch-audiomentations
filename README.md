@@ -73,7 +73,7 @@ torch-audiomentations is in an early development stage, so the APIs are subject 
 
 ## AddBackgroundNoise
 
-_To be added in v0.5.0_
+_Added in v0.5.0_
 
 Add background noise to the input audio.
 
@@ -90,7 +90,7 @@ See also https://en.wikipedia.org/wiki/Clipping_(audio)#Digital_clipping
 
 ## ApplyImpulseResponse
 
-_To be added in v0.5.0_
+_Added in v0.5.0_
 
 Convolve the given audio with impulse responses.
 
@@ -127,14 +127,14 @@ Shift the audio forwards or backwards, with or without rollover
 
 # Version history
 
-## v0.5.0 (not released yet)
+## v0.5.0 (2020-12-08)
 
-* Fix a bug where one could not use the `parameters` method of the nn.Module subclass
+* Release `AddBackgroundNoise` and `ApplyImpulseResponse`
 * Implement `Shift`
-* Make `sample_rate` optional. Allow specifying `sample_rate` in `__init__` instead of `forward`. This means torchaudio transforms can be used in `Compose` now.
 * Remove support for 1-dimensional and 2-dimensional audio tensors. Only 3-dimensional audio
  tensors are supported now.
-* Release `AddBackgroundNoise` and `ApplyImpulseResponse`
+* Make `sample_rate` optional. Allow specifying `sample_rate` in `__init__` instead of `forward`. This means torchaudio transforms can be used in `Compose` now.
+* Fix a bug where one could not use the `parameters` method of the `nn.Module` subclass
 
 ## v0.4.0 (2020-11-10)
 
