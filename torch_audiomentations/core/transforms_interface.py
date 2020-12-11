@@ -181,7 +181,7 @@ class BaseWaveformTransform(torch.nn.Module):
                         selected_samples, sample_rate
                     )
                     perturbed_samples = perturbed_samples.reshape(
-                        batch_size, num_channels, selected_samples.shape[2]
+                        batch_size, num_channels, perturbed_samples.shape[2]
                     )
 
                     cloned_samples[
@@ -203,7 +203,7 @@ class BaseWaveformTransform(torch.nn.Module):
 
                     perturbed_samples = self.apply_transform(cloned_samples, sample_rate)
                     perturbed_samples = perturbed_samples.reshape(
-                        batch_size, num_channels, cloned_samples.shape[2]
+                        batch_size, num_channels, perturbed_samples.shape[2]
                     )
                     return perturbed_samples
                 elif self.mode == "per_example":
@@ -223,7 +223,7 @@ class BaseWaveformTransform(torch.nn.Module):
                     perturbed_samples = self.apply_transform(cloned_samples, sample_rate)
 
                     perturbed_samples = perturbed_samples.reshape(
-                        batch_size, num_channels, cloned_samples.shape[2]
+                        batch_size, num_channels, perturbed_samples.shape[2]
                     )
                     return perturbed_samples
                 else:
