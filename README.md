@@ -135,6 +135,7 @@ Shift the audio forwards or backwards, with or without rollover
  tensors are supported now.
 * Make `sample_rate` optional. Allow specifying `sample_rate` in `__init__` instead of `forward`. This means torchaudio transforms can be used in `Compose` now.
 * Fix a bug where one could not use the `parameters` method of the `nn.Module` subclass
+* Fix a bug where files with uppercase filename extension were not found
 
 ## v0.4.0 (2020-11-10)
 
