@@ -1,6 +1,7 @@
 import random
 import unittest
 
+import pytest
 import torch
 
 from torch_audiomentations import AddBackgroundNoise
@@ -95,6 +96,7 @@ class TestAddBackgroundNoise(unittest.TestCase):
         self.assertEqual(mixed_input.size(0), self.input_audio.size(0))
         self.assertEqual(mixed_input.size(1), self.input_audio.size(1))
 
+    @pytest.mark.skipif(not torch.cuda.is_available(), reason="Requires CUDA")
     def test_background_short_noise_guaranteed_with_batched_cuda_tensor(self):
         input_audio_cuda = self.input_audio.cuda()
         mixed_input = self.bg_short_noise_transform_guaranteed(

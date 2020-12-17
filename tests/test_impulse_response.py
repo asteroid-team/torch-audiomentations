@@ -1,6 +1,7 @@
 import os
 import unittest
 
+import pytest
 import torch
 
 from torch_audiomentations import ApplyImpulseResponse
@@ -40,6 +41,15 @@ class TestApplyImpulseResponse(unittest.TestCase):
         self.assertEqual(mixed_inputs.size(-1), self.input_audios.size(-1))
 
         self.assertFalse(torch.equal(mixed_inputs, self.input_audios))
+
+    @pytest.mark.skipif(not torch.cuda.is_available(), reason="Requires CUDA")
+    def test_impulse_response_guaranteed_with_batched_cuda_tensor_input(self):
+        input_audio_cuda = self.input_audios.cuda()
+        mixed_inputs = self.ir_transform_guaranteed(input_audio_cuda, self.sample_rate)
+        assert not torch.equal(mixed_inputs, input_audio_cuda)
+        assert mixed_inputs.shape == input_audio_cuda.shape
+        assert mixed_inputs.dtype == input_audio_cuda.dtype
+        assert mixed_inputs.device == input_audio_cuda.device
 
     def test_impulse_response_no_guarantee_with_single_tensor_input(self):
         mixed_input = self.ir_transform_no_guarantee(self.input_audio, self.sample_rate)
