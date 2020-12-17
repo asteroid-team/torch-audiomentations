@@ -59,9 +59,6 @@ class AddBackgroundNoise(BaseWaveformTransform):
         self.max_snr_in_db = max_snr_in_db
         if self.min_snr_in_db > self.max_snr_in_db:
             raise ValueError("min_snr_in_db must not be greater than max_snr_in_db")
-        self.snr_distribution = torch.distributions.Uniform(
-            low=min_snr_in_db, high=max_snr_in_db, validate_args=True
-        )
 
     def random_background(self, audio: Audio, target_num_samples: int) -> torch.Tensor:
         pieces = []
@@ -112,12 +109,20 @@ class AddBackgroundNoise(BaseWaveformTransform):
         )
 
         # (batch_size, ) SNRs
-        self.transform_parameters["snr_in_db"] = self.snr_distribution.sample(
+        snr_distribution = torch.distributions.Uniform(
+            low=torch.tensor(
+                self.min_snr_in_db, dtype=torch.float32, device=selected_samples.device
+            ),
+            high=torch.tensor(
+                self.max_snr_in_db, dtype=torch.float32, device=selected_samples.device
+            ),
+            validate_args=True,
+        )
+        self.transform_parameters["snr_in_db"] = snr_distribution.sample(
             sample_shape=(batch_size,)
         )
 
     def apply_transform(self, selected_samples: torch.Tensor, sample_rate: int = None):
-
         batch_size, num_channels, num_samples = selected_samples.shape
 
         # (batch_size, num_samples)

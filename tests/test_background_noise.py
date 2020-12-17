@@ -95,6 +95,16 @@ class TestAddBackgroundNoise(unittest.TestCase):
         self.assertEqual(mixed_input.size(0), self.input_audio.size(0))
         self.assertEqual(mixed_input.size(1), self.input_audio.size(1))
 
+    def test_background_short_noise_guaranteed_with_batched_cuda_tensor(self):
+        input_audio_cuda = self.input_audio.cuda()
+        mixed_input = self.bg_short_noise_transform_guaranteed(
+            input_audio_cuda, self.sample_rate
+        )
+        assert not torch.equal(mixed_input, input_audio_cuda)
+        assert mixed_input.shape == input_audio_cuda.shape
+        assert mixed_input.dtype == input_audio_cuda.dtype
+        assert mixed_input.device == input_audio_cuda.device
+
     def test_varying_snr_within_batch(self):
         min_snr_in_db = 3
         max_snr_in_db = 30
