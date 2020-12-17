@@ -127,6 +127,11 @@ Shift the audio forwards or backwards, with or without rollover
 
 # Version history
 
+## v0.x.x (TBA)
+
+* Fix a bug where AddBackgroundNoise did not work on CUDA
+* When looking for audio files, consider symlinked folders instead of disregarding them
+
 ## v0.5.0 (2020-12-08)
 
 * Release `AddBackgroundNoise` and `ApplyImpulseResponse`
