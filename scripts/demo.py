@@ -70,6 +70,7 @@ if __name__ == "__main__":
     output_dir = os.path.join(SCRIPTS_DIR, "demo_output")
     os.makedirs(output_dir, exist_ok=True)
 
+    torch.manual_seed(42)
     np.random.seed(42)
     random.seed(42)
 
