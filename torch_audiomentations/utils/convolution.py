@@ -1,5 +1,7 @@
 import torch
 
+from torch_audiomentations.utils.fft import rfft, irfft
+
 _NEXT_FAST_LEN = {}
 
 
@@ -35,24 +37,7 @@ def next_fast_len(size):
         next_size += 1
 
 
-def _complex_mul(a, b):
-    """
-
-    Note: This function was originally copied from the https://github.com/pyro-ppl/pyro
-    repository, where the license was Apache 2.0. Any modifications to the original code can be
-    found at https://github.com/asteroid-team/torch-audiomentations/commits
-
-    :param a:
-    :param b:
-    :return:
-    """
-
-    ar, ai = a.unbind(-1)
-    br, bi = b.unbind(-1)
-    return torch.stack([ar * br - ai * bi, ar * bi + ai * br], dim=-1)
-
-
-def convolve(signal, kernel, mode="full", method="fft"):
+def convolve(signal, kernel, mode="full"):
     """
     Computes the 1-d convolution of signal by kernel using FFTs.
     The two arguments should have the same rightmost dim, but may otherwise be
@@ -72,9 +57,6 @@ def convolve(signal, kernel, mode="full", method="fft"):
         ``max(m, n)`` if mode is 'same'.
     :rtype torch.Tensor:
     """
-    if method != "fft":
-        raise NotImplementedError('Only method="fft" is supported')
-
     m = signal.size(-1)
     n = kernel.size(-1)
     if mode == "full":
@@ -90,14 +72,10 @@ def convolve(signal, kernel, mode="full", method="fft"):
     padded_size = m + n - 1
     # Round up for cheaper fft.
     fast_ftt_size = next_fast_len(padded_size)
-    f_signal = torch.rfft(
-        torch.nn.functional.pad(signal, (0, fast_ftt_size - m)), 1, onesided=False
-    )
-    f_kernel = torch.rfft(
-        torch.nn.functional.pad(kernel, (0, fast_ftt_size - n)), 1, onesided=False
-    )
-    f_result = _complex_mul(f_signal, f_kernel)
-    result = torch.irfft(f_result, 1, onesided=False)
+    f_signal = rfft(signal, n=fast_ftt_size)
+    f_kernel = rfft(kernel, n=fast_ftt_size)
+    f_result = f_signal * f_kernel
+    result = irfft(f_result, n=fast_ftt_size)
 
     start_idx = (padded_size - truncate) // 2
     return result[..., start_idx : start_idx + truncate]
