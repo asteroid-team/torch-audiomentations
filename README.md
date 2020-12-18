@@ -127,10 +127,12 @@ Shift the audio forwards or backwards, with or without rollover
 
 # Version history
 
-## v0.x.x (TBA)
+## v0.5.1 (2020-12-18)
 
 * Fix a bug where AddBackgroundNoise did not work on CUDA
-* When looking for audio files, consider symlinked folders instead of disregarding them
+* Fix a bug where symlinked audio files/folders were not found when looking for audio files
+* Use torch.fft.rfft instead of the torch.rfft (deprecated in pytorch 1.7) when possible. As a
+bonus, the change also improves performance in `ApplyImpulseResponse`.
 
 ## v0.5.0 (2020-12-08)
 
