@@ -121,48 +121,75 @@ training phase-aware machine learning models.
 
 ## Shift
 
-_To be added in v0.5.0_
+_Added in v0.5.0_
 
 Shift the audio forwards or backwards, with or without rollover
 
-# Version history
+# Changelog
 
-## v0.5.1 (2020-12-18)
+## [v0.5.1] - 2020-12-18
+
+### Fixed
 
 * Fix a bug where `AddBackgroundNoise` did not work on CUDA
 * Fix a bug where symlinked audio files/folders were not found when looking for audio files
 * Use torch.fft.rfft instead of the torch.rfft (deprecated in pytorch 1.7) when possible. As a
 bonus, the change also improves performance in `ApplyImpulseResponse`.
 
-## v0.5.0 (2020-12-08)
+## [v0.5.0] - 2020-12-08
+
+### Added
 
 * Release `AddBackgroundNoise` and `ApplyImpulseResponse`
 * Implement `Shift`
+
+### Changed
+
+* Make `sample_rate` optional. Allow specifying `sample_rate` in `__init__` instead of `forward`. This means torchaudio transforms can be used in `Compose` now.
+
+### Removed
+
 * Remove support for 1-dimensional and 2-dimensional audio tensors. Only 3-dimensional audio
  tensors are supported now.
-* Make `sample_rate` optional. Allow specifying `sample_rate` in `__init__` instead of `forward`. This means torchaudio transforms can be used in `Compose` now.
+
+### Fixed
+
 * Fix a bug where one could not use the `parameters` method of the `nn.Module` subclass
 * Fix a bug where files with uppercase filename extension were not found
 
-## v0.4.0 (2020-11-10)
+## [v0.4.0] - 2020-11-10
+
+### Added
 
 * Implement `Compose` for applying multiple transforms
 * Implement utility functions `from_dict` and `from_yaml` for loading data augmentation
 configurations from dict, json or yaml
 * Officially support differentiability in most transforms
 
-## v0.3.0 (2020-10-27)
+## [v0.3.0] - 2020-10-27
 
-* Transforms now return the input unchanged when they are in eval mode
+### Added
+
 * Add support for alternative modes `per_batch` and `per_channel`
 
-## v0.2.0 (2020-10-19)
+### Changed
 
-* Simplify API for using CUDA tensors. The device is now inferred from the input tensor.
+* Transforms now return the input unchanged when they are in eval mode
+
+## [v0.2.0] - 2020-10-19
+
+### Added
+
 * Implement `PeakNormalization`
 * Expose `convolve` in the API
 
-## v0.1.0 (2020-10-12)
+### Changed
+
+* Simplify API for using CUDA tensors. The device is now inferred from the input tensor.
+
+## [v0.1.0] - 2020-10-12
+
+### Added
 
 * Initial release with `Gain` and `PolarityInversion`
 
