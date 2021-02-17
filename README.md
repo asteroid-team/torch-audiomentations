@@ -201,7 +201,7 @@ A GPU-enabled development environment for torch-audiomentations can be created w
 
 * `conda create --name torch-audiomentations-gpu python=3.7.3`
 * `conda activate torch-audiomentations-gpu`
-* `conda install pytorch cudatoolkit=10.1 -c pytorch`
+* `conda install pytorch=1.7.1 cudatoolkit=10.1 -c pytorch`
 * `conda env update`
 
 ## Run tests
