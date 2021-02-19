@@ -32,10 +32,11 @@ class ApplyImpulseResponse(BaseWaveformTransform):
         """
 
         :param ir_paths: Either a path to a folder with audio files or a list of paths to audio files.
-        :convolve_mode:
+        :param convolve_mode:
         :param mode:
         :param p:
         :param p_mode:
+        :param sample_rate:
         """
 
         super().__init__(mode, p, p_mode, sample_rate)

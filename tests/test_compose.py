@@ -7,6 +7,7 @@ from numpy.testing import assert_almost_equal, assert_array_equal
 from torchaudio.transforms import Vol
 
 from torch_audiomentations import PolarityInversion, Compose, PeakNormalization, Gain
+from torch_audiomentations.augmentations.shuffle_channels import ShuffleChannels
 from torch_audiomentations.utils.dsp import convert_decibels_to_amplitude_ratio
 
 
@@ -123,3 +124,19 @@ class TestCompose(unittest.TestCase):
 
         self.assertGreater(num_peak_normalization_last, 10)
         self.assertGreater(num_gain_last, 10)
+
+    def test_supported_modes_property(self):
+        augment = Compose(
+            transforms=[
+                PeakNormalization(p=1.0),
+            ],
+        )
+        assert augment.supported_modes == {"per_batch", "per_example", "per_channel"}
+
+        augment = Compose(
+            transforms=[
+                PeakNormalization(p=1.0),
+                ShuffleChannels(p=1.0)
+            ],
+        )
+        assert augment.supported_modes == {"per_batch", "per_example"}

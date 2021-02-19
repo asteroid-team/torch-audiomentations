@@ -39,6 +39,7 @@ class AddBackgroundNoise(BaseWaveformTransform):
         :param mode:
         :param p:
         :param p_mode:
+        :param sample_rate:
         """
 
         super().__init__(mode, p, p_mode, sample_rate)

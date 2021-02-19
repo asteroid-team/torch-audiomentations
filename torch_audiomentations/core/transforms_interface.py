@@ -15,8 +15,13 @@ class EmptyPathException(Exception):
     pass
 
 
+class ModeNotSupportedException(Exception):
+    pass
+
+
 class BaseWaveformTransform(torch.nn.Module):
     supports_multichannel = True
+    supported_modes = {"per_batch", "per_example", "per_channel"}
     requires_sample_rate = True
 
     def __init__(
@@ -55,6 +60,10 @@ class BaseWaveformTransform(torch.nn.Module):
         self.sample_rate = sample_rate
 
         # Check validity of mode/p_mode combination
+        if self.mode not in self.supported_modes:
+            raise ModeNotSupportedException(
+                "{} does not support mode {}".format(self.__class__.__name__, self.mode)
+            )
         if self.p_mode == "per_batch":
             assert self.mode in ("per_batch", "per_example", "per_channel")
         elif self.p_mode == "per_example":
@@ -62,7 +71,7 @@ class BaseWaveformTransform(torch.nn.Module):
         elif self.p_mode == "per_channel":
             assert self.mode == "per_channel"
         else:
-            raise Exception("Unknown mode/p_mode {}".format(self.p_mode))
+            raise Exception("Unknown p_mode {}".format(self.p_mode))
 
         self.transform_parameters = {}
         self.are_parameters_frozen = False
