@@ -77,6 +77,12 @@ _Added in v0.5.0_
 
 Add background noise to the input audio.
 
+## ApplyImpulseResponse
+
+_Added in v0.5.0_
+
+Convolve the given audio with impulse responses.
+
 ## Gain
 
 _Added in v0.1.0_
@@ -87,12 +93,6 @@ technique can help a model become somewhat invariant to the overall gain of the 
 Warning: This transform can return samples outside the [-1, 1] range, which may lead to
 clipping or wrap distortion, depending on what you do with the audio in a later stage.
 See also https://en.wikipedia.org/wiki/Clipping_(audio)#Digital_clipping
-
-## ApplyImpulseResponse
-
-_Added in v0.5.0_
-
-Convolve the given audio with impulse responses.
 
 ## PeakNormalization
 
