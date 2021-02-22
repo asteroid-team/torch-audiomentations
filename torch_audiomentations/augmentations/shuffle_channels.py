@@ -8,10 +8,10 @@ from ..core.transforms_interface import BaseWaveformTransform
 
 class ShuffleChannels(BaseWaveformTransform):
     """
-    Shuffle the audio channels if the audio is multichannel (e.g. stereo).
-    This transform can help combat positional bias.
+    Given multichannel audio input (e.g. stereo), shuffle the channels, e.g. so left can become right and vice versa.
+    This transform can help combat positional bias in machine learning models that input multichannel waveforms.
 
-    If the input audio is mono, this transform does nothing except raise a warning.
+    If the input audio is mono, this transform does nothing except emit a warning.
     """
 
     supports_multichannel = True
