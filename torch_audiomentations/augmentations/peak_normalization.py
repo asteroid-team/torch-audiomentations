@@ -26,9 +26,6 @@ class PeakNormalization(BaseWaveformTransform):
         p_mode: typing.Optional[str] = None,
         sample_rate: typing.Optional[int] = None,
     ):
-        """
-        :param p:
-        """
         super().__init__(mode, p, p_mode, sample_rate)
         assert apply_to in ("all", "only_too_loud_sounds")
         self.apply_to = apply_to

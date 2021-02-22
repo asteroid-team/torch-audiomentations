@@ -61,3 +61,13 @@ class Compose(torch.nn.Module):
         """
         for transform in self.transforms:
             transform.unfreeze_parameters()
+
+    @property
+    def supported_modes(self) -> set:
+        """Return the intersection of supported modes of the transforms in the composition."""
+        currently_supported_modes = {"per_batch", "per_example", "per_channel"}
+        for transform in self.transforms:
+            currently_supported_modes = currently_supported_modes.intersection(
+                transform.supported_modes
+            )
+        return currently_supported_modes
