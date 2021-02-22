@@ -127,7 +127,7 @@ Shift the audio forwards or backwards, with or without rollover
 
 ## ShuffleChannels
 
-_To be added in v0.6.0_
+_Added in v0.6.0_
 
 Given multichannel audio input (e.g. stereo), shuffle the channels, e.g. so left can become right and vice versa.
 This transform can help combat positional bias in machine learning models that input multichannel waveforms.
