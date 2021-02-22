@@ -136,7 +136,7 @@ If the input audio is mono, this transform does nothing except emit a warning.
 
 # Changelog
 
-## Unreleased
+## [v0.6.0] - 2021-02-22
 
 ### Added
 
