@@ -1,4 +1,5 @@
 import typing
+import warnings
 
 import torch
 
@@ -10,7 +11,7 @@ class ShuffleChannels(BaseWaveformTransform):
     Shuffle the audio channels if the audio is multichannel (e.g. stereo).
     This transform can help combat positional bias.
 
-    This transform does nothing except raise a warning if the input audio is mono.
+    If the input audio is mono, this transform does nothing except raise a warning.
     """
 
     supports_multichannel = True
@@ -29,7 +30,7 @@ class ShuffleChannels(BaseWaveformTransform):
     def randomize_parameters(
         self, selected_samples, sample_rate: typing.Optional[int] = None
     ):
-        batch_size = selected_samples.size(0)
+        batch_size = selected_samples.shape[0]
         num_channels = selected_samples.shape[1]
         assert num_channels <= 255
         permutations = torch.zeros(
@@ -40,6 +41,12 @@ class ShuffleChannels(BaseWaveformTransform):
         self.transform_parameters["permutations"] = permutations
 
     def apply_transform(self, selected_samples, sample_rate: typing.Optional[int] = None):
+        if selected_samples.shape[1] == 1:
+            warnings.warn(
+                "Mono audio was passed to ShuffleChannels - there are no channels to shuffle."
+                " The input will be returned unchanged."
+            )
+            return selected_samples
         for i in range(selected_samples.size(0)):
             selected_samples[i] = selected_samples[
                 i, self.transform_parameters["permutations"][i]

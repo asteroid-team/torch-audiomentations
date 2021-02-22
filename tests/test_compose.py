@@ -134,9 +134,6 @@ class TestCompose(unittest.TestCase):
         assert augment.supported_modes == {"per_batch", "per_example", "per_channel"}
 
         augment = Compose(
-            transforms=[
-                PeakNormalization(p=1.0),
-                ShuffleChannels(p=1.0)
-            ],
+            transforms=[PeakNormalization(p=1.0), ShuffleChannels(p=1.0)],
         )
-        assert augment.supported_modes == {"per_batch", "per_example"}
+        assert augment.supported_modes == {"per_example"}
