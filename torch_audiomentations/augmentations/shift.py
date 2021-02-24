@@ -3,11 +3,10 @@ import typing
 
 from ..core.transforms_interface import BaseWaveformTransform
 
-# @torch.jit.script
+
 def shift_gpu(tensor: torch.Tensor, r: torch.Tensor, rollover: bool = False):
     """Shift or roll a batch of tensors"""
     b, c, t = tensor.shape
-    # Max to roll by
 
     # Arange indexes
     x = torch.arange(t, device=tensor.device)
@@ -29,6 +28,7 @@ def shift_gpu(tensor: torch.Tensor, r: torch.Tensor, rollover: bool = False):
 def shift_cpu(
     selected_samples: torch.Tensor, shift_samples: torch.Tensor, rollover: bool = False
 ):
+    """Shift or roll a batch of tensors with the help of a for loop and torch.roll()"""
     selected_batch_size = selected_samples.size(0)
 
     for i in range(selected_batch_size):
