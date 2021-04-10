@@ -8,7 +8,7 @@ from torch_audiomentations.utils.io import Audio
 from .utils import TEST_FIXTURES_DIR
 
 
-class TestAddBackgroundNoise(unittest.TestCase):
+class TestAddColoredNoise(unittest.TestCase):
     def setUp(self):
         self.sample_rate = 16000
         self.audio = Audio(sample_rate=self.sample_rate)

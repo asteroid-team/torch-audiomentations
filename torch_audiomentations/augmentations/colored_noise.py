@@ -7,13 +7,21 @@ from ..utils.dsp import calculate_rms
 from ..utils.io import Audio
 
 
-def _gen_noise(f_decay, num_samples, sample_rate):
+def _gen_noise(f_decay, num_samples, sample_rate, device):
     """
     Generate colored noise with f_decay decay using torch.fft
     """
-    noise = torch.normal(0, 1, (sample_rate,))
+    noise = torch.normal(
+        torch.tensor(0, device=device),
+        torch.tensor(1, device=device),
+        (sample_rate,),
+        device=device,
+    )
     spec = torch.fft.rfft(noise)
-    mask = 1 / (torch.linspace(1, (sample_rate / 2) ** 0.5, spec.shape[0]) ** f_decay)
+    mask = 1 / (
+        torch.linspace(1, (sample_rate / 2) ** 0.5, spec.shape[0], device=device)
+        ** f_decay
+    )
     spec *= mask
     noise = Audio.rms_normalize(torch.fft.irfft(spec).unsqueeze(0)).squeeze()
     noise = torch.cat([noise] * int(ceil(num_samples / sample_rate)))
@@ -101,11 +109,14 @@ class AddColoredNoise(BaseWaveformTransform):
         noise = torch.stack(
             [
                 _gen_noise(
-                    self.transform_parameters["f_decay"][i], num_samples, sample_rate
+                    self.transform_parameters["f_decay"][i],
+                    num_samples,
+                    sample_rate,
+                    selected_samples.device,
                 )
                 for i in range(batch_size)
             ]
-        ).to(selected_samples.device)
+        )
 
         # (batch_size, num_channels)
         noise_rms = calculate_rms(selected_samples) / (
