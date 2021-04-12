@@ -16,6 +16,7 @@ from torch_audiomentations import (
     Shift,
     AddBackgroundNoise,
     ApplyImpulseResponse,
+    AddColoredNoise,
 )
 from torch_audiomentations.augmentations.shuffle_channels import ShuffleChannels
 from torch_audiomentations.core.transforms_interface import ModeNotSupportedException
@@ -93,6 +94,10 @@ if __name__ == "__main__":
                 "get_instance": lambda: AddBackgroundNoise(
                     background_paths=TEST_FIXTURES_DIR / "bg", mode=mode, p=1.0
                 ),
+                "num_runs": 5,
+            },
+            {
+                "get_instance": lambda: AddColoredNoise(mode=mode, p=1.0),
                 "num_runs": 5,
             },
             {
