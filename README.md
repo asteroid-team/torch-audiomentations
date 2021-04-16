@@ -79,7 +79,7 @@ Add background noise to the input audio.
 
 ## AddColoredNoise
 
-_To be added in v0.7.0_
+_Added in v0.7.0_
 
 Add colored noise to the input audio
 
