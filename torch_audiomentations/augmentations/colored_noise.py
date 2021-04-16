@@ -1,7 +1,7 @@
+import torch
 from math import ceil
 
-import torch
-
+from torch_audiomentations.utils.fft import rfft, irfft
 from ..core.transforms_interface import BaseWaveformTransform
 from ..utils.dsp import calculate_rms
 from ..utils.io import Audio
@@ -11,13 +11,6 @@ def _gen_noise(f_decay, num_samples, sample_rate, device):
     """
     Generate colored noise with f_decay decay using torch.fft
     """
-
-    try:
-        # This works in PyTorch>=1.7
-        from torch.fft import irfft, rfft
-    except ModuleNotFoundError:
-        raise Exception("AddColoredNoise requires pytorch>=1.7")
-
     noise = torch.normal(
         torch.tensor(0.0, device=device),
         torch.tensor(1.0, device=device),
