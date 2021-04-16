@@ -11,19 +11,26 @@ def _gen_noise(f_decay, num_samples, sample_rate, device):
     """
     Generate colored noise with f_decay decay using torch.fft
     """
+
+    try:
+        # This works in PyTorch>=1.7
+        from torch.fft import irfft, rfft
+    except ModuleNotFoundError:
+        raise Exception("AddColoredNoise requires pytorch>=1.7")
+
     noise = torch.normal(
-        torch.tensor(0, device=device),
-        torch.tensor(1, device=device),
+        torch.tensor(0.0, device=device),
+        torch.tensor(1.0, device=device),
         (sample_rate,),
         device=device,
     )
-    spec = torch.fft.rfft(noise)
+    spec = rfft(noise)
     mask = 1 / (
         torch.linspace(1, (sample_rate / 2) ** 0.5, spec.shape[0], device=device)
         ** f_decay
     )
     spec *= mask
-    noise = Audio.rms_normalize(torch.fft.irfft(spec).unsqueeze(0)).squeeze()
+    noise = Audio.rms_normalize(irfft(spec).unsqueeze(0)).squeeze()
     noise = torch.cat([noise] * int(ceil(num_samples / sample_rate)))
     return noise[:num_samples]
 
