@@ -77,6 +77,12 @@ _Added in v0.5.0_
 
 Add background noise to the input audio.
 
+## AddColoredNoise
+
+_To be added in v0.7.0_
+
+Add colored noise to the input audio
+
 ## ApplyImpulseResponse
 
 _Added in v0.5.0_
@@ -135,6 +141,16 @@ This transform can help combat positional bias in machine learning models that i
 If the input audio is mono, this transform does nothing except emit a warning.
 
 # Changelog
+
+## Unreleased
+
+### Added
+
+* Implement `AddColoredNoise`
+
+### Deprecated
+
+* Support for pytorch<=1.6 is deprecated and will be removed in the future
 
 ## [v0.6.0] - 2021-02-22
 
