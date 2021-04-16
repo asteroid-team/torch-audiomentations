@@ -6,12 +6,18 @@
 # found at https://github.com/asteroid-team/torch-audiomentations/commits
 
 import torch
+import warnings
 
 try:
     # This works in PyTorch>=1.7
     from torch.fft import irfft, rfft
 except ModuleNotFoundError:
     # This works in PyTorch<=1.6
+    warnings.warn(
+        "Support for pytorch<=1.6 will be dropped in a future version of torch-audiomentations!"
+        " Please upgrade to pytorch 1.7 or newer.",
+    )
+
     def rfft(input, n=None):
         if n is not None:
             m = input.size(-1)
