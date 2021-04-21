@@ -144,6 +144,10 @@ If the input audio is mono, this transform does nothing except emit a warning.
 
 ## Unreleased
 
+### Deprecated
+
+* Support for torchaudio<=0.6 is deprecated and will be removed in the future
+
 ### Removed
 
 * Support for pytorch<=1.6 has been removed
