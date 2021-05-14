@@ -240,10 +240,7 @@ configurations from dict, json or yaml
 
 A GPU-enabled development environment for torch-audiomentations can be created with conda:
 
-* `conda create --name torch-audiomentations-gpu python=3.7.3`
-* `conda activate torch-audiomentations-gpu`
-* `conda install pytorch=1.7.1 cudatoolkit=10.1 -c pytorch`
-* `conda env update`
+* `conda env create`
 
 ## Run tests
 
