@@ -73,8 +73,7 @@ class LowPassFilter(BaseWaveformTransform):
         if sample_rate is None:
             sample_rate = self.sample_rate
 
-        # TODO: Check if julius.lowpass_filters can speed things up
-        # compared to julius.lowpass_filter
+        # TODO: Instead of using a for loop, perform batched compute to speed things up
         for i in range(batch_size):
             cutoff_as_fraction_of_sample_rate = (
                 self.transform_parameters["cutoff_freq"][i] / sample_rate
