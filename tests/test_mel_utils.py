@@ -35,9 +35,7 @@ class TestMelUtils:
 
         assert torch.allclose(
             m,
-            torch.tensor(
-                5.0938e2
-            ),
+            torch.tensor(5.0938e2),
             rtol=1e-4,
             atol=1e-3,
         )

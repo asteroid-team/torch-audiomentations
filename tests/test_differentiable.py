@@ -41,12 +41,8 @@ IR_PATH = TEST_FIXTURES_DIR / "ir"
         # [torch.DoubleTensor [1, 1, 5]], which is output 0 of IndexBackward, is at version 1; expected version 0 instead.
         # Hint: enable anomaly detection to find the operation that failed to compute its gradient,
         # with torch.autograd.set_detect_anomaly(True).
-        pytest.param(
-            HighPassFilter(p=1.0), marks=pytest.mark.skip("Not differentiable")
-        ),
-        pytest.param(
-            LowPassFilter(p=1.0), marks=pytest.mark.skip("Not differentiable")
-        ),
+        pytest.param(HighPassFilter(p=1.0), marks=pytest.mark.skip("Not differentiable")),
+        pytest.param(LowPassFilter(p=1.0), marks=pytest.mark.skip("Not differentiable")),
         pytest.param(
             PeakNormalization(p=1.0), marks=pytest.mark.skip("Not differentiable")
         ),

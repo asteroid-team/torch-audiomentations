@@ -39,8 +39,10 @@ class TestHighPassFilter(unittest.TestCase):
         sample_rate = 16000
 
         augment = HighPassFilter(p=1.0)
-        processed_samples = augment(
-            samples=torch.from_numpy(samples).cuda(), sample_rate=sample_rate
-        ).cpu().numpy()
+        processed_samples = (
+            augment(samples=torch.from_numpy(samples).cuda(), sample_rate=sample_rate)
+            .cpu()
+            .numpy()
+        )
         self.assertEqual(processed_samples.shape, samples.shape)
         self.assertEqual(processed_samples.dtype, np.float32)
