@@ -79,7 +79,7 @@ class LowPassFilter(BaseWaveformTransform):
         # TODO: Instead of using a for loop, perform batched compute to speed things up
         for i in range(batch_size):
             selected_samples[i] = julius.lowpass_filter(
-                selected_samples[i], cutoffs_as_fraction_of_sample_rate[i]
+                selected_samples[i], cutoffs_as_fraction_of_sample_rate[i].item()
             )
 
         return selected_samples
