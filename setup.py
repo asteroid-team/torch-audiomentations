@@ -40,7 +40,7 @@ setup(
         "julius>=0.2.3,<0.3",
         "librosa>=0.6.0",
         "torch>=1.7.0",
-        "torchaudio>=0.6.0",
+        "torchaudio>=0.6.0",  # Note: 0.6 is deprecated. Bump min version to 0.7 later.
     ],
     extras_require={"extras": ["PyYAML"]},
     python_requires=">=3.6,<3.9",
