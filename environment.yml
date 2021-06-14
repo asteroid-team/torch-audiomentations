@@ -11,14 +11,15 @@ dependencies:
 - python=3.7.3
 - pytorch::pytorch=1.7.1
 - scipy=1.5.2
-- seaborn>=0.9,<1
-- pytorch::torchaudio>=0.6.0,<0.9
+- seaborn>=0.9,<0.11
+- pytorch::torchaudio>=0.7.0,<0.9
 - pip:
   - audiomentations==0.12.1
   - audioread==2.1.8
   - black
   - coverage==5.3
   - ffmpeg-python
+  - julius>=0.2.3,<0.3
   - librosa>=0.6.1,<=0.8
   - pandas==1.1.4
   - py-cpuinfo==7.0.0

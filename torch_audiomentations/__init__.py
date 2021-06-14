@@ -3,6 +3,7 @@ from .augmentations.colored_noise import AddColoredNoise
 from .augmentations.gain import Gain
 from .augmentations.high_pass_filter import HighPassFilter
 from .augmentations.impulse_response import ApplyImpulseResponse
+from .augmentations.low_pass_filter import LowPassFilter
 from .augmentations.peak_normalization import PeakNormalization
 from .augmentations.polarity_inversion import PolarityInversion
 from .augmentations.shift import Shift

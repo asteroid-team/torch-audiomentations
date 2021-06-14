@@ -36,7 +36,12 @@ setup(
     packages=find_packages(
         exclude=["build", "scripts", "dist", "images", "test_fixtures", "tests"]
     ),
-    install_requires=["librosa>=0.6.0", "torch>=1.7.0", "torchaudio>=0.6.0"],
+    install_requires=[
+        "julius>=0.2.3,<0.3",
+        "librosa>=0.6.0",
+        "torch>=1.7.0",
+        "torchaudio>=0.6.0",
+    ],
     extras_require={"extras": ["PyYAML"]},
     python_requires=">=3.6,<3.9",
     classifiers=[
