@@ -13,6 +13,8 @@ from torch_audiomentations import (
     PolarityInversion,
     Compose,
     Shift,
+    LowPassFilter,
+    HighPassFilter,
 )
 
 BG_NOISE_PATH = TEST_FIXTURES_DIR / "bg"
@@ -36,9 +38,15 @@ IR_PATH = TEST_FIXTURES_DIR / "ir"
         Shift(p=1.0),
         # Non-differentiable transforms:
         # RuntimeError: one of the variables needed for gradient computation has been modified by an inplace operation:
-        # [torch.DoubleTensor [1, 5]], which is output 0 of IndexBackward, is at version 1; expected version 0 instead.
+        # [torch.DoubleTensor [1, 1, 5]], which is output 0 of IndexBackward, is at version 1; expected version 0 instead.
         # Hint: enable anomaly detection to find the operation that failed to compute its gradient,
         # with torch.autograd.set_detect_anomaly(True).
+        pytest.param(
+            HighPassFilter(p=1.0), marks=pytest.mark.skip("Not differentiable")
+        ),
+        pytest.param(
+            LowPassFilter(p=1.0), marks=pytest.mark.skip("Not differentiable")
+        ),
         pytest.param(
             PeakNormalization(p=1.0), marks=pytest.mark.skip("Not differentiable")
         ),
