@@ -81,7 +81,7 @@ Add background noise to the input audio.
 
 _Added in v0.7.0_
 
-Add colored noise to the input audio
+Add colored noise to the input audio.
 
 ## ApplyImpulseResponse
 
@@ -99,6 +99,18 @@ technique can help a model become somewhat invariant to the overall gain of the 
 Warning: This transform can return samples outside the [-1, 1] range, which may lead to
 clipping or wrap distortion, depending on what you do with the audio in a later stage.
 See also https://en.wikipedia.org/wiki/Clipping_(audio)#Digital_clipping
+
+## HighPassFilter
+
+_To be added in v0.8.0_
+
+Apply high-pass filtering to the input audio.
+
+## LowPassFilter
+
+_To be added in v0.8.0_
+
+Apply low-pass filtering to the input audio.
 
 ## PeakNormalization
 
@@ -143,6 +155,10 @@ If the input audio is mono, this transform does nothing except emit a warning.
 # Changelog
 
 ## Unreleased
+
+### Added
+
+* Implement `HighPassFilter` and `LowPassFilter`
 
 ### Deprecated
 
