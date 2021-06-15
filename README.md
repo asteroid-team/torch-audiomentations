@@ -156,6 +156,10 @@ If the input audio is mono, this transform does nothing except emit a warning.
 
 ## Unreleased
 
+### Removed
+
+* Support for torchaudio<=0.6 has been removed
+
 ## [v0.8.0] - 2021-06-15
 
 ### Added

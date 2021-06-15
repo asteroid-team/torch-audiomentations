@@ -248,16 +248,9 @@ class Audio:
                     num_frames=original_num_samples,
                 )
             except TypeError:
-                warnings.warn(
-                    "You are using an old version of torchaudio. Support for it will be"
-                    " removed in a future release of torch-audiomentations. Please"
-                    " upgrade to torchaudio>=0.7 to remove this warning."
-                )
-                # Support legacy interface. See also https://github.com/pytorch/audio/issues/903
-                original_data, _ = torchaudio.load(
-                    audio_path,
-                    offset=original_sample_offset,
-                    num_frames=original_num_samples,
+                raise Exception(
+                    "It looks like you are using an unsupported version of torchaudio."
+                    " If you have 0.6 or older, please upgrade to a newer version."
                 )
 
         else:
