@@ -102,13 +102,13 @@ See also https://en.wikipedia.org/wiki/Clipping_(audio)#Digital_clipping
 
 ## HighPassFilter
 
-_To be added in v0.8.0_
+_Added in v0.8.0_
 
 Apply high-pass filtering to the input audio.
 
 ## LowPassFilter
 
-_To be added in v0.8.0_
+_Added in v0.8.0_
 
 Apply low-pass filtering to the input audio.
 
@@ -155,6 +155,8 @@ If the input audio is mono, this transform does nothing except emit a warning.
 # Changelog
 
 ## Unreleased
+
+## [v0.8.0] - 2021-06-15
 
 ### Added
 
