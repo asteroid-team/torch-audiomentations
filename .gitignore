@@ -137,3 +137,6 @@ scripts/**/*.png
 
 # Anaconda temporary requirements file
 conda*.requirements.txt
+
+# vscode
+.vscode
