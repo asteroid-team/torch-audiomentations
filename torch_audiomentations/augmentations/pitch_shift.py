@@ -1,9 +1,10 @@
 import torch
 
 from ..core.transforms_interface import BaseWaveformTransform
+from torch_pitch_shift import *
 
 
-class LowPassFilter(BaseWaveformTransform):
+class PitchShift(BaseWaveformTransform):
     """
     Pitch shift the sound up or down without changing the tempo
     """
@@ -63,5 +64,8 @@ class LowPassFilter(BaseWaveformTransform):
         if sample_rate is None:
             sample_rate = self.sample_rate
 
-        # TODO: import my own library "torch_pitch_shift"
-        return tps.pitch_shift(selected_samples, n_steps=self.parameters["num_semitones"])
+        pitch_shift = PitchShifter(sample_rate)
+        for i in range(batch_size):
+            selected_samples[i] = pitch_shift(
+                selected_samples[i], n_steps=self.parameters["num_semitones"]
+            )
