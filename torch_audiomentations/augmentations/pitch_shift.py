@@ -4,6 +4,8 @@ import torch.nn.functional as F
 from ..core.transforms_interface import BaseWaveformTransform
 from torch_pitch_shift import *
 import math
+from fractions import Fraction
+from random import choices
 
 
 class PitchShift(BaseWaveformTransform):
@@ -16,16 +18,16 @@ class PitchShift(BaseWaveformTransform):
 
     def __init__(
         self,
-        min_shift_semitones=-12,
-        max_shift_semitones=12,
+        sample_rate: int,
+        min_frequency_ratio=0.5,
+        max_frequency_ratio=2,
         mode: str = "per_example",
         p: float = 0.5,
         p_mode: str = None,
-        sample_rate: int = None,
     ):
         """
-        :param min_shift_semitones: Minimum pitch shift in semitones
-        :param max_shift_semitones: Maximum pitch shift in semitones
+        :param min_frequency_ratio: Minimum pitch shift ratio (default 0.5)
+        :param max_frequency_ratio: Maximum pitch shift ratio (default 2)
         :param mode:
         :param p:
         :param p_mode:
@@ -33,14 +35,14 @@ class PitchShift(BaseWaveformTransform):
         """
         super().__init__(mode, p, p_mode, sample_rate)
 
-        self.min_shift_semitones = min_shift_semitones
-        self.max_shift_semitones = max_shift_semitones
-        if max(abs(min_shift_semitones), abs(max_shift_semitones)) > 12:
-            raise ValueError(
-                "Magnitude of max_shift_semitones and min_shift_semitones must be <= 12"
-            )
-        if self.min_shift_semitones > self.max_shift_semitones:
+        self.min_frequency_ratio = Fraction(min_frequency_ratio)
+        self.max_frequency_ratio = Fraction(max_frequency_ratio)
+        if self.max_frequency_ratio > self.max_frequency_ratio:
             raise ValueError("max_shift_semitones must be > min_shift_semitones")
+        self.pitch_shift = PitchShifter(
+            sample_rate,
+            lambda x: x >= self.min_frequency_ratio and x <= self.max_frequency_ratio,
+        )
 
     def randomize_parameters(
         self, selected_samples: torch.Tensor, sample_rate: int = None
@@ -50,14 +52,8 @@ class PitchShift(BaseWaveformTransform):
         """
         batch_size, _, num_samples = selected_samples.shape
 
-        # Sample frequencies uniformly in mel space, then convert back to frequency
-        dist = torch.distributions.Uniform(
-            low=self.min_shift_semitones,
-            high=self.max_shift_semitones + 1,
-            validate_args=True,
-        )
-        self.transform_parameters["num_semitones"] = dist.sample(
-            sample_shape=(batch_size,)
+        self.transform_parameters["shift_ratio"] = choices(
+            list(self.pitch_shift.fast_shifts), k=batch_size
         )
 
     def apply_transform(self, selected_samples: torch.Tensor, sample_rate: int = None):
@@ -66,25 +62,10 @@ class PitchShift(BaseWaveformTransform):
         if sample_rate is None:
             sample_rate = self.sample_rate
 
-        pitch_shift = PitchShifter(sample_rate, approximation_constant=100)
-
         for i in range(batch_size):
-            n_steps = math.floor(self.transform_parameters["num_semitones"][i])
-            print(
-                pitch_shift(
-                    selected_samples[i],
-                    n_steps=n_steps,
-                ).shape,
-                n_steps,
+            selected_samples[i, ...] = self.pitch_shift(
+                selected_samples[i],
+                self.transform_parameters["shift_ratio"][i],
             )
-            # selected_samples[i, ...] = F.pad(
-            #     pitch_shift(
-            #         selected_samples[i],
-            #         n_steps=math.floor(self.transform_parameters["num_semitones"][i]),
-            #     ),
-            #     pad=(0, 2),
-            #     mode="constant",
-            #     value=0,
-            # )
 
         return selected_samples
