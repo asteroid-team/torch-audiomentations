@@ -1,7 +1,9 @@
 import torch
+import torch.nn.functional as F
 
 from ..core.transforms_interface import BaseWaveformTransform
 from torch_pitch_shift import *
+import math
 
 
 class PitchShift(BaseWaveformTransform):
@@ -14,8 +16,8 @@ class PitchShift(BaseWaveformTransform):
 
     def __init__(
         self,
-        min_shift_semitones=-4,
-        max_shift_semitones=4,
+        min_shift_semitones=-12,
+        max_shift_semitones=12,
         mode: str = "per_example",
         p: float = 0.5,
         p_mode: str = None,
@@ -33,9 +35,9 @@ class PitchShift(BaseWaveformTransform):
 
         self.min_shift_semitones = min_shift_semitones
         self.max_shift_semitones = max_shift_semitones
-        if max(abs(min_shift_semitones), abs(max_shift_semitones)) >= 12:
+        if max(abs(min_shift_semitones), abs(max_shift_semitones)) > 12:
             raise ValueError(
-                "Magnitude of max_shift_semitones and min_shift_semitones must be < 12"
+                "Magnitude of max_shift_semitones and min_shift_semitones must be <= 12"
             )
         if self.min_shift_semitones > self.max_shift_semitones:
             raise ValueError("max_shift_semitones must be > min_shift_semitones")
@@ -51,7 +53,7 @@ class PitchShift(BaseWaveformTransform):
         # Sample frequencies uniformly in mel space, then convert back to frequency
         dist = torch.distributions.Uniform(
             low=self.min_shift_semitones,
-            high=self.max_shift_semitones,
+            high=self.max_shift_semitones + 1,
             validate_args=True,
         )
         self.transform_parameters["num_semitones"] = dist.sample(
@@ -64,8 +66,25 @@ class PitchShift(BaseWaveformTransform):
         if sample_rate is None:
             sample_rate = self.sample_rate
 
-        pitch_shift = PitchShifter(sample_rate)
+        pitch_shift = PitchShifter(sample_rate, approximation_constant=100)
+
         for i in range(batch_size):
-            selected_samples[i] = pitch_shift(
-                selected_samples[i], n_steps=self.parameters["num_semitones"]
+            n_steps = math.floor(self.transform_parameters["num_semitones"][i])
+            print(
+                pitch_shift(
+                    selected_samples[i],
+                    n_steps=n_steps,
+                ).shape,
+                n_steps,
             )
+            # selected_samples[i, ...] = F.pad(
+            #     pitch_shift(
+            #         selected_samples[i],
+            #         n_steps=math.floor(self.transform_parameters["num_semitones"][i]),
+            #     ),
+            #     pad=(0, 2),
+            #     mode="constant",
+            #     value=0,
+            # )
+
+        return selected_samples
