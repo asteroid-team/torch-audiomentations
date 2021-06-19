@@ -3,9 +3,6 @@ import torch.nn.functional as F
 
 from ..core.transforms_interface import BaseWaveformTransform
 from torch_pitch_shift import *
-import math
-from fractions import Fraction
-from random import choices
 
 
 class PitchShift(BaseWaveformTransform):

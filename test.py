@@ -16,7 +16,7 @@ torch_device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 import time
 
 audio_samples = (
-    torch.rand(size=(1024, 2, 32000), dtype=torch.float32, device=torch_device) - 0.5
+    torch.rand(size=(8, 2, 32000), dtype=torch.float32, device=torch_device) - 0.5
 )
 
 # Apply augmentation. This varies the gain and polarity of (some of)
