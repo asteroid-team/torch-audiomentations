@@ -40,7 +40,8 @@ class PitchShift(BaseWaveformTransform):
         self._pitch_shift = PitchShifter()
         self._sample_rate = sample_rate
         self._fast_shifts = self.fast_shifts = get_fast_shifts(
-            sample_rate, lambda x: x >= min_transpose_ratio and x <= max_transpose_ratio
+            sample_rate,
+            lambda x: x >= min_transpose_ratio and x <= max_transpose_ratio and x != 1,
         )
 
     def randomize_parameters(
