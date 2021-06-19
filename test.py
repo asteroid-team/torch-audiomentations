@@ -5,7 +5,7 @@ from torch_audiomentations import Compose, PitchShift
 # Initialize augmentation callable
 apply_augmentation = Compose(
     transforms=[
-        PitchShift(16000, p=0.5),
+        PitchShift(16000, p=1),
     ]
 )
 

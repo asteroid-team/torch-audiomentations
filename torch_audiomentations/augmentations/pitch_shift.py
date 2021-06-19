@@ -19,15 +19,15 @@ class PitchShift(BaseWaveformTransform):
     def __init__(
         self,
         sample_rate: int,
-        min_frequency_ratio=0.5,
-        max_frequency_ratio=2,
+        min_transpose=-12,
+        max_transpose=12,
         mode: str = "per_example",
         p: float = 0.5,
         p_mode: str = None,
     ):
         """
-        :param min_frequency_ratio: Minimum pitch shift ratio (default 0.5)
-        :param max_frequency_ratio: Maximum pitch shift ratio (default 2)
+        :param min_transpose: Minimum pitch shift transposition (default -12 semitones)
+        :param max_transpose: Maximum pitch shift transposition (default +12 semitones)
         :param mode:
         :param p:
         :param p_mode:
@@ -35,14 +35,11 @@ class PitchShift(BaseWaveformTransform):
         """
         super().__init__(mode, p, p_mode, sample_rate)
 
-        self.min_frequency_ratio = Fraction(min_frequency_ratio)
-        self.max_frequency_ratio = Fraction(max_frequency_ratio)
-        if self.max_frequency_ratio > self.max_frequency_ratio:
-            raise ValueError("max_shift_semitones must be > min_shift_semitones")
-        self.pitch_shift = PitchShifter(
-            sample_rate,
-            lambda x: x >= self.min_frequency_ratio and x <= self.max_frequency_ratio,
-        )
+        self.min_transpose = min_transpose
+        self.max_transpose = max_transpose
+        if self.min_transpose > self.max_transpose:
+            raise ValueError("max_transpose must be > min_transpose")
+        self.pitch_shift = PitchShifter()
 
     def randomize_parameters(
         self, selected_samples: torch.Tensor, sample_rate: int = None
@@ -52,8 +49,13 @@ class PitchShift(BaseWaveformTransform):
         """
         batch_size, _, num_samples = selected_samples.shape
 
-        self.transform_parameters["shift_ratio"] = choices(
-            list(self.pitch_shift.fast_shifts), k=batch_size
+        dist = torch.distributions.Uniform(
+            low=self.min_transpose,
+            high=self.max_transpose,
+            validate_args=True,
+        )
+        self.transform_parameters["transpositions"] = dist.sample(
+            sample_shape=(batch_size,)
         )
 
     def apply_transform(self, selected_samples: torch.Tensor, sample_rate: int = None):
@@ -65,7 +67,8 @@ class PitchShift(BaseWaveformTransform):
         for i in range(batch_size):
             selected_samples[i, ...] = self.pitch_shift(
                 selected_samples[i],
-                self.transform_parameters["shift_ratio"][i],
+                self.transform_parameters["transpositions"][i],
+                sample_rate,
             )
 
         return selected_samples
