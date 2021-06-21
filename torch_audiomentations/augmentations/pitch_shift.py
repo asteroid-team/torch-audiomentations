@@ -62,11 +62,12 @@ class PitchShift(BaseWaveformTransform):
         if sample_rate is None:
             sample_rate = self._sample_rate
 
+        stacker = []
         for i in range(batch_size):
-            selected_samples[i, ...] = self._pitch_shift(
+            stacker.append(self._pitch_shift(
                 selected_samples[i],
                 self.transform_parameters["transpositions"][i],
                 sample_rate,
-            )
+            ))
 
-        return selected_samples
+        return torch.stack(stacker)
