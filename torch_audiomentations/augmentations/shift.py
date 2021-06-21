@@ -4,6 +4,48 @@ import typing
 from ..core.transforms_interface import BaseWaveformTransform
 
 
+def shift_gpu(tensor: torch.Tensor, r: torch.Tensor, rollover: bool = False):
+    """Shift or roll a batch of tensors"""
+    b, c, t = tensor.shape
+
+    # Arange indexes
+    x = torch.arange(t, device=tensor.device)
+
+    # Apply Roll
+    r = r[:, None, None]
+    idxs = (x - r).expand([b, c, t])
+    ret = torch.gather(tensor, 2, idxs % t)
+    if rollover:
+        return ret
+
+    # Cut where we've rolled over
+    cut_points = (idxs + 1).clamp(0)
+    cut_points[cut_points > t] = 0
+    ret[cut_points == 0] = 0
+    return ret
+
+
+def shift_cpu(
+    selected_samples: torch.Tensor, shift_samples: torch.Tensor, rollover: bool = False
+):
+    """Shift or roll a batch of tensors with the help of a for loop and torch.roll()"""
+    selected_batch_size = selected_samples.size(0)
+
+    for i in range(selected_batch_size):
+        num_samples_to_shift = shift_samples[i].item()
+        selected_samples[i] = torch.roll(
+            selected_samples[i], shifts=num_samples_to_shift, dims=-1
+        )
+
+        if not rollover:
+            if num_samples_to_shift > 0:
+                selected_samples[i, ..., :num_samples_to_shift] = 0.0
+            elif num_samples_to_shift < 0:
+                selected_samples[i, ..., num_samples_to_shift:] = 0.0
+
+    return selected_samples
+
+
 class Shift(BaseWaveformTransform):
     """
     Shift the audio forwards or backwards, with or without rollover
@@ -35,6 +77,7 @@ class Shift(BaseWaveformTransform):
         :param mode:
         :param p:
         :param p_mode:
+        :param sample_rate:
         """
         super().__init__(mode, p, p_mode, sample_rate)
         self.min_shift = min_shift
@@ -71,7 +114,6 @@ class Shift(BaseWaveformTransform):
             <= max_shift_in_samples
             <= torch.iinfo(torch.int32).max
         )
-
         selected_batch_size = selected_samples.size(0)
         if min_shift_in_samples == max_shift_in_samples:
             self.transform_parameters["num_samples_to_shift"] = torch.full(
@@ -90,20 +132,10 @@ class Shift(BaseWaveformTransform):
             )
 
     def apply_transform(self, selected_samples, sample_rate: typing.Optional[int] = None):
-        selected_batch_size = selected_samples.size(0)
-        for i in range(selected_batch_size):
-            num_samples_to_shift = self.transform_parameters["num_samples_to_shift"][i].item()
-            selected_samples[i] = torch.roll(
-                selected_samples[i], shifts=num_samples_to_shift, dims=-1
-            )
-
-            if not self.rollover:
-                if num_samples_to_shift > 0:
-                    selected_samples[i, ..., :num_samples_to_shift] = 0.0
-                elif num_samples_to_shift < 0:
-                    selected_samples[i, ..., num_samples_to_shift:] = 0.0
-
-        return selected_samples
+        r = self.transform_parameters["num_samples_to_shift"]
+        # Select fastest implementation based on device
+        shift = shift_gpu if selected_samples.device.type == "cuda" else shift_cpu
+        return shift(selected_samples, r, self.rollover)
 
     def is_sample_rate_required(self) -> bool:
         # Sample rate is required only if shift_unit is "seconds"

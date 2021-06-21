@@ -1,17 +1,19 @@
+import random
 import unittest
 
+import pytest
 import torch
 
-from torch_audiomentations import ApplyBackgroundNoise
+from torch_audiomentations import AddBackgroundNoise
 from torch_audiomentations.utils.dsp import calculate_rms
 from torch_audiomentations.utils.file import load_audio
 from .utils import TEST_FIXTURES_DIR
 
 
-class TestApplyBackgroundNoise(unittest.TestCase):
+class TestAddBackgroundNoise(unittest.TestCase):
     def setUp(self):
         self.sample_rate = 16000
-        self.batch_size = 32
+        self.batch_size = 16
         self.empty_input_audio = torch.empty(0)
         # TODO: use utils.io.Audio
         self.input_audio = (
@@ -29,13 +31,11 @@ class TestApplyBackgroundNoise(unittest.TestCase):
 
         self.bg_path = TEST_FIXTURES_DIR / "bg"
         self.bg_short_path = TEST_FIXTURES_DIR / "bg_short"
-        self.bg_noise_transform_guaranteed = ApplyBackgroundNoise(self.bg_path, 20, p=1.0)
-        self.bg_short_noise_transform_guaranteed = ApplyBackgroundNoise(
+        self.bg_noise_transform_guaranteed = AddBackgroundNoise(self.bg_path, 20, p=1.0)
+        self.bg_short_noise_transform_guaranteed = AddBackgroundNoise(
             self.bg_short_path, 20, p=1.0
         )
-        self.bg_noise_transform_no_guarantee = ApplyBackgroundNoise(
-            self.bg_path, 20, p=0.0
-        )
+        self.bg_noise_transform_no_guarantee = AddBackgroundNoise(self.bg_path, 20, p=0.0)
 
     def test_background_noise_no_guarantee_with_single_tensor(self):
         mixed_input = self.bg_noise_transform_no_guarantee(
@@ -80,6 +80,7 @@ class TestApplyBackgroundNoise(unittest.TestCase):
         self.assertEqual(mixed_input.size(1), self.input_audio.size(1))
 
     def test_background_noise_guaranteed_with_batched_tensor(self):
+        random.seed(42)
         mixed_inputs = self.bg_noise_transform_guaranteed(
             self.input_audios, self.sample_rate
         )
@@ -95,10 +96,21 @@ class TestApplyBackgroundNoise(unittest.TestCase):
         self.assertEqual(mixed_input.size(0), self.input_audio.size(0))
         self.assertEqual(mixed_input.size(1), self.input_audio.size(1))
 
+    @pytest.mark.skipif(not torch.cuda.is_available(), reason="Requires CUDA")
+    def test_background_short_noise_guaranteed_with_batched_cuda_tensor(self):
+        input_audio_cuda = self.input_audio.cuda()
+        mixed_input = self.bg_short_noise_transform_guaranteed(
+            input_audio_cuda, self.sample_rate
+        )
+        assert not torch.equal(mixed_input, input_audio_cuda)
+        assert mixed_input.shape == input_audio_cuda.shape
+        assert mixed_input.dtype == input_audio_cuda.dtype
+        assert mixed_input.device == input_audio_cuda.device
+
     def test_varying_snr_within_batch(self):
         min_snr_in_db = 3
         max_snr_in_db = 30
-        augment = ApplyBackgroundNoise(
+        augment = AddBackgroundNoise(
             self.bg_path, min_snr_in_db=3, max_snr_in_db=30, p=1.0
         )
         augmented_audios = augment(self.input_audios, self.sample_rate)
@@ -122,6 +134,6 @@ class TestApplyBackgroundNoise(unittest.TestCase):
 
     def test_invalid_params(self):
         with self.assertRaises(ValueError):
-            augment = ApplyBackgroundNoise(
+            augment = AddBackgroundNoise(
                 self.bg_path, min_snr_in_db=30, max_snr_in_db=3, p=1.0
             )

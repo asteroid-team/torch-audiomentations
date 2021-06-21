@@ -24,9 +24,6 @@ class PolarityInversion(BaseWaveformTransform):
         p_mode: typing.Optional[str] = None,
         sample_rate: typing.Optional[int] = None,
     ):
-        """
-        :param p:
-        """
         super().__init__(mode, p, p_mode, sample_rate)
 
     def apply_transform(self, selected_samples, sample_rate: typing.Optional[int] = None):

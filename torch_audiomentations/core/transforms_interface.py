@@ -15,8 +15,13 @@ class EmptyPathException(Exception):
     pass
 
 
+class ModeNotSupportedException(Exception):
+    pass
+
+
 class BaseWaveformTransform(torch.nn.Module):
     supports_multichannel = True
+    supported_modes = {"per_batch", "per_example", "per_channel"}
     requires_sample_rate = True
 
     def __init__(
@@ -55,6 +60,10 @@ class BaseWaveformTransform(torch.nn.Module):
         self.sample_rate = sample_rate
 
         # Check validity of mode/p_mode combination
+        if self.mode not in self.supported_modes:
+            raise ModeNotSupportedException(
+                "{} does not support mode {}".format(self.__class__.__name__, self.mode)
+            )
         if self.p_mode == "per_batch":
             assert self.mode in ("per_batch", "per_example", "per_channel")
         elif self.p_mode == "per_example":
@@ -62,7 +71,7 @@ class BaseWaveformTransform(torch.nn.Module):
         elif self.p_mode == "per_channel":
             assert self.mode == "per_channel"
         else:
-            raise Exception("Unknown mode/p_mode {}".format(self.p_mode))
+            raise Exception("Unknown p_mode {}".format(self.p_mode))
 
         self.transform_parameters = {}
         self.are_parameters_frozen = False
@@ -87,6 +96,13 @@ class BaseWaveformTransform(torch.nn.Module):
                 "An empty samples tensor was passed to {}".format(self.__class__.__name__)
             )
             return samples
+
+        if len(samples.shape) != 3:
+            raise RuntimeError(
+                "torch-audiomentations expects input tensors to be three-dimensional, with"
+                " dimension ordering like [batch_size, num_channels, num_samples]. If your"
+                " audio is mono, you can use a shape like [batch_size, 1, num_samples]."
+            )
 
         if is_multichannel(samples):
             if samples.shape[1] > samples.shape[2]:
@@ -130,14 +146,16 @@ class BaseWaveformTransform(torch.nn.Module):
                 cloned_samples = cloned_samples.reshape(
                     batch_size * num_channels, 1, cloned_samples.shape[2]
                 )
-                selected_samples = cloned_samples[self.transform_parameters["should_apply"]]
+                selected_samples = cloned_samples[
+                    self.transform_parameters["should_apply"]
+                ]
 
                 if not self.are_parameters_frozen:
                     self.randomize_parameters(selected_samples, sample_rate)
 
-                cloned_samples[self.transform_parameters["should_apply"]] = self.apply_transform(
-                    selected_samples, sample_rate
-                )
+                cloned_samples[
+                    self.transform_parameters["should_apply"]
+                ] = self.apply_transform(selected_samples, sample_rate)
 
                 cloned_samples = cloned_samples.reshape(
                     batch_size, num_channels, cloned_samples.shape[2]
@@ -146,7 +164,9 @@ class BaseWaveformTransform(torch.nn.Module):
                 return cloned_samples
 
             elif self.p_mode == "per_example":
-                selected_samples = cloned_samples[self.transform_parameters["should_apply"]]
+                selected_samples = cloned_samples[
+                    self.transform_parameters["should_apply"]
+                ]
 
                 if self.mode == "per_example":
                     if not self.are_parameters_frozen:
@@ -173,7 +193,9 @@ class BaseWaveformTransform(torch.nn.Module):
                         batch_size, num_channels, selected_samples.shape[2]
                     )
 
-                    cloned_samples[self.transform_parameters["should_apply"]] = perturbed_samples
+                    cloned_samples[
+                        self.transform_parameters["should_apply"]
+                    ] = perturbed_samples
                     return cloned_samples
                 else:
                     raise Exception("Invalid mode/p_mode combination")

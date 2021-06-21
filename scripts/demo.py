@@ -14,8 +14,14 @@ from torch_audiomentations import (
     PeakNormalization,
     Compose,
     Shift,
-    ApplyBackgroundNoise,
+    AddBackgroundNoise,
+    ApplyImpulseResponse,
+    AddColoredNoise,
+    HighPassFilter,
+    LowPassFilter,
 )
+from torch_audiomentations.augmentations.shuffle_channels import ShuffleChannels
+from torch_audiomentations.core.transforms_interface import ModeNotSupportedException
 
 SAMPLE_RATE = 44100
 
@@ -69,8 +75,9 @@ if __name__ == "__main__":
     output_dir = os.path.join(SCRIPTS_DIR, "demo_output")
     os.makedirs(output_dir, exist_ok=True)
 
-    np.random.seed(42)
-    random.seed(42)
+    torch.manual_seed(43)
+    np.random.seed(43)
+    random.seed(43)
 
     filenames = ["perfect-alley1.ogg", "perfect-alley2.ogg"]
     samples1, _ = librosa.load(
@@ -86,13 +93,23 @@ if __name__ == "__main__":
     for mode in modes:
         transforms = [
             {
-                "instance": ApplyBackgroundNoise(
+                "get_instance": lambda: AddBackgroundNoise(
                     background_paths=TEST_FIXTURES_DIR / "bg", mode=mode, p=1.0
                 ),
                 "num_runs": 5,
             },
             {
-                "instance": Compose(
+                "get_instance": lambda: AddColoredNoise(mode=mode, p=1.0),
+                "num_runs": 5,
+            },
+            {
+                "get_instance": lambda: ApplyImpulseResponse(
+                    ir_paths=TEST_FIXTURES_DIR / "ir", mode=mode, p=1.0
+                ),
+                "num_runs": 1,
+            },
+            {
+                "get_instance": lambda: Compose(
                     transforms=[
                         Gain(
                             min_gain_in_db=-18.0, max_gain_in_db=-16.0, mode=mode, p=1.0
@@ -105,7 +122,7 @@ if __name__ == "__main__":
                 "num_runs": 5,
             },
             {
-                "instance": Compose(
+                "get_instance": lambda: Compose(
                     transforms=[
                         Gain(
                             min_gain_in_db=-18.0, max_gain_in_db=-16.0, mode=mode, p=0.5
@@ -117,20 +134,26 @@ if __name__ == "__main__":
                 "name": "Compose with Gain and PolarityInversion",
                 "num_runs": 5,
             },
-            {"instance": Gain(mode=mode, p=1.0), "num_runs": 5},
-            {"instance": PolarityInversion(mode=mode, p=1.0), "num_runs": 1},
-            {"instance": PeakNormalization(mode=mode, p=1.0), "num_runs": 1},
-            {"instance": Shift(mode=mode, p=1.0), "num_runs": 5},
+            {"get_instance": lambda: Gain(mode=mode, p=1.0), "num_runs": 5},
+            {"get_instance": lambda: HighPassFilter(mode=mode, p=1.0), "num_runs": 5},
+            {"get_instance": lambda: LowPassFilter(mode=mode, p=1.0), "num_runs": 5},
+            {"get_instance": lambda: PolarityInversion(mode=mode, p=1.0), "num_runs": 1},
+            {"get_instance": lambda: PeakNormalization(mode=mode, p=1.0), "num_runs": 1},
+            {"get_instance": lambda: Shift(mode=mode, p=1.0), "num_runs": 5},
+            {"get_instance": lambda: ShuffleChannels(mode=mode, p=1.0), "num_runs": 5},
         ]
 
         execution_times = {}
 
         for transform in transforms:
-            augmenter = transform["instance"]
+            try:
+                augmenter = transform["get_instance"]()
+            except ModeNotSupportedException:
+                continue
             transform_name = (
                 transform.get("name")
                 if transform.get("name")
-                else transform["instance"].__class__.__name__
+                else augmenter.__class__.__name__
             )
             execution_times[transform_name] = []
             for i in range(transform["num_runs"]):

@@ -77,8 +77,6 @@ class ApplyImpulseResponse(BaseWaveformTransform):
 
         batch_size, num_channels, num_samples = selected_samples.shape
 
-        print(selected_samples.shape)
-
         # (batch_size, 1, max_ir_length)
         ir = self.transform_parameters["ir"].to(selected_samples.device)
 

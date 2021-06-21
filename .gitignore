@@ -134,3 +134,6 @@ dmypy.json
 # Scripts/demo output
 scripts/**/*.wav
 scripts/**/*.png
+
+# Anaconda temporary requirements file
+conda*.requirements.txt

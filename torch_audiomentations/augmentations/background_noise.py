@@ -1,26 +1,23 @@
 import random
-
-import math
-import numpy as np
-import soundfile
-import torch
-from typing import Union, List
 from pathlib import Path
+from typing import Union, List
+
+import torch
 
 from ..core.transforms_interface import BaseWaveformTransform, EmptyPathException
-from ..utils.dsp import calculate_rms, calculate_desired_noise_rms
+from ..utils.dsp import calculate_rms
 from ..utils.file import find_audio_files
 from ..utils.io import Audio
-from ..utils.dsp import calculate_rms
 
 
-class ApplyBackgroundNoise(BaseWaveformTransform):
+class AddBackgroundNoise(BaseWaveformTransform):
     """
     Add background noise to the input audio.
-
     """
 
-    supports_multichannel = True  # TODO: Implement multichannel support
+    # Note: This transform has only partial support for multichannel audio. Noises that are not
+    # mono get mixed down to mono before they are added to all channels in the input.
+    supports_multichannel = True
     requires_sample_rate = True
 
     def __init__(
@@ -35,12 +32,14 @@ class ApplyBackgroundNoise(BaseWaveformTransform):
     ):
         """
 
-        :param background_paths: Either a path to a folder with audio files or a list of paths to audio files. 
-        :param min_snr_in_db: minimum SNR in dB. 
+        :param background_paths: Either a path to a folder with audio files or a list of paths
+            to audio files.
+        :param min_snr_in_db: minimum SNR in dB.
         :param max_snr_in_db: maximium SNR in dB.
         :param mode:
         :param p:
         :param p_mode:
+        :param sample_rate:
         """
 
         super().__init__(mode, p, p_mode, sample_rate)
@@ -61,9 +60,6 @@ class ApplyBackgroundNoise(BaseWaveformTransform):
         self.max_snr_in_db = max_snr_in_db
         if self.min_snr_in_db > self.max_snr_in_db:
             raise ValueError("min_snr_in_db must not be greater than max_snr_in_db")
-        self.snr_distribution = torch.distributions.Uniform(
-            low=min_snr_in_db, high=max_snr_in_db, validate_args=True
-        )
 
     def random_background(self, audio: Audio, target_num_samples: int) -> torch.Tensor:
         pieces = []
@@ -81,7 +77,7 @@ class ApplyBackgroundNoise(BaseWaveformTransform):
                 )
                 num_samples = missing_num_samples
                 background_samples = audio(
-                    background_path, sample_offset=sample_offset, num_samples=num_samples,
+                    background_path, sample_offset=sample_offset, num_samples=num_samples
                 )
                 missing_num_samples = 0
             else:
@@ -114,12 +110,20 @@ class ApplyBackgroundNoise(BaseWaveformTransform):
         )
 
         # (batch_size, ) SNRs
-        self.transform_parameters["snr_in_db"] = self.snr_distribution.sample(
+        snr_distribution = torch.distributions.Uniform(
+            low=torch.tensor(
+                self.min_snr_in_db, dtype=torch.float32, device=selected_samples.device
+            ),
+            high=torch.tensor(
+                self.max_snr_in_db, dtype=torch.float32, device=selected_samples.device
+            ),
+            validate_args=True,
+        )
+        self.transform_parameters["snr_in_db"] = snr_distribution.sample(
             sample_shape=(batch_size,)
         )
 
     def apply_transform(self, selected_samples: torch.Tensor, sample_rate: int = None):
-
         batch_size, num_channels, num_samples = selected_samples.shape
 
         # (batch_size, num_samples)

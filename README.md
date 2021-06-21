@@ -5,14 +5,14 @@
 
 Audio data augmentation in PyTorch. Inspired by [audiomentations](https://github.com/iver56/audiomentations).
 
-* Supports CPU and GPU - speed is a priority  
-* Supports batches of multichannel (or mono) audio  
-* Transforms extend `nn.Module`, so they can be integrated as a part of a pytorch neural network model  
-* Most transforms are differentiable  
-* Three modes: `per_batch`, `per_example` and `per_channel`  
-* Cross-platform compatibility  
-* Permissive MIT license  
-* High test coverage  
+* Supports CPU and GPU - speed is a priority
+* Supports batches of multichannel (or mono) audio
+* Transforms extend `nn.Module`, so they can be integrated as a part of a pytorch neural network model
+* Most transforms are differentiable
+* Three modes: `per_batch`, `per_example` and `per_channel`
+* Cross-platform compatibility
+* Permissive MIT license
+* Aiming for high test coverage
 
 # Setup
 
@@ -60,7 +60,7 @@ to start discussing about `torch-audiomentations` with us.
 
 # Motivation: Speed
 
-We don't want data augmentation to be a bottle neck in model training speed. Here is a
+We don't want data augmentation to be a bottleneck in model training speed. Here is a
 comparison of the time it takes to run 1D convolution:
 
 ![Convolve execution times](images/convolve_exec_time_plot.png)
@@ -71,11 +71,23 @@ torch-audiomentations is in an early development stage, so the APIs are subject 
 
 # Waveform transforms
 
-## ApplyBackgroundNoise
+## AddBackgroundNoise
 
-_To be added in v0.5.0_
+_Added in v0.5.0_
 
 Add background noise to the input audio.
+
+## AddColoredNoise
+
+_Added in v0.7.0_
+
+Add colored noise to the input audio.
+
+## ApplyImpulseResponse
+
+_Added in v0.5.0_
+
+Convolve the given audio with impulse responses.
 
 ## Gain
 
@@ -88,11 +100,17 @@ Warning: This transform can return samples outside the [-1, 1] range, which may 
 clipping or wrap distortion, depending on what you do with the audio in a later stage.
 See also https://en.wikipedia.org/wiki/Clipping_(audio)#Digital_clipping
 
-## ApplyImpulseResponse
+## HighPassFilter
 
-_Not released yet_
+_Added in v0.8.0_
 
-Convolve the given audio with impulse responses.
+Apply high-pass filtering to the input audio.
+
+## LowPassFilter
+
+_Added in v0.8.0_
+
+Apply low-pass filtering to the input audio.
 
 ## PeakNormalization
 
@@ -121,40 +139,120 @@ training phase-aware machine learning models.
 
 ## Shift
 
-_To be added in v0.5.0_
+_Added in v0.5.0_
 
 Shift the audio forwards or backwards, with or without rollover
 
-# Version history
+## ShuffleChannels
 
-## v0.5.0 (not released yet)
+_Added in v0.6.0_
 
-* Fix a bug where one could not use the `parameters` method of the nn.Module subclass
+Given multichannel audio input (e.g. stereo), shuffle the channels, e.g. so left can become right and vice versa.
+This transform can help combat positional bias in machine learning models that input multichannel waveforms.
+
+If the input audio is mono, this transform does nothing except emit a warning.
+
+# Changelog
+
+## Unreleased
+
+### Removed
+
+* Support for torchaudio<=0.6 has been removed
+
+## [v0.8.0] - 2021-06-15
+
+### Added
+
+* Implement `HighPassFilter` and `LowPassFilter`
+
+### Deprecated
+
+* Support for torchaudio<=0.6 is deprecated and will be removed in the future
+
+### Removed
+
+* Support for pytorch<=1.6 has been removed
+
+## [v0.7.0] - 2021-04-16
+
+### Added
+
+* Implement `AddColoredNoise`
+
+### Deprecated
+
+* Support for pytorch<=1.6 is deprecated and will be removed in the future
+
+## [v0.6.0] - 2021-02-22
+
+### Added
+
+* Implement `ShuffleChannels`
+
+## [v0.5.1] - 2020-12-18
+
+### Fixed
+
+* Fix a bug where `AddBackgroundNoise` did not work on CUDA
+* Fix a bug where symlinked audio files/folders were not found when looking for audio files
+* Use torch.fft.rfft instead of the torch.rfft (deprecated in pytorch 1.7) when possible. As a
+bonus, the change also improves performance in `ApplyImpulseResponse`.
+
+## [v0.5.0] - 2020-12-08
+
+### Added
+
+* Release `AddBackgroundNoise` and `ApplyImpulseResponse`
 * Implement `Shift`
-* Make `sample_rate` optional. Allow specifying `sample_rate` in `__init__` instead of `forward`
+
+### Changed
+
+* Make `sample_rate` optional. Allow specifying `sample_rate` in `__init__` instead of `forward`. This means torchaudio transforms can be used in `Compose` now.
+
+### Removed
+
 * Remove support for 1-dimensional and 2-dimensional audio tensors. Only 3-dimensional audio
  tensors are supported now.
-* Release `ApplyBackgroundNoise`
 
-## v0.4.0 (2020-11-10)
+### Fixed
+
+* Fix a bug where one could not use the `parameters` method of the `nn.Module` subclass
+* Fix a bug where files with uppercase filename extension were not found
+
+## [v0.4.0] - 2020-11-10
+
+### Added
 
 * Implement `Compose` for applying multiple transforms
 * Implement utility functions `from_dict` and `from_yaml` for loading data augmentation
 configurations from dict, json or yaml
 * Officially support differentiability in most transforms
 
-## v0.3.0 (2020-10-27)
+## [v0.3.0] - 2020-10-27
 
-* Transforms now return the input unchanged when they are in eval mode
+### Added
+
 * Add support for alternative modes `per_batch` and `per_channel`
 
-## v0.2.0 (2020-10-19)
+### Changed
 
-* Simplify API for using CUDA tensors. The device is now inferred from the input tensor.
+* Transforms now return the input unchanged when they are in eval mode
+
+## [v0.2.0] - 2020-10-19
+
+### Added
+
 * Implement `PeakNormalization`
 * Expose `convolve` in the API
 
-## v0.1.0 (2020-10-12)
+### Changed
+
+* Simplify API for using CUDA tensors. The device is now inferred from the input tensor.
+
+## [v0.1.0] - 2020-10-12
+
+### Added
 
 * Initial release with `Gain` and `PolarityInversion`
 
@@ -164,10 +262,7 @@ configurations from dict, json or yaml
 
 A GPU-enabled development environment for torch-audiomentations can be created with conda:
 
-* `conda create --name torch-audiomentations-gpu python=3.7.3`
-* `conda activate torch-audiomentations-gpu`
-* `conda install pytorch cudatoolkit=10.1 -c pytorch`
-* `conda env update`
+* `conda env create`
 
 ## Run tests
 

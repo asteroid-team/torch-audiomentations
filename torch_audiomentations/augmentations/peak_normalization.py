@@ -26,9 +26,6 @@ class PeakNormalization(BaseWaveformTransform):
         p_mode: typing.Optional[str] = None,
         sample_rate: typing.Optional[int] = None,
     ):
-        """
-        :param p:
-        """
         super().__init__(mode, p, p_mode, sample_rate)
         assert apply_to in ("all", "only_too_loud_sounds")
         self.apply_to = apply_to
@@ -36,13 +33,9 @@ class PeakNormalization(BaseWaveformTransform):
     def randomize_parameters(
         self, selected_samples, sample_rate: typing.Optional[int] = None
     ):
-        num_dimensions = len(selected_samples.shape)
-        assert 2 <= num_dimensions <= 3
-
         # Compute the most extreme value of each multichannel audio snippet in the batch
         most_extreme_values, _ = torch.max(torch.abs(selected_samples), dim=-1)
-        if num_dimensions == 3:
-            most_extreme_values, _ = torch.max(most_extreme_values, dim=-1)
+        most_extreme_values, _ = torch.max(most_extreme_values, dim=-1)
 
         if self.apply_to == "all":
             # Avoid division by zero
@@ -58,20 +51,13 @@ class PeakNormalization(BaseWaveformTransform):
         else:
             raise Exception("Unknown value of apply_to in PeakNormalization instance!")
         if self.transform_parameters["selector"].any():
-            if num_dimensions == 3:
-                self.transform_parameters["divisors"] = torch.reshape(
-                    most_extreme_values[self.transform_parameters["selector"]], (-1, 1, 1)
-                )
-            elif num_dimensions == 2:
-                self.transform_parameters["divisors"] = torch.reshape(
-                    most_extreme_values[self.transform_parameters["selector"]], (-1, 1)
-                )
-            else:
-                raise Exception(
-                    "1-dimensional data is not supported by PeakNormalization"
-                )
+            self.transform_parameters["divisors"] = torch.reshape(
+                most_extreme_values[self.transform_parameters["selector"]], (-1, 1, 1)
+            )
 
     def apply_transform(self, selected_samples, sample_rate: typing.Optional[int] = None):
         if "divisors" in self.transform_parameters:
-            selected_samples[self.transform_parameters["selector"]] /= self.transform_parameters["divisors"]
+            selected_samples[
+                self.transform_parameters["selector"]
+            ] /= self.transform_parameters["divisors"]
         return selected_samples
