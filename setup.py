@@ -41,7 +41,7 @@ setup(
         "librosa>=0.6.0",
         "torch>=1.7.0",
         "torchaudio>=0.7.0",
-        "torch_pitch_shift>=1.0.15",
+        "torch-pitch-shift>=1.0.15",
     ],
     extras_require={"extras": ["PyYAML"]},
     python_requires=">=3.6,<3.9",
