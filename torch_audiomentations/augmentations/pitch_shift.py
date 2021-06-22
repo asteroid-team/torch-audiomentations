@@ -1,5 +1,6 @@
 from random import choices
 import torch
+from torch._C import Value
 import torch.nn.functional as F
 
 from ..core.transforms_interface import BaseWaveformTransform
@@ -26,7 +27,7 @@ class PitchShift(BaseWaveformTransform):
         """
         :param min_transpose_ratio: Minimum pitch shift transposition ratio (default 0.5 --> -1 octaves)
         :param max_transpose_ratio: Maximum pitch shift transposition ratio (default 2 --> +1 octaves)
-        :param mode: ``per_example``, ``per_channel``, or ``per_batch``. Default ``per_example``.
+        :param mode: ``per_example``, ``per_channel``, or ``per_batch``. Default ``per_batch``.
         :param p:
         :param p_mode:
         :param sample_rate:
@@ -37,6 +38,8 @@ class PitchShift(BaseWaveformTransform):
         self._max_transpose_ratio = max_transpose_ratio
         if self._min_transpose_ratio > self._max_transpose_ratio:
             raise ValueError("max_transpose_ratio must be > min_transpose_ratio")
+        if not sample_rate:
+            raise ValueError("sample_rate is invalid.")
         self._sample_rate = sample_rate
         self._fast_shifts = self.fast_shifts = get_fast_shifts(
             sample_rate,
@@ -71,8 +74,11 @@ class PitchShift(BaseWaveformTransform):
     def apply_transform(self, selected_samples: torch.Tensor, sample_rate: int = None):
         batch_size, num_channels, num_samples = selected_samples.shape
 
-        if sample_rate is None:
-            sample_rate = self._sample_rate
+        if sample_rate != self._sample_rate:
+            raise ValueError(
+                "sample_rate must match the value of sample_rate "
+                + "passed into the PitchShift constructor"
+            )
 
         if self._mode == "per_example":
             for i in range(batch_size):
