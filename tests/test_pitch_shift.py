@@ -27,17 +27,20 @@ class TestPitchShift:
     def test_per_batch_shift(self, device_name):
         samples = get_example(device_name)
         aug = PitchShift(16000, p=1, mode="per_example")
+        aug.randomize_parameters(samples)
         results = aug.apply_transform(samples)
         self.assertEqual(results.shape, samples.shape)
 
     def test_per_example_shift(self, device_name):
         samples = get_example(device_name)
         aug = PitchShift(16000, p=1, mode="per_channel")
+        aug.randomize_parameters(samples)
         results = aug.apply_transform(samples)
         self.assertEqual(results.shape, samples.shape)
 
     def test_per_channel_shift(self, device_name):
         samples = get_example(device_name)
         aug = PitchShift(16000, p=1, mode="per_batch")
+        aug.randomize_parameters(samples)
         results = aug.apply_transform(samples)
         self.assertEqual(results.shape, samples.shape)
