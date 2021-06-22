@@ -3,7 +3,7 @@ import torch
 import torch.nn.functional as F
 
 from ..core.transforms_interface import BaseWaveformTransform
-from torch_pitch_shift import *
+from torch_pitch_shift import pitch_shift, get_fast_shifts
 
 
 class PitchShift(BaseWaveformTransform):
@@ -19,14 +19,14 @@ class PitchShift(BaseWaveformTransform):
         sample_rate: int,
         min_transpose_ratio=0.5,
         max_transpose_ratio=2,
-        mode: str = "per_example",
+        mode: str = "per_batch",
         p: float = 0.5,
         p_mode: str = None,
     ):
         """
         :param min_transpose_ratio: Minimum pitch shift transposition ratio (default 0.5 --> -1 octaves)
         :param max_transpose_ratio: Maximum pitch shift transposition ratio (default 2 --> +1 octaves)
-        :param mode:
+        :param mode: ``per_example``, ``per_channel``, or ``per_batch``. Default ``per_example``.
         :param p:
         :param p_mode:
         :param sample_rate:
@@ -37,12 +37,12 @@ class PitchShift(BaseWaveformTransform):
         self._max_transpose_ratio = max_transpose_ratio
         if self._min_transpose_ratio > self._max_transpose_ratio:
             raise ValueError("max_transpose_ratio must be > min_transpose_ratio")
-        self._pitch_shift = PitchShifter()
         self._sample_rate = sample_rate
         self._fast_shifts = self.fast_shifts = get_fast_shifts(
             sample_rate,
             lambda x: x >= min_transpose_ratio and x <= max_transpose_ratio and x != 1,
         )
+        self._mode = mode
 
     def randomize_parameters(
         self, selected_samples: torch.Tensor, sample_rate: int = None
@@ -50,11 +50,23 @@ class PitchShift(BaseWaveformTransform):
         """
         :params selected_samples: (batch_size, num_channels, num_samples)
         """
-        batch_size, _, num_samples = selected_samples.shape
+        batch_size, num_channels, num_samples = selected_samples.shape
 
-        self.transform_parameters["transpositions"] = choices(
-            self._fast_shifts, k=batch_size
-        )
+        if self._mode == "per_example":
+            self.transform_parameters["transpositions"] = choices(
+                self._fast_shifts, k=batch_size
+            )
+        elif self._mode == "per_channel":
+            self.transform_parameters["transpositions"] = list(
+                zip(
+                    *[
+                        choices(self._fast_shifts, k=batch_size)
+                        for i in range(num_channels)
+                    ]
+                )
+            )
+        elif self._mode == "per_batch":
+            self.transform_parameters["transpositions"] = choices(self._fast_shifts, k=1)
 
     def apply_transform(self, selected_samples: torch.Tensor, sample_rate: int = None):
         batch_size, num_channels, num_samples = selected_samples.shape
@@ -62,10 +74,25 @@ class PitchShift(BaseWaveformTransform):
         if sample_rate is None:
             sample_rate = self._sample_rate
 
-        for i in range(batch_size):
-            selected_samples[i, ...] = self._pitch_shift(
-                selected_samples[i],
-                self.transform_parameters["transpositions"][i],
+        if self._mode == "per_example":
+            for i in range(batch_size):
+                selected_samples[i, ...] = pitch_shift(
+                    selected_samples[i][None],
+                    self.transform_parameters["transpositions"][i],
+                    sample_rate,
+                )[0]
+        elif self._mode == "per_channel":
+            for i in range(batch_size):
+                for j in range(num_channels):
+                    selected_samples[i, j, ...] = pitch_shift(
+                        selected_samples[i][j][None][None],
+                        self.transform_parameters["transpositions"][i][j],
+                        sample_rate,
+                    )[0][0]
+        elif self._mode == "per_batch":
+            return pitch_shift(
+                selected_samples,
+                self.transform_parameters["transpositions"][0],
                 sample_rate,
             )
 
