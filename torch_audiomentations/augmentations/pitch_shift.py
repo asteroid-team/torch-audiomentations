@@ -9,7 +9,7 @@ from torch_pitch_shift import pitch_shift, get_fast_shifts
 
 class PitchShift(BaseWaveformTransform):
     """
-    Pitch-shift the sound up or down without changing the tempo
+    Pitch-shift sounds up or down without changing the tempo
     """
 
     supports_multichannel = True
