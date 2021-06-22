@@ -18,7 +18,7 @@ class PitchShift(BaseWaveformTransform):
         self,
         sample_rate: int,
         min_transpose_ratio=0.5,
-        max_transpose_ratio=2,
+        max_transpose_ratio: float = 2.0,
         mode: str = "per_batch",
         p: float = 0.5,
         p_mode: str = None,
