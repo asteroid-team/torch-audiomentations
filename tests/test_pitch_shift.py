@@ -11,7 +11,7 @@ def get_example(device_name):
     return torch.rand(size=(8, 2, 32000), dtype=torch.float32, device=device_name) - 0.5
 
 
-class TestPitchShift:
+class TestPitchShift(unittest.TestCase):
     @pytest.mark.parametrize(
         "device_name",
         [
