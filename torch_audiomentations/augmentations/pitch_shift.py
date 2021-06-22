@@ -74,11 +74,12 @@ class PitchShift(BaseWaveformTransform):
     def apply_transform(self, selected_samples: torch.Tensor, sample_rate: int = None):
         batch_size, num_channels, num_samples = selected_samples.shape
 
-        if sample_rate != None and sample_rate != self._sample_rate:
+        if sample_rate is not None and sample_rate != self._sample_rate:
             raise ValueError(
                 "sample_rate must match the value of sample_rate "
                 + "passed into the PitchShift constructor"
             )
+        sample_rate = self.sample_rate
 
         if self._mode == "per_example":
             for i in range(batch_size):
