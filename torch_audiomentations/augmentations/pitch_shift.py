@@ -25,12 +25,12 @@ class PitchShift(BaseWaveformTransform):
         p_mode: str = None,
     ):
         """
+        :param sample_rate:
         :param min_transpose_ratio: Minimum pitch shift transposition ratio (default 0.5 --> -1 octaves)
         :param max_transpose_ratio: Maximum pitch shift transposition ratio (default 2 --> +1 octaves)
         :param mode: ``per_example``, ``per_channel``, or ``per_batch``. Default ``per_batch``.
         :param p:
         :param p_mode:
-        :param sample_rate:
         """
         super().__init__(mode, p, p_mode, sample_rate)
 
@@ -51,7 +51,8 @@ class PitchShift(BaseWaveformTransform):
         self, selected_samples: torch.Tensor, sample_rate: int = None
     ):
         """
-        :params selected_samples: (batch_size, num_channels, num_samples)
+        :param selected_samples: (batch_size, num_channels, num_samples)
+        :param sample_rate:
         """
         batch_size, num_channels, num_samples = selected_samples.shape
 
@@ -72,6 +73,10 @@ class PitchShift(BaseWaveformTransform):
             self.transform_parameters["transpositions"] = choices(self._fast_shifts, k=1)
 
     def apply_transform(self, selected_samples: torch.Tensor, sample_rate: int = None):
+        """
+        :param selected_samples: (batch_size, num_channels, num_samples)
+        :param sample_rate:
+        """
         batch_size, num_channels, num_samples = selected_samples.shape
 
         if sample_rate is not None and sample_rate != self._sample_rate:
