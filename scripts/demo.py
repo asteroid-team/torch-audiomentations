@@ -109,6 +109,16 @@ if __name__ == "__main__":
                 "num_runs": 1,
             },
             {
+                "get_instance": lambda: ApplyImpulseResponse(
+                    ir_paths=TEST_FIXTURES_DIR / "ir",
+                    compensate_for_propagation_delay=True,
+                    mode=mode,
+                    p=1.0,
+                ),
+                "name": "ApplyImpulseResponse with compensate_for_propagation_delay set to True",
+                "num_runs": 1,
+            },
+            {
                 "get_instance": lambda: Compose(
                     transforms=[
                         Gain(

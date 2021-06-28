@@ -25,7 +25,7 @@ class ApplyImpulseResponse(BaseWaveformTransform):
         self,
         ir_paths: Union[List[Path], List[str], Path, str],
         convolve_mode: str = "full",
-        fix_propagation_delay: bool = False,
+        compensate_for_propagation_delay: bool = False,
         mode: str = "per_example",
         p: float = 0.5,
         p_mode: str = None,
@@ -34,13 +34,16 @@ class ApplyImpulseResponse(BaseWaveformTransform):
         """
         :param ir_paths: Either a path to a folder with audio files or a list of paths to audio files.
         :param convolve_mode:
-        :param fix_propagation_delay: 
+        :param compensate_for_propagation_delay: Convolving with RIRs will normally
+            introduce a bit of delay, especially when the peak absolute amplitude in the
+            RIRs are not in the very beginning. When compensate_for_propagation_delay is
+            set to True, resulting slices of audio will be offset to compensate for this
+            delay.
         :param mode:
         :param p:
         :param p_mode:
         :param sample_rate:
         """
-
         super().__init__(mode, p, p_mode, sample_rate)
 
         if isinstance(ir_paths, (list, tuple, set)):
@@ -56,7 +59,7 @@ class ApplyImpulseResponse(BaseWaveformTransform):
             raise EmptyPathException("There are no supported audio files found.")
 
         self.convolve_mode = convolve_mode
-        self.fix_propagation_delay = fix_propagation_delay
+        self.compensate_for_propagation_delay = compensate_for_propagation_delay
 
     def randomize_parameters(self, selected_samples, sample_rate: int = None):
 
@@ -84,7 +87,7 @@ class ApplyImpulseResponse(BaseWaveformTransform):
             selected_samples, ir.expand(-1, num_channels, -1), mode=self.convolve_mode
         )
 
-        if self.fix_propagation_delay:
+        if self.compensate_for_propagation_delay:
             propagation_delays = ir.abs().argmax(dim=2, keepdim=False)[:, 0]
 
             convolved_samples = torch.stack(
