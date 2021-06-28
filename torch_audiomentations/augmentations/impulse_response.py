@@ -2,6 +2,7 @@ import random
 from pathlib import Path
 from typing import Union, List
 
+import torch
 from torch.nn.utils.rnn import pad_sequence
 
 from ..core.transforms_interface import BaseWaveformTransform, EmptyPathException
@@ -24,21 +25,25 @@ class ApplyImpulseResponse(BaseWaveformTransform):
         self,
         ir_paths: Union[List[Path], List[str], Path, str],
         convolve_mode: str = "full",
+        compensate_for_propagation_delay: bool = False,
         mode: str = "per_example",
         p: float = 0.5,
         p_mode: str = None,
         sample_rate: int = None,
     ):
         """
-
         :param ir_paths: Either a path to a folder with audio files or a list of paths to audio files.
         :param convolve_mode:
+        :param compensate_for_propagation_delay: Convolving audio with a RIR normally
+            introduces a bit of delay, especially when the peak absolute amplitude in the
+            RIR is not in the very beginning. When compensate_for_propagation_delay is
+            set to True, the returned slices of audio will be offset to compensate for
+            this delay.
         :param mode:
         :param p:
         :param p_mode:
         :param sample_rate:
         """
-
         super().__init__(mode, p, p_mode, sample_rate)
 
         if isinstance(ir_paths, (list, tuple, set)):
@@ -54,6 +59,7 @@ class ApplyImpulseResponse(BaseWaveformTransform):
             raise EmptyPathException("There are no supported audio files found.")
 
         self.convolve_mode = convolve_mode
+        self.compensate_for_propagation_delay = compensate_for_propagation_delay
 
     def randomize_parameters(self, selected_samples, sample_rate: int = None):
 
@@ -74,11 +80,29 @@ class ApplyImpulseResponse(BaseWaveformTransform):
 
         batch_size, num_channels, num_samples = selected_samples.shape
 
-        # (batch_size, max_ir_length, 1)
+        # (batch_size, 1, max_ir_length)
         ir = self.transform_parameters["ir"].to(selected_samples.device)
 
         convolved_samples = convolve(
             selected_samples, ir.expand(-1, num_channels, -1), mode=self.convolve_mode
         )
 
-        return convolved_samples[..., :num_samples]
+        if self.compensate_for_propagation_delay:
+            propagation_delays = ir.abs().argmax(dim=2, keepdim=False)[:, 0]
+
+            convolved_samples = torch.stack(
+                [
+                    convolved_sample[
+                        :, propagation_delay : propagation_delay + num_samples
+                    ]
+                    for convolved_sample, propagation_delay in zip(
+                        convolved_samples, propagation_delays
+                    )
+                ],
+                dim=0,
+            )
+
+            return convolved_samples
+
+        else:
+            return convolved_samples[..., :num_samples]
