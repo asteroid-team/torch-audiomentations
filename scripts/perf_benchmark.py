@@ -10,7 +10,7 @@ import time
 import torch
 from tqdm import tqdm
 
-from torch_audiomentations import PolarityInversion, Gain, PeakNormalization, Shift, ShuffleChannels
+from torch_audiomentations import PolarityInversion, Gain, PeakNormalization, Shift, ShuffleChannels, LowPassFilter, HighPassFilter
 
 BASE_DIR = Path(os.path.abspath(os.path.dirname(os.path.dirname(__file__))))
 SCRIPTS_DIR = BASE_DIR / "scripts"
@@ -110,6 +110,8 @@ if __name__ == "__main__":
 
     transforms = [
         Gain(p=1.0),
+        HighPassFilter(p=1.0),
+        LowPassFilter(p=1.0),
         PolarityInversion(p=1.0),
         PeakNormalization(p=1.0),
         Shift(p=1.0),
