@@ -34,11 +34,11 @@ class ApplyImpulseResponse(BaseWaveformTransform):
         """
         :param ir_paths: Either a path to a folder with audio files or a list of paths to audio files.
         :param convolve_mode:
-        :param compensate_for_propagation_delay: Convolving with RIRs will normally
-            introduce a bit of delay, especially when the peak absolute amplitude in the
-            RIRs are not in the very beginning. When compensate_for_propagation_delay is
-            set to True, resulting slices of audio will be offset to compensate for this
-            delay.
+        :param compensate_for_propagation_delay: Convolving audio with a RIR normally
+            introduces a bit of delay, especially when the peak absolute amplitude in the
+            RIR is not in the very beginning. When compensate_for_propagation_delay is
+            set to True, the returned slices of audio will be offset to compensate for
+            this delay.
         :param mode:
         :param p:
         :param p_mode:

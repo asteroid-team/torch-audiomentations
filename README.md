@@ -156,6 +156,10 @@ If the input audio is mono, this transform does nothing except emit a warning.
 
 ## Unreleased
 
+### Added
+
+* Add parameter `compensate_for_propagation_delay` in `ApplyImpulseResponse`
+
 ### Removed
 
 * Support for torchaudio<=0.6 has been removed
