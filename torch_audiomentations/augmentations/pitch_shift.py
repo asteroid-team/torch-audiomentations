@@ -4,7 +4,7 @@ from torch._C import Value
 import torch.nn.functional as F
 
 from ..core.transforms_interface import BaseWaveformTransform
-from torch_pitch_shift import pitch_shift, get_fast_shifts
+from torch_pitch_shift import pitch_shift, get_fast_shifts, semitones_to_ratio
 
 
 class PitchShift(BaseWaveformTransform):
@@ -18,33 +18,37 @@ class PitchShift(BaseWaveformTransform):
     def __init__(
         self,
         sample_rate: int,
-        min_transpose_ratio: float = 0.5,
-        max_transpose_ratio: float = 2.0,
+        min_transpose_semitones: float = -4.0,
+        max_transpose_semitones: float = 4.0,
         mode: str = "per_example",
         p: float = 0.5,
         p_mode: str = None,
     ):
         """
         :param sample_rate:
-        :param min_transpose_ratio: Minimum pitch shift transposition ratio (default 0.5 --> -1 octaves)
-        :param max_transpose_ratio: Maximum pitch shift transposition ratio (default 2 --> +1 octaves)
-        :param mode: ``per_example``, ``per_channel``, or ``per_batch``. Default ``per_batch``.
+        :param min_transpose_semitones: Minimum pitch shift transposition in semitones (default -4.0)
+        :param max_transpose_semitones: Maximum pitch shift transposition in semitones (default +4.0)
+        :param mode: ``per_example``, ``per_channel``, or ``per_batch``. Default ``per_example``.
         :param p:
         :param p_mode:
         """
         super().__init__(mode, p, p_mode, sample_rate)
 
-        self._min_transpose_ratio = min_transpose_ratio
-        self._max_transpose_ratio = max_transpose_ratio
-        if self._min_transpose_ratio > self._max_transpose_ratio:
-            raise ValueError("max_transpose_ratio must be > min_transpose_ratio")
+        if min_transpose_semitones > max_transpose_semitones:
+            raise ValueError("max_transpose_semitones must be > min_transpose_semitones")
         if not sample_rate:
             raise ValueError("sample_rate is invalid.")
         self._sample_rate = sample_rate
-        self._fast_shifts = self.fast_shifts = get_fast_shifts(
+        self._fast_shifts = get_fast_shifts(
             sample_rate,
-            lambda x: x >= min_transpose_ratio and x <= max_transpose_ratio and x != 1,
+            lambda x: x >= semitones_to_ratio(min_transpose_semitones)
+            and x <= semitones_to_ratio(max_transpose_semitones)
+            and x != 1,
         )
+        if not len(self._fast_shifts):
+            raise ValueError(
+                "No fast pitch-shift ratios could be computed for the given sample rate and transpose range."
+            )
         self._mode = mode
 
     def randomize_parameters(

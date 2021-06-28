@@ -39,3 +39,18 @@ class TestPitchShift(unittest.TestCase):
         aug.randomize_parameters(samples)
         results = aug.apply_transform(samples)
         self.assertEqual(results.shape, samples.shape)
+
+    def error_raised(self):
+        error = False
+        try:
+            PitchShift(
+                16000,
+                p=1,
+                mode="per_example",
+                min_transpose_semitones=0.0,
+                max_transpose_semitones=0.0,
+            )
+        except ValueError:
+            error = True
+        if not error:
+            raise ValueError("Invalid transpositions were not detected")
