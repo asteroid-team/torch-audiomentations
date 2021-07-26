@@ -19,7 +19,11 @@ class TestBandPassFilter(unittest.TestCase):
         sample_rate = 16000
 
         augment = BandPassFilter(
-            low_cutoff_freq_range=(200, 300), high_cutoff_freq_range=(3000, 7000), p=1.0
+            min_center_frequency=200,
+            max_center_frequency=7500,
+            min_bandwidth_fraction=0.25,
+            max_bandwidth_fraction=1.5,
+            p=1.0,
         )
         processed_samples = augment(
             samples=torch.from_numpy(samples), sample_rate=sample_rate
