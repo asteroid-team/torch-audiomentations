@@ -71,6 +71,16 @@ torch-audiomentations is in an early development stage, so the APIs are subject 
 
 # Waveform transforms
 
+Every transform has `mode`, `p`, and `p_mode` -- the parameters that decides how the augmentation is performed.
+- `mode` decides how the randomization of the augmentation is grouped and applied.
+- `p` decides the on/off probability of applying the augmentation.   
+- `p_mode` decides how the on/off of the augmentation is applied.
+
+This visualization shows how different combinations of `mode` and `p_mode` would perform an augmentation.    
+
+![](images/visual_explanation_mode_etc.png)
+    
+
 ## AddBackgroundNoise
 
 _Added in v0.5.0_
