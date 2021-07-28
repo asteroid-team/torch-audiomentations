@@ -1,10 +1,10 @@
 import os
 import random
+import time
 from pathlib import Path
 
 import librosa
 import numpy as np
-import time
 import torch
 from scipy.io import wavfile
 
@@ -19,6 +19,7 @@ from torch_audiomentations import (
     AddColoredNoise,
     HighPassFilter,
     LowPassFilter,
+    BandPassFilter,
 )
 from torch_audiomentations.augmentations.shuffle_channels import ShuffleChannels
 from torch_audiomentations.core.transforms_interface import ModeNotSupportedException
@@ -98,10 +99,7 @@ if __name__ == "__main__":
                 ),
                 "num_runs": 5,
             },
-            {
-                "get_instance": lambda: AddColoredNoise(mode=mode, p=1.0),
-                "num_runs": 5,
-            },
+            {"get_instance": lambda: AddColoredNoise(mode=mode, p=1.0), "num_runs": 5},
             {
                 "get_instance": lambda: ApplyImpulseResponse(
                     ir_paths=TEST_FIXTURES_DIR / "ir", mode=mode, p=1.0
@@ -118,6 +116,7 @@ if __name__ == "__main__":
                 "name": "ApplyImpulseResponse with compensate_for_propagation_delay set to True",
                 "num_runs": 1,
             },
+            {"get_instance": lambda: BandPassFilter(mode=mode, p=1.0), "num_runs": 5},
             {
                 "get_instance": lambda: Compose(
                     transforms=[
