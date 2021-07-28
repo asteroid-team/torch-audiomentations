@@ -16,9 +16,9 @@ class BandPassFilter(BaseWaveformTransform):
     def __init__(
         self,
         min_center_frequency=200,
-        max_center_frequency=7500,
+        max_center_frequency=4000,
         min_bandwidth_fraction=0.25,
-        max_bandwidth_fraction=1.5,
+        max_bandwidth_fraction=0.99,
         mode: str = "per_example",
         p: float = 0.5,
         p_mode: str = None,
@@ -40,6 +40,24 @@ class BandPassFilter(BaseWaveformTransform):
         self.max_center_frequency = max_center_frequency
         self.min_bandwidth_fraction = min_bandwidth_fraction
         self.max_bandwidth_fraction = max_bandwidth_fraction
+
+        if max_center_frequency < min_center_frequency:
+            raise ValueError(
+                f"max_center_frequency ({max_center_frequency}) should be larger than "
+                f"min_center_frequency ({min_center_frequency})."
+            )
+
+        if max_bandwidth_fraction < min_bandwidth_fraction:
+            raise ValueError(
+                f"max_bandwidth_fraction ({max_bandwidth_fraction}) should be larger than "
+                f"min_bandwidth_fraction ({min_bandwidth_fraction})."
+            )
+
+        if max_bandwidth_fraction >= 1.0:
+            raise ValueError(
+                f"max_bandwidth_fraction ({max_bandwidth_fraction}) should be smaller than 1.0,"
+                f"since otherwise low_cut_frequency of the band can be smaller than 0 Hz."
+            )
 
     def randomize_parameters(
         self, selected_samples: torch.Tensor, sample_rate: int = None
@@ -75,9 +93,12 @@ class BandPassFilter(BaseWaveformTransform):
             center_dist.sample(sample_shape=(batch_size,))
         )
 
-        self.transform_parameters["bandwidth"] = torch.distributions.Uniform(
+        bandwidth_dist = torch.distributions.Uniform(
             low=self.min_bandwidth_fraction,
             high=self.max_bandwidth_fraction,
+        )
+        self.transform_parameters["bandwidth"] = bandwidth_dist.sample(
+            sample_shape=(batch_size,)
         )
 
     def apply_transform(self, selected_samples: torch.Tensor, sample_rate: int = None):
