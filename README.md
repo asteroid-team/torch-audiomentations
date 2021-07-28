@@ -69,6 +69,19 @@ comparison of the time it takes to run 1D convolution:
 
 torch-audiomentations is in an early development stage, so the APIs are subject to change.
 
+# Understanding `mode`, `p`, and `p_mode`
+
+![Visualization of augmentation](images/visualization_options.png)
+
+- (See top figures) `mode` is about how audio gets grouped when applying transforms.
+  - `per_example` applies same randomized augmentation per example. This would be the most popular use-case.
+  - `per_batch` applies same randomized augmentation for each batch
+  - `per_channel` randomizes the augmentation for each example and channel.
+- If `p=1.0`, `p_mode` doesn't matter and the augmentation is set to be applied for all the items.
+- (See bottom figures) If `p < 1.0`, `p_mode` plays a role.   
+
+ 
+
 # Waveform transforms
 
 Every transform has `mode`, `p`, and `p_mode` -- the parameters that decides how the augmentation is performed.

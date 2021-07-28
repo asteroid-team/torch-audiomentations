@@ -1,5 +1,6 @@
 from .augmentations.background_noise import AddBackgroundNoise
 from .augmentations.colored_noise import AddColoredNoise
+from .augmentations.band_pass_filter import BandPassFilter
 from .augmentations.gain import Gain
 from .augmentations.high_pass_filter import HighPassFilter
 from .augmentations.impulse_response import ApplyImpulseResponse
