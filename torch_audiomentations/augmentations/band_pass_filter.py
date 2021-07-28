@@ -75,7 +75,7 @@ class BandPassFilter(BaseWaveformTransform):
             center_dist.sample(sample_shape=(batch_size,))
         )
 
-        self.transform_parameters["bandwidth"] = torch.distribution.Uniform(
+        self.transform_parameters["bandwidth"] = torch.distributions.Uniform(
             low=self.min_bandwidth_fraction,
             high=self.max_bandwidth_fraction,
         )
