@@ -297,4 +297,6 @@ A GPU-enabled development environment for torch-audiomentations can be created w
 
 # Acknowledgements
 
-The development of torch-audiomentations is kindly backed by [Nomono](https://nomono.co/)
+The development of torch-audiomentations is kindly backed by [Nomono](https://nomono.co/).
+
+Thanks to [all contributors](https://github.com/asteroid-team/torch-audiomentations/graphs/contributors) who help improving torch-audiomentations.
