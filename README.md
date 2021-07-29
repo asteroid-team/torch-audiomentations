@@ -99,6 +99,12 @@ _Added in v0.5.0_
 
 Convolve the given audio with impulse responses.
 
+## BandPassFilter
+
+_To be added in v0.9.0_
+
+Apply band-pass filtering to the input audio.
+
 ## Gain
 
 _Added in v0.1.0_
@@ -169,6 +175,7 @@ If the input audio is mono, this transform does nothing except emit a warning.
 ### Added
 
 * Add parameter `compensate_for_propagation_delay` in `ApplyImpulseResponse`
+* Implement `BandPassFilter`
 
 ### Removed
 
