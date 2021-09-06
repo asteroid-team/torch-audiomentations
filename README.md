@@ -1,11 +1,11 @@
 ![torch-audiomentations](images/torch_audiomentations_logo.png)
 ---
 
-![Build status](https://img.shields.io/github/workflow/status/asteroid-team/torch-audiomentations/CI) [![Code coverage](https://img.shields.io/codecov/c/github/asteroid-team/torch-audiomentations/master.svg)](https://codecov.io/gh/asteroid-team/torch-audiomentations) [![Code Style: Black](https://img.shields.io/badge/code%20style-black-black.svg)](https://github.com/ambv/black)
+![Build status](https://img.shields.io/github/workflow/status/asteroid-team/torch-audiomentations/CI) [![Code coverage](https://img.shields.io/codecov/c/github/asteroid-team/torch-audiomentations/master.svg)](https://codecov.io/gh/asteroid-team/torch-audiomentations) [![Code Style: Black](https://img.shields.io/badge/code%20style-black-black.svg)](https://github.com/ambv/black) [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.5477348.svg)](https://doi.org/10.5281/zenodo.5477348)
 
 Audio data augmentation in PyTorch. Inspired by [audiomentations](https://github.com/iver56/audiomentations).
 
-* Supports CPU and GPU - speed is a priority
+* Supports CPU and GPU (CUDA) - speed is a priority
 * Supports batches of multichannel (or mono) audio
 * Transforms extend `nn.Module`, so they can be integrated as a part of a pytorch neural network model
 * Most transforms are differentiable
@@ -69,29 +69,16 @@ comparison of the time it takes to run 1D convolution:
 
 torch-audiomentations is in an early development stage, so the APIs are subject to change.
 
-# Understanding `mode`, `p`, and `p_mode`
-
-![Visualization of augmentation](images/visualization_options.png)
-
-- (See top figures) `mode` is about how audio gets grouped when applying transforms.
-  - `per_example` applies same randomized augmentation per example. This would be the most popular use-case.
-  - `per_batch` applies same randomized augmentation for each batch
-  - `per_channel` randomizes the augmentation for each example and channel.
-- If `p=1.0`, `p_mode` doesn't matter and the augmentation is set to be applied for all the items.
-- (See bottom figures) If `p < 1.0`, `p_mode` plays a role.   
-
- 
-
 # Waveform transforms
 
-Every transform has `mode`, `p`, and `p_mode` -- the parameters that decides how the augmentation is performed.
+Every transform has `mode`, `p`, and `p_mode` -- the parameters that decide how the augmentation is performed.
 - `mode` decides how the randomization of the augmentation is grouped and applied.
 - `p` decides the on/off probability of applying the augmentation.   
 - `p_mode` decides how the on/off of the augmentation is applied.
 
 This visualization shows how different combinations of `mode` and `p_mode` would perform an augmentation.    
 
-![](images/visual_explanation_mode_etc.png)
+![Explanation of mode, p and p_mode](images/visual_explanation_mode_etc.png)
     
 
 ## AddBackgroundNoise
@@ -111,6 +98,12 @@ Add colored noise to the input audio.
 _Added in v0.5.0_
 
 Convolve the given audio with impulse responses.
+
+## BandPassFilter
+
+_To be added in v0.9.0_
+
+Apply band-pass filtering to the input audio.
 
 ## Gain
 
@@ -182,6 +175,7 @@ If the input audio is mono, this transform does nothing except emit a warning.
 ### Added
 
 * Add parameter `compensate_for_propagation_delay` in `ApplyImpulseResponse`
+* Implement `BandPassFilter`
 
 ### Removed
 
@@ -303,4 +297,6 @@ A GPU-enabled development environment for torch-audiomentations can be created w
 
 # Acknowledgements
 
-The development of torch-audiomentations is kindly backed by [Nomono](https://nomono.co/)
+The development of torch-audiomentations is kindly backed by [Nomono](https://nomono.co/).
+
+Thanks to [all contributors](https://github.com/asteroid-team/torch-audiomentations/graphs/contributors) who help improving torch-audiomentations.
