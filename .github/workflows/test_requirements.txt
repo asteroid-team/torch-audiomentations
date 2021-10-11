@@ -12,4 +12,4 @@ pytest==5.3.4
 pytest-cov==2.8.1
 coverage==4.5.2
 PyYAML>=5.3.1
-torch-pitch-shift>=1.1.2
+torch-pitch-shift>=1.2.0
