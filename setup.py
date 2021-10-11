@@ -23,6 +23,9 @@ def find_version(*file_paths):
     raise RuntimeError("Unable to find version string.")
 
 
+with open("requirements.txt", "r") as f:
+    requirements = f.read().split("\n")
+
 setup(
     name="torch-audiomentations",
     version=find_version("torch_audiomentations", "__init__.py"),
@@ -36,13 +39,7 @@ setup(
     packages=find_packages(
         exclude=["build", "scripts", "dist", "images", "test_fixtures", "tests"]
     ),
-    install_requires=[
-        "julius>=0.2.3,<0.3",
-        "librosa>=0.6.0",
-        "torch>=1.7.0",
-        "torchaudio>=0.7.0",
-        "torch-pitch-shift>=1.2.0",
-    ],
+    install_requires=requirements,
     extras_require={"extras": ["PyYAML"]},
     python_requires=">=3.6,<3.9.6",
     classifiers=[
