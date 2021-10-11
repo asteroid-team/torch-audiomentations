@@ -141,6 +141,12 @@ applies to audio snippets that have extreme values outside the [-1, 1] range. Th
 for avoiding digital clipping in audio that is too loud, while leaving other audio
 untouched.
 
+## PitchShift
+
+_To be added in v0.9.0_
+
+Pitch-shift sounds up or down without changing the tempo.
+
 ## PolarityInversion
 
 _Added in v0.1.0_
@@ -176,6 +182,7 @@ If the input audio is mono, this transform does nothing except emit a warning.
 
 * Add parameter `compensate_for_propagation_delay` in `ApplyImpulseResponse`
 * Implement `BandPassFilter`
+* Implement `PitchShift`
 
 ### Removed
 
