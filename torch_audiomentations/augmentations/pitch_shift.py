@@ -1,10 +1,9 @@
 from random import choices
+
 import torch
-from torch._C import Value
-import torch.nn.functional as F
+from torch_pitch_shift import pitch_shift, get_fast_shifts, semitones_to_ratio
 
 from ..core.transforms_interface import BaseWaveformTransform
-from torch_pitch_shift import pitch_shift, get_fast_shifts, semitones_to_ratio
 
 
 class PitchShift(BaseWaveformTransform):
