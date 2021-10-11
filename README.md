@@ -101,7 +101,7 @@ Convolve the given audio with impulse responses.
 
 ## BandPassFilter
 
-_To be added in v0.9.0_
+_Added in v0.9.0_
 
 Apply band-pass filtering to the input audio.
 
@@ -143,7 +143,7 @@ untouched.
 
 ## PitchShift
 
-_To be added in v0.9.0_
+_Added in v0.9.0_
 
 Pitch-shift sounds up or down without changing the tempo.
 
@@ -177,6 +177,8 @@ If the input audio is mono, this transform does nothing except emit a warning.
 # Changelog
 
 ## Unreleased
+
+## [v0.9.0] - 2021-10-11
 
 ### Added
 
