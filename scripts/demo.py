@@ -20,6 +20,7 @@ from torch_audiomentations import (
     HighPassFilter,
     LowPassFilter,
     BandPassFilter,
+    PitchShift,
 )
 from torch_audiomentations.augmentations.shuffle_channels import ShuffleChannels
 from torch_audiomentations.core.transforms_interface import ModeNotSupportedException
@@ -146,6 +147,12 @@ if __name__ == "__main__":
             {"get_instance": lambda: Gain(mode=mode, p=1.0), "num_runs": 5},
             {"get_instance": lambda: HighPassFilter(mode=mode, p=1.0), "num_runs": 5},
             {"get_instance": lambda: LowPassFilter(mode=mode, p=1.0), "num_runs": 5},
+            {
+                "get_instance": lambda: PitchShift(
+                    sample_rate=SAMPLE_RATE, mode=mode, p=1.0
+                ),
+                "num_runs": 5,
+            },
             {"get_instance": lambda: PolarityInversion(mode=mode, p=1.0), "num_runs": 1},
             {"get_instance": lambda: PeakNormalization(mode=mode, p=1.0), "num_runs": 1},
             {"get_instance": lambda: Shift(mode=mode, p=1.0), "num_runs": 5},

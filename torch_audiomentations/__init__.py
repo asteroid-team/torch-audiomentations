@@ -9,6 +9,7 @@ from .augmentations.peak_normalization import PeakNormalization
 from .augmentations.polarity_inversion import PolarityInversion
 from .augmentations.shift import Shift
 from .augmentations.shuffle_channels import ShuffleChannels
+from .augmentations.pitch_shift import PitchShift
 from .core.composition import Compose
 from .utils.config import from_dict, from_yaml
 from .utils.convolution import convolve
