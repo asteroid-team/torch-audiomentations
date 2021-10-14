@@ -44,7 +44,7 @@ setup(
         "torch-pitch-shift>=1.2.0",
     ],
     extras_require={"extras": ["PyYAML"]},
-    python_requires=">=3.6,<3.9.6",
+    python_requires=">=3.6,<3.10",
     classifiers=[
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
