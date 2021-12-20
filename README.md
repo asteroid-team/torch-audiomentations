@@ -178,9 +178,11 @@ If the input audio is mono, this transform does nothing except emit a warning.
 
 ## Unreleased
 
+## [v0.9.1] - 2021-12-20
+
 ### Added
 
-* Officially mark python 3.9 as supported
+* Officially mark python>=3.9 as supported
 
 ## [v0.9.0] - 2021-10-11
 
