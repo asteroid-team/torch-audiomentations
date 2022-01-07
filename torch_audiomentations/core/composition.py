@@ -92,7 +92,7 @@ class SomeOf(BaseCompose):
                  `SomeOf((1, 3), [transform1, transform2, transform3])`
 
         Example: Pick 2 to all of the transforms
-                 `SomeOf((1, None), [transform1, transform2, transform3])`
+                 `SomeOf((2, None), [transform1, transform2, transform3])`
     """
 
     def __init__(
