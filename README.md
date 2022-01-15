@@ -105,6 +105,12 @@ _Added in v0.9.0_
 
 Apply band-pass filtering to the input audio.
 
+## BandStopFilter
+
+_Unreleased_
+
+Apply band-stop filtering to the input audio. Also known as notch filter.
+
 ## Gain
 
 _Added in v0.1.0_
@@ -173,6 +179,16 @@ Given multichannel audio input (e.g. stereo), shuffle the channels, e.g. so left
 This transform can help combat positional bias in machine learning models that input multichannel waveforms.
 
 If the input audio is mono, this transform does nothing except emit a warning.
+
+## TimeInversion
+
+_Unreleased_
+
+Reverse (invert) the audio along the time axis similar to random flip of
+an image in the visual domain. This can be relevant in the context of audio
+classification. It was successfully applied in the paper
+[AudioCLIP: Extending CLIP to Image, Text and Audio](https://arxiv.org/pdf/2106.13043.pdf)
+
 
 # Changelog
 
