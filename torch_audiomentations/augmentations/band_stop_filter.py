@@ -38,9 +38,9 @@ class BandStopFilter(BandPassFilter):
             max_center_frequency,
             min_bandwidth_fraction,
             max_bandwidth_fraction,
-            mode, 
-            p, 
-            p_mode, 
+            mode,
+            p,
+            p_mode,
             sample_rate,
         )
 
