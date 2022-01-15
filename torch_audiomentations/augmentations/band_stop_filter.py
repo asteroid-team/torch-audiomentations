@@ -5,7 +5,7 @@ from ..augmentations.band_pass_filter import BandPassFilter
 
 class BandStopFilter(BandPassFilter):
     """
-    Apply band-stop filtering to the input audio
+    Apply band-stop filtering to the input audio. Also known as notch filter.
     """
 
     supports_multichannel = True
@@ -38,9 +38,9 @@ class BandStopFilter(BandPassFilter):
             max_center_frequency,
             min_bandwidth_fraction,
             max_bandwidth_fraction,
-            mode, 
-            p, 
-            p_mode, 
+            mode,
+            p,
+            p_mode,
             sample_rate,
         )
 

@@ -1,12 +1,11 @@
-import random
 import unittest
-import torch
 
 import numpy as np
-from numpy.testing import assert_almost_equal, assert_array_equal
+import torch
+from numpy.testing import assert_array_equal
 
-from torch_audiomentations import SomeOf
 from torch_audiomentations import PolarityInversion, PeakNormalization, Gain
+from torch_audiomentations import SomeOf
 
 
 class TestSomeOf(unittest.TestCase):
@@ -39,7 +38,9 @@ class TestSomeOf(unittest.TestCase):
 
         self.assertEqual(len(augment.transform_indexes), 0)  # no transforms applied yet
         processed_samples = augment(samples=self.audio, sample_rate=self.sample_rate)
-        self.assertTrue(len(augment.transform_indexes) > 0)  # at least one transform applied
+        self.assertTrue(
+            len(augment.transform_indexes) > 0
+        )  # at least one transform applied
 
     def test_someof_freeze_and_unfreeze_parameters(self):
         augment = SomeOf(2, self.transforms)
@@ -48,13 +49,17 @@ class TestSomeOf(unittest.TestCase):
         samples = torch.from_numpy(samples)
 
         self.assertEqual(len(augment.transform_indexes), 0)  # no transforms applied yet
-        processed_samples1 = augment(samples=samples, sample_rate=self.sample_rate).numpy()
+        processed_samples1 = augment(
+            samples=samples, sample_rate=self.sample_rate
+        ).numpy()
         transform_indexes1 = augment.transform_indexes
         self.assertEqual(len(augment.transform_indexes), 2)
 
         augment.freeze_parameters()
 
-        processed_samples2 = augment(samples=samples, sample_rate=self.sample_rate).numpy()
+        processed_samples2 = augment(
+            samples=samples, sample_rate=self.sample_rate
+        ).numpy()
         transform_indexes2 = augment.transform_indexes
         assert_array_equal(processed_samples1, processed_samples2)
         assert_array_equal(transform_indexes1, transform_indexes2)

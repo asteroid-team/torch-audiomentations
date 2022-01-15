@@ -7,7 +7,6 @@ from torch_audiomentations import BandStopFilter
 
 
 class TestBandStopFilter(unittest.TestCase):
-
     def test_band_reject_filter(self):
         samples = np.array(
             [

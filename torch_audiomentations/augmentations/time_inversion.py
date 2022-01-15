@@ -31,7 +31,6 @@ class TimeInversion(BaseWaveformTransform):
         super().__init__(mode, p, p_mode, sample_rate)
 
     def apply_transform(self, selected_samples: torch.Tensor, sample_rate: int = None):
-
         # torch.flip() is supposed to be slower than np.flip()
         # An alternative is to use advanced indexing: https://github.com/pytorch/pytorch/issues/16424
         # reverse_index = torch.arange(selected_samples.size(-1) - 1, -1, -1).to(selected_samples.device)
