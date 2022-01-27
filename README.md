@@ -194,6 +194,18 @@ classification. It was successfully applied in the paper
 
 ## Unreleased
 
+### Added
+
+* Implement `OneOf` and `SomeOf` for applying one or more of a given set of transforms
+* Implement `BandStopFilter` transform
+* Implement `TimeInversion` transform
+
+### Changed
+
+* Put `ir_paths` in transform_parameters in `ApplyImpulseResponse` so it is possible
+ to inspect what impulse responses were used. This also gives `freeze_parameters()`
+ the expected behavior. 
+
 ## [v0.9.1] - 2021-12-20
 
 ### Added
