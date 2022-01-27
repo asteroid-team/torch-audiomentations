@@ -106,14 +106,12 @@ def test_impulse_response_guaranteed_with_zero_length_samples(ir_transform):
 
 
 def test_impulse_response_access_file_paths(ir_path, sample_rate, input_audios):
-    
-    augment = ApplyImpulseResponse(
-        ir_path, p=1.0, sample_rate=sample_rate
-    )
+
+    augment = ApplyImpulseResponse(ir_path, p=1.0, sample_rate=sample_rate)
     mixed_inputs = augment(samples=input_audios, sample_rate=sample_rate)
 
     assert mixed_inputs.shape == input_audios.shape
 
-    ir_paths = augment.transform_parameters['ir_paths']
+    ir_paths = augment.transform_parameters["ir_paths"]
     assert len(ir_paths) == input_audios.size(0)
     assert str(ir_paths[0]) == os.path.join(ir_path, "impulse_response_0.wav")
