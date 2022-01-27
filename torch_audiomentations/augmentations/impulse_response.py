@@ -67,14 +67,15 @@ class ApplyImpulseResponse(BaseWaveformTransform):
 
         audio = self.audio if hasattr(self, "audio") else Audio(sample_rate, mono=True)
 
+        random_ir_paths = random.choices(self.ir_paths, k=batch_size)
+
         self.transform_parameters["ir"] = pad_sequence(
-            [
-                audio(ir_path).transpose(0, 1)
-                for ir_path in random.choices(self.ir_paths, k=batch_size)
-            ],
+            [audio(ir_path).transpose(0, 1) for ir_path in random_ir_paths],
             batch_first=True,
             padding_value=0.0,
         ).transpose(1, 2)
+
+        self.transform_parameters["ir_paths"] = random_ir_paths
 
     def apply_transform(self, selected_samples, sample_rate: int = None):
 
