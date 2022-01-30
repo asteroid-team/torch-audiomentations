@@ -134,7 +134,7 @@ class Audio:
         else:
             num_samples, sample_rate = self.get_audio_metadata(file)
 
-        return math.floor(num_samples * self.sample_rate / sample_rate)
+        return math.ceil(num_samples * self.sample_rate / sample_rate)
 
     def __init__(self, sample_rate: int, mono: bool = True):
         super().__init__()
