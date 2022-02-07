@@ -5,7 +5,8 @@ from ..augmentations.band_pass_filter import BandPassFilter
 
 class BandStopFilter(BandPassFilter):
     """
-    Apply band-stop filtering to the input audio. Also known as notch filter.
+    Apply band-stop filtering to the input audio. Also known as notch filter,
+    band reject filter and frequency mask.
     """
 
     supports_multichannel = True
@@ -25,8 +26,10 @@ class BandStopFilter(BandPassFilter):
         """
         :param min_center_frequency: Minimum center frequency in hertz
         :param max_center_frequency: Maximum center frequency in hertz
-        :param min_bandwidth_fraction: Minimum bandwidth in relative to center frequency
-        :param max_bandwidth_fraction: Maximum bandwidth in relative to center frequency
+        :param min_bandwidth_fraction: Minimum bandwidth fraction relative to center
+            frequency (number between 0 and 1)
+        :param max_bandwidth_fraction: Maximum bandwidth fraction relative to center
+            frequency (number between 0 and 1)
         :param mode:
         :param p:
         :param p_mode:
