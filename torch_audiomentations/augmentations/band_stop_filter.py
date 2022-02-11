@@ -16,8 +16,8 @@ class BandStopFilter(BandPassFilter):
         self,
         min_center_frequency=200,
         max_center_frequency=4000,
-        min_bandwidth_fraction=0.25,
-        max_bandwidth_fraction=0.99,
+        min_bandwidth_fraction=0.5,
+        max_bandwidth_fraction=1.99,
         mode: str = "per_example",
         p: float = 0.5,
         p_mode: str = None,
@@ -27,9 +27,9 @@ class BandStopFilter(BandPassFilter):
         :param min_center_frequency: Minimum center frequency in hertz
         :param max_center_frequency: Maximum center frequency in hertz
         :param min_bandwidth_fraction: Minimum bandwidth fraction relative to center
-            frequency (number between 0 and 1)
+            frequency (number between 0.0 and 2.0)
         :param max_bandwidth_fraction: Maximum bandwidth fraction relative to center
-            frequency (number between 0 and 1)
+            frequency (number between 0.0 and 2.0)
         :param mode:
         :param p:
         :param p_mode:

@@ -197,14 +197,20 @@ classification. It was successfully applied in the paper
 ### Added
 
 * Implement `OneOf` and `SomeOf` for applying one or more of a given set of transforms
-* Implement `BandStopFilter` transform
-* Implement `TimeInversion` transform
+* Implement new transforms: `BandStopFilter` and `TimeInversion`
 
 ### Changed
 
 * Put `ir_paths` in transform_parameters in `ApplyImpulseResponse` so it is possible
  to inspect what impulse responses were used. This also gives `freeze_parameters()`
- the expected behavior. 
+ the expected behavior.
+
+### Fixed
+
+* Fix a bug where the actual bandwidth was twice as large as expected in
+ `BandPassFilter` and `BandStopFilter`. The default values have been updated accordingly.
+ If you were previously specifying `min_bandwidth_fraction` and/or `max_bandwidth_fraction`,
+ you now need to double those numbers to get the same behavior as before.
 
 ## [v0.9.1] - 2021-12-20
 
