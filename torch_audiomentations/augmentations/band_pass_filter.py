@@ -49,6 +49,9 @@ class BandPassFilter(BaseWaveformTransform):
                 f"min_center_frequency ({min_center_frequency})."
             )
 
+        if min_bandwidth_fraction <= 0.0:
+            raise ValueError("min_bandwidth_fraction must be a positive number")
+
         if max_bandwidth_fraction < min_bandwidth_fraction:
             raise ValueError(
                 f"max_bandwidth_fraction ({max_bandwidth_fraction}) should be larger than "
