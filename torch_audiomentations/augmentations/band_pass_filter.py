@@ -17,8 +17,8 @@ class BandPassFilter(BaseWaveformTransform):
         self,
         min_center_frequency=200,
         max_center_frequency=4000,
-        min_bandwidth_fraction=0.25,
-        max_bandwidth_fraction=0.99,
+        min_bandwidth_fraction=0.5,
+        max_bandwidth_fraction=1.99,
         mode: str = "per_example",
         p: float = 0.5,
         p_mode: str = None,
@@ -28,9 +28,9 @@ class BandPassFilter(BaseWaveformTransform):
         :param min_center_frequency: Minimum center frequency in hertz
         :param max_center_frequency: Maximum center frequency in hertz
         :param min_bandwidth_fraction: Minimum bandwidth fraction relative to center
-            frequency (number between 0 and 1)
+            frequency (number between 0.0 and 2.0)
         :param max_bandwidth_fraction: Maximum bandwidth fraction relative to center
-            frequency (number between 0 and 1)
+            frequency (number between 0.0 and 2.0)
         :param mode:
         :param p:
         :param p_mode:
@@ -55,9 +55,9 @@ class BandPassFilter(BaseWaveformTransform):
                 f"min_bandwidth_fraction ({min_bandwidth_fraction})."
             )
 
-        if max_bandwidth_fraction >= 1.0:
+        if max_bandwidth_fraction >= 2.0:
             raise ValueError(
-                f"max_bandwidth_fraction ({max_bandwidth_fraction}) should be smaller than 1.0,"
+                f"max_bandwidth_fraction ({max_bandwidth_fraction}) should be smaller than 2.0,"
                 f"since otherwise low_cut_frequency of the band can be smaller than 0 Hz."
             )
 
@@ -111,12 +111,12 @@ class BandPassFilter(BaseWaveformTransform):
 
         low_cutoffs_as_fraction_of_sample_rate = (
             self.transform_parameters["center_freq"]
-            * (1 - self.transform_parameters["bandwidth"])
+            * (1 - 0.5 * self.transform_parameters["bandwidth"])
             / sample_rate
         )
         high_cutoffs_as_fraction_of_sample_rate = (
             self.transform_parameters["center_freq"]
-            * (1 + self.transform_parameters["bandwidth"])
+            * (1 + 0.5 * self.transform_parameters["bandwidth"])
             / sample_rate
         )
         # TODO: Instead of using a for loop, perform batched compute to speed things up
