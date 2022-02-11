@@ -107,7 +107,7 @@ Apply band-pass filtering to the input audio.
 
 ## BandStopFilter
 
-_Unreleased_
+_Added in v0.10.0_
 
 Apply band-stop filtering to the input audio. Also known as notch filter.
 
@@ -182,7 +182,7 @@ If the input audio is mono, this transform does nothing except emit a warning.
 
 ## TimeInversion
 
-_Unreleased_
+_Added in v0.10.0_
 
 Reverse (invert) the audio along the time axis similar to random flip of
 an image in the visual domain. This can be relevant in the context of audio
@@ -193,6 +193,8 @@ classification. It was successfully applied in the paper
 # Changelog
 
 ## Unreleased
+
+## [v0.10.0] - 2022-02-11
 
 ### Added
 
