@@ -110,18 +110,30 @@ class AddBackgroundNoise(BaseWaveformTransform):
         )
 
         # (batch_size, ) SNRs
-        snr_distribution = torch.distributions.Uniform(
-            low=torch.tensor(
-                self.min_snr_in_db, dtype=torch.float32, device=selected_samples.device
-            ),
-            high=torch.tensor(
-                self.max_snr_in_db, dtype=torch.float32, device=selected_samples.device
-            ),
-            validate_args=True,
-        )
-        self.transform_parameters["snr_in_db"] = snr_distribution.sample(
-            sample_shape=(batch_size,)
-        )
+        if self.min_snr_in_db == self.max_snr_in_db:
+            self.transform_parameters["snr_in_db"] = torch.full(
+                size=(batch_size,),
+                fill_value=self.min_snr_in_db,
+                dtype=torch.float32,
+                device=selected_samples.device,
+            )
+        else:
+            snr_distribution = torch.distributions.Uniform(
+                low=torch.tensor(
+                    self.min_snr_in_db,
+                    dtype=torch.float32,
+                    device=selected_samples.device,
+                ),
+                high=torch.tensor(
+                    self.max_snr_in_db,
+                    dtype=torch.float32,
+                    device=selected_samples.device,
+                ),
+                validate_args=True,
+            )
+            self.transform_parameters["snr_in_db"] = snr_distribution.sample(
+                sample_shape=(batch_size,)
+            )
 
     def apply_transform(self, selected_samples: torch.Tensor, sample_rate: int = None):
         batch_size, num_channels, num_samples = selected_samples.shape
