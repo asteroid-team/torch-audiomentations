@@ -1,8 +1,15 @@
+import os
 import random
+import shutil
+import tempfile
 import unittest
+import uuid
+from pathlib import Path
 
+import numpy as np
 import pytest
 import torch
+from scipy.io.wavfile import write
 
 from torch_audiomentations import AddBackgroundNoise
 from torch_audiomentations.utils.dsp import calculate_rms
@@ -154,3 +161,40 @@ class TestAddBackgroundNoise(unittest.TestCase):
             noise_rms = calculate_rms(added_noises[i])
             snr_in_db = 20 * torch.log10(signal_rms / noise_rms).item()
             self.assertAlmostEqual(snr_in_db, desired_snr, places=5)
+
+    def test_compatibility_of_resampled_length(self):
+        random.seed(42)
+
+        for _ in range(30):
+            input_length = random.randint(1333, 1399)
+            bg_length = random.randint(1333, 1399)
+            input_sample_rate = random.randint(1000, 5000)
+            bg_sample_rate = random.randint(1000, 5000)
+
+            noise = np.random.uniform(
+                low=-0.2,
+                high=0.2,
+                size=(bg_length,),
+            ).astype(np.float32)
+            tmp_dir = os.path.join(tempfile.gettempdir(), str(uuid.uuid4()))
+            try:
+                os.makedirs(tmp_dir)
+                write(os.path.join(tmp_dir, "noise.wav"), rate=bg_sample_rate, data=noise)
+
+                print(
+                    f"input_length={input_length}, input_sample_rate={input_sample_rate},"
+                    f" bg_length={bg_length}, bg_sample_rate={bg_sample_rate}"
+                )
+                input_audio = torch.randn(1, 1, input_length, dtype=torch.float32)
+                transform = AddBackgroundNoise(
+                    tmp_dir,
+                    min_snr_in_db=4,
+                    max_snr_in_db=6,
+                    p=1.0,
+                    sample_rate=input_sample_rate,
+                )
+                transform(input_audio)
+            except Exception:
+                raise
+            finally:
+                shutil.rmtree(tmp_dir)
