@@ -111,7 +111,7 @@ class TestAddBackgroundNoise(unittest.TestCase):
         min_snr_in_db = 3
         max_snr_in_db = 30
         augment = AddBackgroundNoise(
-            self.bg_path, min_snr_in_db=3, max_snr_in_db=30, p=1.0
+            self.bg_path, min_snr_in_db=min_snr_in_db, max_snr_in_db=max_snr_in_db, p=1.0
         )
         augmented_audios = augment(self.input_audios, self.sample_rate)
 
@@ -137,3 +137,20 @@ class TestAddBackgroundNoise(unittest.TestCase):
             augment = AddBackgroundNoise(
                 self.bg_path, min_snr_in_db=30, max_snr_in_db=3, p=1.0
             )
+
+    def test_min_equals_max(self):
+        desired_snr = 3.0
+        augment = AddBackgroundNoise(
+            self.bg_path, min_snr_in_db=desired_snr, max_snr_in_db=desired_snr, p=1.0
+        )
+        augmented_audios = augment(self.input_audios, self.sample_rate)
+
+        self.assertEqual(tuple(augmented_audios.shape), tuple(self.input_audios.shape))
+        self.assertFalse(torch.equal(augmented_audios, self.input_audios))
+
+        added_noises = augmented_audios - self.input_audios
+        for i in range(len(self.input_audios)):
+            signal_rms = calculate_rms(self.input_audios[i])
+            noise_rms = calculate_rms(added_noises[i])
+            snr_in_db = 20 * torch.log10(signal_rms / noise_rms).item()
+            self.assertAlmostEqual(snr_in_db, desired_snr, places=5)
