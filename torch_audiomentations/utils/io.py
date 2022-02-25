@@ -7,6 +7,8 @@ import torch
 import torchaudio
 from torch import Tensor
 
+import math
+
 AudioFile = Union[Path, Text, dict]
 """
 Audio files can be provided to the Audio class using different types:
@@ -132,7 +134,7 @@ class Audio:
         else:
             num_samples, sample_rate = self.get_audio_metadata(file)
 
-        return round(num_samples * self.sample_rate / sample_rate)
+        return math.ceil(num_samples * self.sample_rate / sample_rate)
 
     def __init__(self, sample_rate: int, mono: bool = True):
         super().__init__()
