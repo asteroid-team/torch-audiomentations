@@ -194,6 +194,15 @@ classification. It was successfully applied in the paper
 
 ## Unreleased
 
+### Added
+
+* Add support for min SNR == max SNR in `AddBackgroundNoise`
+
+### Fixed
+
+* Fix a bug where loaded audio snippets were sometimes resampled to an incompatible
+ length in `AddBackgroundNoise`
+
 ## [v0.10.0] - 2022-02-11
 
 ### Added
