@@ -219,7 +219,7 @@ classification. It was successfully applied in the paper
 ### Fixed
 
 * Fix a bug where the actual bandwidth was twice as large as expected in
- `BandPassFilter` and `BandStopFilter`. The default values have been updated accordingly.
+ `BandPassFilter`. The default values have been updated accordingly.
  If you were previously specifying `min_bandwidth_fraction` and/or `max_bandwidth_fraction`,
  you now need to double those numbers to get the same behavior as before.
 
