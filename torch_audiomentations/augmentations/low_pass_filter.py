@@ -21,6 +21,7 @@ class LowPassFilter(BaseWaveformTransform):
         p: float = 0.5,
         p_mode: str = None,
         sample_rate: int = None,
+        target_rate: int = None,
     ):
         """
         :param min_cutoff_freq: Minimum cutoff frequency in hertz
@@ -30,7 +31,13 @@ class LowPassFilter(BaseWaveformTransform):
         :param p_mode:
         :param sample_rate:
         """
-        super().__init__(mode, p, p_mode, sample_rate)
+        super().__init__(
+            mode=mode,
+            p=p,
+            p_mode=p_mode,
+            sample_rate=sample_rate,
+            target_rate=target_rate,
+        )
 
         self.min_cutoff_freq = min_cutoff_freq
         self.max_cutoff_freq = max_cutoff_freq
@@ -38,7 +45,11 @@ class LowPassFilter(BaseWaveformTransform):
             raise ValueError("min_cutoff_freq must not be greater than max_cutoff_freq")
 
     def randomize_parameters(
-        self, selected_samples: torch.Tensor, sample_rate: int = None
+        self,
+        selected_samples: torch.Tensor,
+        sample_rate: int = None,
+        targets: torch.Tensor = None,
+        target_rate: int = None,
     ):
         """
         :params selected_samples: (batch_size, num_channels, num_samples)
@@ -67,7 +78,13 @@ class LowPassFilter(BaseWaveformTransform):
             dist.sample(sample_shape=(batch_size,))
         )
 
-    def apply_transform(self, selected_samples: torch.Tensor, sample_rate: int = None):
+    def apply_transform(
+        self,
+        selected_samples: torch.Tensor,
+        sample_rate: int = None,
+        targets: torch.Tensor = None,
+        target_rate: int = None,
+    ):
         batch_size, num_channels, num_samples = selected_samples.shape
 
         if sample_rate is None:
@@ -82,4 +99,4 @@ class LowPassFilter(BaseWaveformTransform):
                 selected_samples[i], cutoffs_as_fraction_of_sample_rate[i].item()
             )
 
-        return selected_samples
+        return selected_samples, targets

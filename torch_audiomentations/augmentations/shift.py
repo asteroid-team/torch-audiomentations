@@ -61,6 +61,7 @@ class Shift(BaseWaveformTransform):
         p: float = 0.5,
         p_mode: typing.Optional[str] = None,
         sample_rate: typing.Optional[int] = None,
+        target_rate: typing.Optional[int] = None,
     ):
         """
 
@@ -78,8 +79,15 @@ class Shift(BaseWaveformTransform):
         :param p:
         :param p_mode:
         :param sample_rate:
+        :param target_rate:
         """
-        super().__init__(mode, p, p_mode, sample_rate)
+        super().__init__(
+            mode=mode,
+            p=p,
+            p_mode=p_mode,
+            sample_rate=sample_rate,
+            target_rate=target_rate,
+        )
         self.min_shift = min_shift
         self.max_shift = max_shift
         self.shift_unit = shift_unit
@@ -90,17 +98,24 @@ class Shift(BaseWaveformTransform):
             raise ValueError('shift_unit must be "samples", "fraction" or "seconds"')
 
     def randomize_parameters(
-        self, selected_samples, sample_rate: typing.Optional[int] = None
+        self,
+        selected_samples: torch.Tensor,
+        sample_rate: int = None,
+        targets: torch.Tensor = None,
+        target_rate: int = None,
     ):
         if self.shift_unit == "samples":
             min_shift_in_samples = self.min_shift
             max_shift_in_samples = self.max_shift
+
         elif self.shift_unit == "fraction":
             min_shift_in_samples = int(round(self.min_shift * selected_samples.shape[-1]))
             max_shift_in_samples = int(round(self.max_shift * selected_samples.shape[-1]))
+
         elif self.shift_unit == "seconds":
             min_shift_in_samples = int(round(self.min_shift * sample_rate))
             max_shift_in_samples = int(round(self.max_shift * sample_rate))
+
         else:
             raise ValueError("Invalid shift_unit")
 
@@ -122,6 +137,7 @@ class Shift(BaseWaveformTransform):
                 dtype=torch.int32,
                 device=selected_samples.device,
             )
+
         else:
             self.transform_parameters["num_samples_to_shift"] = torch.randint(
                 low=min_shift_in_samples,
@@ -131,12 +147,38 @@ class Shift(BaseWaveformTransform):
                 device=selected_samples.device,
             )
 
-    def apply_transform(self, selected_samples, sample_rate: typing.Optional[int] = None):
-        r = self.transform_parameters["num_samples_to_shift"]
+    def apply_transform(
+        self,
+        selected_samples: torch.Tensor,
+        sample_rate: int = None,
+        targets: torch.Tensor = None,
+        target_rate: int = None,
+    ):
+
+        num_samples_to_shift = self.transform_parameters["num_samples_to_shift"]
+
         # Select fastest implementation based on device
         shift = shift_gpu if selected_samples.device.type == "cuda" else shift_cpu
-        return shift(selected_samples, r, self.rollover)
+        shifted_samples = shift(selected_samples, num_samples_to_shift, self.rollover)
+
+        if targets is None:
+            shifted_targets = targets
+        else:
+            # FIXME corner case where target_rate is missing
+            # FIXME corner case where target is not correlated with the input length
+            num_frames_to_shift = int(
+                round(target_rate * num_samples_to_shift / sample_rate)
+            )
+            shifted_targets = shift(
+                targets.transpose(-2, -1), num_frames_to_shift, self.rollover
+            ).transpose(-2, -1)
+
+        return shifted_samples, shifted_targets
 
     def is_sample_rate_required(self) -> bool:
         # Sample rate is required only if shift_unit is "seconds"
         return self.shift_unit == "seconds"
+
+    def is_target_rate_required(self) -> bool:
+        # FIXME should be True only when targets is passed to apply_transform
+        return self.requires_target_rate

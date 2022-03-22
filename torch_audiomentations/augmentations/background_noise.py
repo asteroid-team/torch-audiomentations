@@ -29,6 +29,7 @@ class AddBackgroundNoise(BaseWaveformTransform):
         p: float = 0.5,
         p_mode: str = None,
         sample_rate: int = None,
+        target_rate: int = None,
     ):
         """
 
@@ -42,7 +43,13 @@ class AddBackgroundNoise(BaseWaveformTransform):
         :param sample_rate:
         """
 
-        super().__init__(mode, p, p_mode, sample_rate)
+        super().__init__(
+            mode=mode,
+            p=p,
+            p_mode=p_mode,
+            sample_rate=sample_rate,
+            target_rate=target_rate,
+        )
 
         if isinstance(background_paths, (list, tuple, set)):
             # TODO: check that one can read audio files
@@ -94,7 +101,11 @@ class AddBackgroundNoise(BaseWaveformTransform):
         )
 
     def randomize_parameters(
-        self, selected_samples: torch.Tensor, sample_rate: int = None
+        self,
+        selected_samples: torch.Tensor,
+        sample_rate: int = None,
+        targets: torch.Tensor = None,
+        target_rate: int = None,
     ):
         """
 
@@ -135,7 +146,13 @@ class AddBackgroundNoise(BaseWaveformTransform):
                 sample_shape=(batch_size,)
             )
 
-    def apply_transform(self, selected_samples: torch.Tensor, sample_rate: int = None):
+    def apply_transform(
+        self,
+        selected_samples: torch.Tensor,
+        sample_rate: int = None,
+        targets: torch.Tensor = None,
+        target_rate: int = None,
+    ):
         batch_size, num_channels, num_samples = selected_samples.shape
 
         # (batch_size, num_samples)
@@ -146,6 +163,9 @@ class AddBackgroundNoise(BaseWaveformTransform):
             10 ** (self.transform_parameters["snr_in_db"].unsqueeze(dim=-1) / 20)
         )
 
-        return selected_samples + background_rms.unsqueeze(-1) * background.view(
-            batch_size, 1, num_samples
-        ).expand(-1, num_channels, -1)
+        return (
+            selected_samples
+            + background_rms.unsqueeze(-1)
+            * background.view(batch_size, 1, num_samples).expand(-1, num_channels, -1),
+            targets,
+        )

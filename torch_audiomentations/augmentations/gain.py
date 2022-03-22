@@ -25,15 +25,26 @@ class Gain(BaseWaveformTransform):
         p: float = 0.5,
         p_mode: typing.Optional[str] = None,
         sample_rate: typing.Optional[int] = None,
+        target_rate: typing.Optional[int] = None,
     ):
-        super().__init__(mode, p, p_mode, sample_rate)
+        super().__init__(
+            mode=mode,
+            p=p,
+            p_mode=p_mode,
+            sample_rate=sample_rate,
+            target_rate=target_rate,
+        )
         self.min_gain_in_db = min_gain_in_db
         self.max_gain_in_db = max_gain_in_db
         if self.min_gain_in_db >= self.max_gain_in_db:
             raise ValueError("max_gain_in_db must be higher than min_gain_in_db")
 
     def randomize_parameters(
-        self, selected_samples, sample_rate: typing.Optional[int] = None
+        self,
+        selected_samples: torch.Tensor,
+        sample_rate: int = None,
+        targets: torch.Tensor = None,
+        target_rate: int = None,
     ):
         distribution = torch.distributions.Uniform(
             low=torch.tensor(
@@ -53,5 +64,11 @@ class Gain(BaseWaveformTransform):
             .unsqueeze(1)
         )
 
-    def apply_transform(self, selected_samples, sample_rate: typing.Optional[int] = None):
-        return selected_samples * self.transform_parameters["gain_factors"]
+    def apply_transform(
+        self,
+        selected_samples: torch.Tensor,
+        sample_rate: int = None,
+        targets: torch.Tensor = None,
+        target_rate: int = None,
+    ):
+        return selected_samples * self.transform_parameters["gain_factors"], targets

@@ -1,4 +1,5 @@
 import typing
+import torch
 
 from ..core.transforms_interface import BaseWaveformTransform
 
@@ -23,8 +24,21 @@ class PolarityInversion(BaseWaveformTransform):
         p: float = 0.5,
         p_mode: typing.Optional[str] = None,
         sample_rate: typing.Optional[int] = None,
+        target_rate: typing.Optional[int] = None,
     ):
-        super().__init__(mode, p, p_mode, sample_rate)
+        super().__init__(
+            mode=mode,
+            p=p,
+            p_mode=p_mode,
+            sample_rate=sample_rate,
+            target_rate=target_rate,
+        )
 
-    def apply_transform(self, selected_samples, sample_rate: typing.Optional[int] = None):
-        return -selected_samples
+    def apply_transform(
+        self,
+        selected_samples: torch.Tensor,
+        sample_rate: int = None,
+        targets: torch.Tensor = None,
+        target_rate: int = None,
+    ):
+        return -selected_samples, targets

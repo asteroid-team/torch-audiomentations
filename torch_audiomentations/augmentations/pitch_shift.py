@@ -16,12 +16,13 @@ class PitchShift(BaseWaveformTransform):
 
     def __init__(
         self,
-        sample_rate: int,
         min_transpose_semitones: float = -4.0,
         max_transpose_semitones: float = 4.0,
         mode: str = "per_example",
         p: float = 0.5,
         p_mode: str = None,
+        sample_rate: int = None,
+        target_rate: int = None,
     ):
         """
         :param sample_rate:
@@ -30,8 +31,15 @@ class PitchShift(BaseWaveformTransform):
         :param mode: ``per_example``, ``per_channel``, or ``per_batch``. Default ``per_example``.
         :param p:
         :param p_mode:
+        :param target_rate:
         """
-        super().__init__(mode, p, p_mode, sample_rate)
+        super().__init__(
+            mode=mode,
+            p=p,
+            p_mode=p_mode,
+            sample_rate=sample_rate,
+            target_rate=target_rate,
+        )
 
         if min_transpose_semitones > max_transpose_semitones:
             raise ValueError("max_transpose_semitones must be > min_transpose_semitones")
@@ -51,7 +59,11 @@ class PitchShift(BaseWaveformTransform):
         self._mode = mode
 
     def randomize_parameters(
-        self, selected_samples: torch.Tensor, sample_rate: int = None
+        self,
+        selected_samples: torch.Tensor,
+        sample_rate: int = None,
+        targets: torch.Tensor = None,
+        target_rate: int = None,
     ):
         """
         :param selected_samples: (batch_size, num_channels, num_samples)
@@ -75,7 +87,13 @@ class PitchShift(BaseWaveformTransform):
         elif self._mode == "per_batch":
             self.transform_parameters["transpositions"] = choices(self._fast_shifts, k=1)
 
-    def apply_transform(self, selected_samples: torch.Tensor, sample_rate: int = None):
+    def apply_transform(
+        self,
+        selected_samples: torch.Tensor,
+        sample_rate: int = None,
+        targets: torch.Tensor = None,
+        target_rate: int = None,
+    ):
         """
         :param selected_samples: (batch_size, num_channels, num_samples)
         :param sample_rate:
@@ -105,10 +123,13 @@ class PitchShift(BaseWaveformTransform):
                         sample_rate,
                     )[0][0]
         elif self._mode == "per_batch":
-            return pitch_shift(
-                selected_samples,
-                self.transform_parameters["transpositions"][0],
-                sample_rate,
+            return (
+                pitch_shift(
+                    selected_samples,
+                    self.transform_parameters["transpositions"][0],
+                    sample_rate,
+                ),
+                targets,
             )
 
-        return selected_samples
+        return selected_samples, targets

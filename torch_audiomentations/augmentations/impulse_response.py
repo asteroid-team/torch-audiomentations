@@ -30,6 +30,7 @@ class ApplyImpulseResponse(BaseWaveformTransform):
         p: float = 0.5,
         p_mode: str = None,
         sample_rate: int = None,
+        target_rate: int = None,
     ):
         """
         :param ir_paths: Either a path to a folder with audio files or a list of paths to audio files.
@@ -43,8 +44,16 @@ class ApplyImpulseResponse(BaseWaveformTransform):
         :param p:
         :param p_mode:
         :param sample_rate:
+        :param target_rate:
         """
-        super().__init__(mode, p, p_mode, sample_rate)
+
+        super().__init__(
+            mode=mode,
+            p=p,
+            p_mode=p_mode,
+            sample_rate=sample_rate,
+            target_rate=target_rate,
+        )
 
         if isinstance(ir_paths, (list, tuple, set)):
             # TODO: check that one can read audio files
@@ -61,7 +70,13 @@ class ApplyImpulseResponse(BaseWaveformTransform):
         self.convolve_mode = convolve_mode
         self.compensate_for_propagation_delay = compensate_for_propagation_delay
 
-    def randomize_parameters(self, selected_samples, sample_rate: int = None):
+    def randomize_parameters(
+        self,
+        selected_samples: torch.Tensor,
+        sample_rate: int = None,
+        targets: torch.Tensor = None,
+        target_rate: int = None,
+    ):
 
         batch_size, _, _ = selected_samples.shape
 
@@ -77,7 +92,13 @@ class ApplyImpulseResponse(BaseWaveformTransform):
 
         self.transform_parameters["ir_paths"] = random_ir_paths
 
-    def apply_transform(self, selected_samples, sample_rate: int = None):
+    def apply_transform(
+        self,
+        selected_samples: torch.Tensor,
+        sample_rate: int = None,
+        targets: torch.Tensor = None,
+        target_rate: int = None,
+    ):
 
         batch_size, num_channels, num_samples = selected_samples.shape
 
@@ -90,7 +111,6 @@ class ApplyImpulseResponse(BaseWaveformTransform):
 
         if self.compensate_for_propagation_delay:
             propagation_delays = ir.abs().argmax(dim=2, keepdim=False)[:, 0]
-
             convolved_samples = torch.stack(
                 [
                     convolved_sample[
@@ -103,7 +123,9 @@ class ApplyImpulseResponse(BaseWaveformTransform):
                 dim=0,
             )
 
-            return convolved_samples
+            # FIXME should we compensate targets as well?
+            return convolved_samples, targets
 
         else:
-            return convolved_samples[..., :num_samples]
+            # FIXME should we strip targets as well?
+            return convolved_samples[..., :num_samples], targets

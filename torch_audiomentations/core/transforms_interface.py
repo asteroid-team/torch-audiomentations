@@ -20,9 +20,12 @@ class ModeNotSupportedException(Exception):
 
 
 class BaseWaveformTransform(torch.nn.Module):
+
     supports_multichannel = True
     supported_modes = {"per_batch", "per_example", "per_channel"}
     requires_sample_rate = True
+    requires_targets = False
+    requires_target_rate = False
 
     def __init__(
         self,
@@ -30,6 +33,7 @@ class BaseWaveformTransform(torch.nn.Module):
         p: float = 0.5,
         p_mode: typing.Optional[str] = None,
         sample_rate: typing.Optional[int] = None,
+        target_rate: typing.Optional[int] = None,
     ):
         """
 
@@ -49,6 +53,8 @@ class BaseWaveformTransform(torch.nn.Module):
             with different parameters. Default value: Same as mode.
         :param sample_rate: sample_rate can be set either here or when
             calling the transform.
+        :param target_rate: target_rate can be set either here or when
+            calling the transform.
         """
         super().__init__()
         assert 0.0 <= p <= 1.0
@@ -58,6 +64,7 @@ class BaseWaveformTransform(torch.nn.Module):
         if self.p_mode is None:
             self.p_mode = self.mode
         self.sample_rate = sample_rate
+        self.target_rate = target_rate
 
         # Check validity of mode/p_mode combination
         if self.mode not in self.supported_modes:
@@ -87,9 +94,19 @@ class BaseWaveformTransform(torch.nn.Module):
         # Update the Bernoulli distribution accordingly
         self.bernoulli_distribution = Bernoulli(self._p)
 
-    def forward(self, samples, sample_rate: typing.Optional[int] = None):
+    def forward(
+        self,
+        samples,
+        sample_rate: typing.Optional[int] = None,
+        targets=None,
+        target_rate: typing.Optional[int] = None,
+    ):
+
         if not self.training:
-            return samples
+            if targets is None:
+                return samples
+            else:
+                return samples, targets
 
         if len(samples) == 0:
             warnings.warn(
@@ -104,8 +121,10 @@ class BaseWaveformTransform(torch.nn.Module):
                 " audio is mono, you can use a shape like [batch_size, 1, num_samples]."
             )
 
+        batch_size, num_channels, num_samples = samples.shape
+
         if is_multichannel(samples):
-            if samples.shape[1] > samples.shape[2]:
+            if num_channels > num_samples:
                 warnings.warn(
                     "Multichannel audio must have channels first, not channels last. In"
                     " other words, the shape must be (batch size, channels, samples), not"
@@ -122,15 +141,49 @@ class BaseWaveformTransform(torch.nn.Module):
         if sample_rate is None and self.is_sample_rate_required():
             raise RuntimeError("sample_rate is required")
 
+        if self.is_targets_required():
+
+            if targets is None:
+                raise RuntimeError("targets is required")
+
+            if len(targets.shape) != 4:
+                raise RuntimeError(
+                    "torch-audiomentations expects target tensors to be four-dimensional, with"
+                    " dimension ordering like [batch_size, num_channels, num_frames, num_classes]."
+                    " If your target is binary, you can use a shape like [batch_size, num_channels, num_frames, 1]."
+                    " If your target is for the whole channel, you can use a shape like [batch_size, num_channels, 1, num_classes]."
+                )
+
+            batch_size_, num_channels_, num_frames, num_classes = targets.shape
+
+            if batch_size_ != batch_size:
+                raise RuntimeError(
+                    f"samples ({batch_size}) and target ({batch_size_}) batch sizes must be equal."
+                )
+            if num_channels != num_channels_:
+                raise RuntimeError(
+                    f"samples ({num_channels}) and target ({num_channels_}) number of channels must be equal."
+                )
+
+            target_rate = target_rate or self.target_rate
+            if target_rate is None and self.is_target_rate_required():
+                # IDEA: automatically estimate target_rate based on samples, sample_rate, and targets
+                raise RuntimeError("target_rate is required")
+
         if not self.are_parameters_frozen:
+
             if self.p_mode == "per_example":
-                p_sample_size = samples.shape[0]
+                p_sample_size = batch_size
+
             elif self.p_mode == "per_channel":
-                p_sample_size = samples.shape[0] * samples.shape[1]
+                p_sample_size = batch_size * num_channels
+
             elif self.p_mode == "per_batch":
                 p_sample_size = 1
+
             else:
                 raise Exception("Invalid mode")
+
             self.transform_parameters = {
                 "should_apply": self.bernoulli_distribution.sample(
                     sample_shape=(p_sample_size,)
@@ -138,103 +191,255 @@ class BaseWaveformTransform(torch.nn.Module):
             }
 
         if self.transform_parameters["should_apply"].any():
+
             cloned_samples = samples.clone()
 
+            if targets is None:
+                cloned_targets = None
+                selected_targets = None
+            else:
+                cloned_targets = targets.clone()
+
             if self.p_mode == "per_channel":
-                batch_size = cloned_samples.shape[0]
-                num_channels = cloned_samples.shape[1]
+
                 cloned_samples = cloned_samples.reshape(
-                    batch_size * num_channels, 1, cloned_samples.shape[2]
+                    batch_size * num_channels, 1, num_samples
                 )
                 selected_samples = cloned_samples[
                     self.transform_parameters["should_apply"]
                 ]
 
+                if targets is not None:
+                    cloned_targets = cloned_targets.reshape(
+                        batch_size * num_channels, 1, num_frames, num_classes
+                    )
+                    selected_targets = cloned_targets[
+                        self.transform_parameters["should_apply"]
+                    ]
+
                 if not self.are_parameters_frozen:
-                    self.randomize_parameters(selected_samples, sample_rate)
+                    self.randomize_parameters(
+                        selected_samples,
+                        sample_rate=sample_rate,
+                        targets=selected_targets,
+                        target_rate=target_rate,
+                    )
+
+                perturbed_samples, perturbed_targets = self.apply_transform(
+                    selected_samples,
+                    sample_rate=sample_rate,
+                    targets=selected_targets,
+                    target_rate=target_rate,
+                )
 
                 cloned_samples[
                     self.transform_parameters["should_apply"]
-                ] = self.apply_transform(selected_samples, sample_rate)
-
+                ] = perturbed_samples
                 cloned_samples = cloned_samples.reshape(
-                    batch_size, num_channels, cloned_samples.shape[2]
+                    batch_size, num_channels, num_samples
                 )
 
-                return cloned_samples
+                if targets is None:
+                    return cloned_samples
+
+                else:
+                    cloned_targets[
+                        self.transform_parameters["should_apply"]
+                    ] = perturbed_targets
+                    cloned_targets = cloned_targets.reshape(
+                        batch_size, num_channels, num_frames, num_classes
+                    )
+                    return cloned_samples, cloned_targets
 
             elif self.p_mode == "per_example":
+
                 selected_samples = cloned_samples[
                     self.transform_parameters["should_apply"]
                 ]
 
-                if self.mode == "per_example":
-                    if not self.are_parameters_frozen:
-                        self.randomize_parameters(selected_samples, sample_rate)
-
-                    cloned_samples[
+                if targets is not None:
+                    selected_targets = cloned_targets[
                         self.transform_parameters["should_apply"]
-                    ] = self.apply_transform(selected_samples, sample_rate)
-                    return cloned_samples
-                elif self.mode == "per_channel":
-                    batch_size = selected_samples.shape[0]
-                    num_channels = selected_samples.shape[1]
-                    selected_samples = selected_samples.reshape(
-                        batch_size * num_channels, 1, selected_samples.shape[2]
-                    )
+                    ]
+
+                if self.mode == "per_example":
 
                     if not self.are_parameters_frozen:
-                        self.randomize_parameters(selected_samples, sample_rate)
+                        self.randomize_parameters(
+                            selected_samples,
+                            sample_rate,
+                            targets=selected_targets,
+                            target_rate=target_rate,
+                        )
 
-                    perturbed_samples = self.apply_transform(
-                        selected_samples, sample_rate
-                    )
-                    perturbed_samples = perturbed_samples.reshape(
-                        batch_size, num_channels, selected_samples.shape[2]
+                    perturbed_samples, perturbed_targets = self.apply_transform(
+                        selected_samples,
+                        sample_rate=sample_rate,
+                        targets=selected_targets,
+                        target_rate=target_rate,
                     )
 
                     cloned_samples[
                         self.transform_parameters["should_apply"]
                     ] = perturbed_samples
-                    return cloned_samples
+
+                    if targets is None:
+                        return cloned_samples
+
+                    else:
+                        cloned_targets[
+                            self.transform_parameters["should_apply"]
+                        ] = perturbed_targets
+                        return cloned_samples, cloned_targets
+
+                elif self.mode == "per_channel":
+
+                    b, c, s = selected_samples.shape
+
+                    selected_samples = selected_samples.reshape(b * c, 1, s)
+
+                    if targets is not None:
+                        selected_targets = selected_targets.reshape(
+                            b * c, 1, num_frames, num_classes
+                        )
+
+                    if not self.are_parameters_frozen:
+                        self.randomize_parameters(
+                            selected_samples,
+                            sample_rate,
+                            targets=selected_targets,
+                            target_rate=target_rate,
+                        )
+
+                    perturbed_samples, perturbed_targets = self.apply_transform(
+                        selected_samples,
+                        sample_rate=sample_rate,
+                        targets=selected_targets,
+                        target_rate=target_rate,
+                    )
+
+                    perturbed_samples = perturbed_samples.reshape(b, c, s)
+                    cloned_samples[
+                        self.transform_parameters["should_apply"]
+                    ] = perturbed_samples
+
+                    if targets is None:
+                        return cloned_samples
+
+                    else:
+                        perturbed_targets = perturbed_targets.reshape(
+                            b, c, num_frames, num_classes
+                        )
+                        cloned_targets[
+                            self.transform_parameters["should_apply"]
+                        ] = perturbed_targets
+                        return cloned_samples, cloned_targets
+
                 else:
                     raise Exception("Invalid mode/p_mode combination")
+
             elif self.p_mode == "per_batch":
+
                 if self.mode == "per_batch":
-                    batch_size = cloned_samples.shape[0]
-                    num_channels = cloned_samples.shape[1]
+
                     cloned_samples = cloned_samples.reshape(
-                        1, batch_size * num_channels, cloned_samples.shape[2]
+                        1, batch_size * num_channels, num_samples
                     )
+
+                    if targets is not None:
+                        cloned_targets = cloned_targets.reshape(
+                            1, batch_size * num_channels, num_frames, num_classes
+                        )
 
                     if not self.are_parameters_frozen:
-                        self.randomize_parameters(cloned_samples, sample_rate)
+                        self.randomize_parameters(
+                            cloned_samples,
+                            sample_rate,
+                            targets=cloned_targets,
+                            target_rate=target_rate,
+                        )
 
-                    perturbed_samples = self.apply_transform(cloned_samples, sample_rate)
-                    perturbed_samples = perturbed_samples.reshape(
-                        batch_size, num_channels, cloned_samples.shape[2]
+                    perturbed_samples, perturbed_targets = self.apply_transform(
+                        cloned_samples,
+                        sample_rate,
+                        targets=cloned_targets,
+                        target_rate=target_rate,
                     )
-                    return perturbed_samples
+                    perturbed_samples = perturbed_samples.reshape(
+                        batch_size, num_channels, num_samples
+                    )
+
+                    if targets is None:
+                        return perturbed_samples
+
+                    else:
+                        perturbed_targets = perturbed_targets.reshape(
+                            batch_size, num_channels, num_frames, num_classes
+                        )
+                        return perturbed_samples, perturbed_targets
+
                 elif self.mode == "per_example":
+
                     if not self.are_parameters_frozen:
-                        self.randomize_parameters(cloned_samples, sample_rate)
-                    return self.apply_transform(cloned_samples, sample_rate)
-                elif self.mode == "per_channel":
-                    batch_size = cloned_samples.shape[0]
-                    num_channels = cloned_samples.shape[1]
-                    cloned_samples = cloned_samples.reshape(
-                        batch_size * num_channels, 1, cloned_samples.shape[2]
+                        self.randomize_parameters(
+                            cloned_samples,
+                            sample_rate,
+                            targets=cloned_targets,
+                            target_rate=target_rate,
+                        )
+
+                    perturbed_samples, perturbed_targets = self.apply_transform(
+                        cloned_samples,
+                        sample_rate,
+                        targets=cloned_targets,
+                        target_rate=target_rate,
                     )
 
-                    if not self.are_parameters_frozen:
-                        self.randomize_parameters(cloned_samples, sample_rate)
+                    if targets is None:
+                        return perturbed_samples
 
-                    perturbed_samples = self.apply_transform(cloned_samples, sample_rate)
+                    else:
+                        return perturbed_samples, perturbed_targets
+
+                elif self.mode == "per_channel":
+
+                    cloned_samples = cloned_samples.reshape(
+                        batch_size * num_channels, 1, num_samples
+                    )
+
+                    if targets is not None:
+                        cloned_targets = cloned_targets.reshape(
+                            batch_size * num_channels, 1, num_frames, num_classes
+                        )
+
+                    if not self.are_parameters_frozen:
+                        self.randomize_parameters(
+                            cloned_samples,
+                            sample_rate,
+                            targets=cloned_targets,
+                            target_rate=target_rate,
+                        )
+
+                    perturbed_samples, perturbed_targets = self.apply_transform(
+                        cloned_samples,
+                        sample_rate,
+                        targets=cloned_targets,
+                        target_rate=target_rate,
+                    )
 
                     perturbed_samples = perturbed_samples.reshape(
-                        batch_size, num_channels, cloned_samples.shape[2]
+                        batch_size, num_channels, num_samples
                     )
-                    return perturbed_samples
+
+                    if targets is None:
+                        return perturbed_samples
+
+                    else:
+                        perturbed_targets = perturbed_targets.reshape(
+                            batch_size, num_channels, num_frames, num_classes
+                        )
+
+                        return perturbed_samples, perturbed_targets
                 else:
                     raise Exception("Invalid mode")
             else:
@@ -248,11 +453,22 @@ class BaseWaveformTransform(torch.nn.Module):
         pass
 
     def randomize_parameters(
-        self, selected_samples, sample_rate: typing.Optional[int] = None
+        self,
+        selected_samples,
+        sample_rate: typing.Optional[int] = None,
+        targets=None,
+        target_rate: typing.Optional[int] = None,
     ):
         pass
 
-    def apply_transform(self, selected_samples, sample_rate: typing.Optional[int] = None):
+    def apply_transform(
+        self,
+        selected_samples,
+        sample_rate: typing.Optional[int] = None,
+        targets=None,
+        target_rate: typing.Optional[int] = None,
+    ):
+
         raise NotImplementedError()
 
     def serialize_parameters(self):
@@ -276,3 +492,9 @@ class BaseWaveformTransform(torch.nn.Module):
 
     def is_sample_rate_required(self) -> bool:
         return self.requires_sample_rate
+
+    def is_targets_required(self) -> bool:
+        return self.requires_targets
+
+    def is_target_rate_required(self) -> bool:
+        return self.requires_target_rate

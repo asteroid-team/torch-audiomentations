@@ -63,7 +63,13 @@ class BaseCompose(torch.nn.Module):
 
 
 class Compose(BaseCompose):
-    def forward(self, samples, sample_rate: typing.Optional[int] = None):
+    def forward(
+        self,
+        samples,
+        sample_rate: typing.Optional[int] = None,
+        targets=None,
+        target_rate: typing.Optional[int] = None,
+    ):
         if random.random() < self.p:
             transform_indexes = list(range(len(self.transforms)))
             if self.shuffle:
@@ -71,8 +77,14 @@ class Compose(BaseCompose):
             for i in transform_indexes:
                 tfm = self.transforms[i]
                 if isinstance(tfm, BaseWaveformTransform):
-                    samples = self.transforms[i](samples, sample_rate)
+                    if targets is None:
+                        samples = self.transforms[i](samples, sample_rate)
+                    else:
+                        samples, targets = self.transforms[i](
+                            samples, sample_rate, targets=targets, target_rate=target_rate
+                        )
                 else:
+                    # FIXME: add support for targets?
                     samples = self.transforms[i](samples)
         return samples
 
@@ -131,7 +143,13 @@ class SomeOf(BaseCompose):
             random.sample(self.all_transforms_indexes, num_transforms_to_apply)
         )
 
-    def forward(self, samples, sample_rate: typing.Optional[int] = None):
+    def forward(
+        self,
+        samples,
+        sample_rate: typing.Optional[int] = None,
+        targets=None,
+        target_rate: typing.Optional[int] = None,
+    ):
         if random.random() < self.p:
 
             if not self.are_parameters_frozen:
@@ -140,8 +158,14 @@ class SomeOf(BaseCompose):
             for i in self.transform_indexes:
                 tfm = self.transforms[i]
                 if isinstance(tfm, BaseWaveformTransform):
-                    samples = self.transforms[i](samples, sample_rate)
+                    if targets is None:
+                        samples = self.transforms[i](samples, sample_rate)
+                    else:
+                        samples, targets = self.transforms[i](
+                            samples, sample_rate, targets=targets, target_rate=target_rate
+                        )
                 else:
+                    # FIXME: add support for targets?
                     samples = self.transforms[i](samples)
         return samples
 

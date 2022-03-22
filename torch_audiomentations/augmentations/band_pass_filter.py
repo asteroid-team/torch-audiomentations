@@ -23,6 +23,7 @@ class BandPassFilter(BaseWaveformTransform):
         p: float = 0.5,
         p_mode: str = None,
         sample_rate: int = None,
+        target_rate: int = None,
     ):
         """
         :param min_center_frequency: Minimum center frequency in hertz
@@ -36,7 +37,13 @@ class BandPassFilter(BaseWaveformTransform):
         :param p_mode:
         :param sample_rate:
         """
-        super().__init__(mode, p, p_mode, sample_rate)
+        super().__init__(
+            mode=mode,
+            p=p,
+            p_mode=p_mode,
+            sample_rate=sample_rate,
+            target_rate=target_rate,
+        )
 
         self.min_center_frequency = min_center_frequency
         self.max_center_frequency = max_center_frequency
@@ -65,7 +72,11 @@ class BandPassFilter(BaseWaveformTransform):
             )
 
     def randomize_parameters(
-        self, selected_samples: torch.Tensor, sample_rate: int = None
+        self,
+        selected_samples: torch.Tensor,
+        sample_rate: int = None,
+        targets: torch.Tensor = None,
+        target_rate: int = None,
     ):
         """
         :params selected_samples: (batch_size, num_channels, num_samples)
@@ -77,16 +88,12 @@ class BandPassFilter(BaseWaveformTransform):
             dist = torch.distributions.Uniform(
                 low=convert_frequencies_to_mels(
                     torch.tensor(
-                        min_freq,
-                        dtype=torch.float32,
-                        device=selected_samples.device,
+                        min_freq, dtype=torch.float32, device=selected_samples.device,
                     )
                 ),
                 high=convert_frequencies_to_mels(
                     torch.tensor(
-                        max_freq,
-                        dtype=torch.float32,
-                        device=selected_samples.device,
+                        max_freq, dtype=torch.float32, device=selected_samples.device,
                     )
                 ),
                 validate_args=True,
@@ -99,14 +106,19 @@ class BandPassFilter(BaseWaveformTransform):
         )
 
         bandwidth_dist = torch.distributions.Uniform(
-            low=self.min_bandwidth_fraction,
-            high=self.max_bandwidth_fraction,
+            low=self.min_bandwidth_fraction, high=self.max_bandwidth_fraction,
         )
         self.transform_parameters["bandwidth"] = bandwidth_dist.sample(
             sample_shape=(batch_size,)
         )
 
-    def apply_transform(self, selected_samples: torch.Tensor, sample_rate: int = None):
+    def apply_transform(
+        self,
+        selected_samples: torch.Tensor,
+        sample_rate: int = None,
+        targets: torch.Tensor = None,
+        target_rate: int = None,
+    ):
         batch_size, num_channels, num_samples = selected_samples.shape
 
         if sample_rate is None:
@@ -130,4 +142,4 @@ class BandPassFilter(BaseWaveformTransform):
                 cutoff_high=high_cutoffs_as_fraction_of_sample_rate[i].item(),
             )
 
-        return selected_samples
+        return selected_samples, targets

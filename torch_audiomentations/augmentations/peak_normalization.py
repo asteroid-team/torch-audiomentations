@@ -25,13 +25,24 @@ class PeakNormalization(BaseWaveformTransform):
         p: float = 0.5,
         p_mode: typing.Optional[str] = None,
         sample_rate: typing.Optional[int] = None,
+        target_rate: typing.Optional[int] = None,
     ):
-        super().__init__(mode, p, p_mode, sample_rate)
+        super().__init__(
+            mode=mode,
+            p=p,
+            p_mode=p_mode,
+            sample_rate=sample_rate,
+            target_rate=target_rate,
+        )
         assert apply_to in ("all", "only_too_loud_sounds")
         self.apply_to = apply_to
 
     def randomize_parameters(
-        self, selected_samples, sample_rate: typing.Optional[int] = None
+        self,
+        selected_samples: torch.Tensor,
+        sample_rate: int = None,
+        targets: torch.Tensor = None,
+        target_rate: int = None,
     ):
         # Compute the most extreme value of each multichannel audio snippet in the batch
         most_extreme_values, _ = torch.max(torch.abs(selected_samples), dim=-1)
@@ -55,9 +66,15 @@ class PeakNormalization(BaseWaveformTransform):
                 most_extreme_values[self.transform_parameters["selector"]], (-1, 1, 1)
             )
 
-    def apply_transform(self, selected_samples, sample_rate: typing.Optional[int] = None):
+    def apply_transform(
+        self,
+        selected_samples: torch.Tensor,
+        sample_rate: int = None,
+        targets: torch.Tensor = None,
+        target_rate: int = None,
+    ):
         if "divisors" in self.transform_parameters:
             selected_samples[
                 self.transform_parameters["selector"]
             ] /= self.transform_parameters["divisors"]
-        return selected_samples
+        return selected_samples, targets

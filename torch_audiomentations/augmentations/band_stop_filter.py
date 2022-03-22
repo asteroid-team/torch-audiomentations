@@ -22,6 +22,7 @@ class BandStopFilter(BandPassFilter):
         p: float = 0.5,
         p_mode: str = None,
         sample_rate: int = None,
+        target_rate: int = None,
     ):
         """
         :param min_center_frequency: Minimum center frequency in hertz
@@ -34,6 +35,7 @@ class BandStopFilter(BandPassFilter):
         :param p:
         :param p_mode:
         :param sample_rate:
+        :param target_rate:
         """
 
         super().__init__(
@@ -41,14 +43,24 @@ class BandStopFilter(BandPassFilter):
             max_center_frequency,
             min_bandwidth_fraction,
             max_bandwidth_fraction,
-            mode,
-            p,
-            p_mode,
-            sample_rate,
+            mode=mode,
+            p=p,
+            p_mode=p_mode,
+            sample_rate=sample_rate,
+            target_rate=target_rate,
         )
 
-    def apply_transform(self, selected_samples: torch.Tensor, sample_rate: int = None):
-        band_pass_filtered_samples = super().apply_transform(
-            selected_samples.clone(), sample_rate
+    def apply_transform(
+        self,
+        selected_samples: torch.Tensor,
+        sample_rate: int = None,
+        targets: torch.Tensor = None,
+        target_rate: int = None,
+    ):
+        band_pass_filtered_samples, band_pass_filtered_targets = super().apply_transform(
+            selected_samples.clone(),
+            sample_rate,
+            targets=targets.clone() if targets is not None else None,
+            target_rate=target_rate,
         )
-        return selected_samples - band_pass_filtered_samples
+        return selected_samples - band_pass_filtered_samples, band_pass_filtered_targets
