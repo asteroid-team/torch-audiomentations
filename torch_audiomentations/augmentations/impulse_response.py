@@ -7,7 +7,7 @@ from torch.nn.utils.rnn import pad_sequence
 
 from ..core.transforms_interface import BaseWaveformTransform, EmptyPathException
 from ..utils.convolution import convolve
-from ..utils.file import find_audio_files
+from ..utils.file import find_audio_files_in_paths
 from ..utils.io import Audio
 
 
@@ -46,11 +46,8 @@ class ApplyImpulseResponse(BaseWaveformTransform):
         """
         super().__init__(mode, p, p_mode, sample_rate)
 
-        if isinstance(ir_paths, (list, tuple, set)):
-            # TODO: check that one can read audio files
-            self.ir_paths = list(ir_paths)
-        else:
-            self.ir_paths = find_audio_files(ir_paths)
+        # TODO: check that one can read audio files
+        self.ir_paths = find_audio_files_in_paths(ir_paths)
 
         if sample_rate is not None:
             self.audio = Audio(sample_rate=sample_rate, mono=True)

@@ -6,7 +6,7 @@ import torch
 
 from ..core.transforms_interface import BaseWaveformTransform, EmptyPathException
 from ..utils.dsp import calculate_rms
-from ..utils.file import find_audio_files
+from ..utils.file import find_audio_files_in_paths, SUPPORTED_EXTENSIONS
 from ..utils.io import Audio
 
 
@@ -44,11 +44,8 @@ class AddBackgroundNoise(BaseWaveformTransform):
 
         super().__init__(mode, p, p_mode, sample_rate)
 
-        if isinstance(background_paths, (list, tuple, set)):
-            # TODO: check that one can read audio files
-            self.background_paths = list(background_paths)
-        else:
-            self.background_paths = find_audio_files(background_paths)
+        # TODO: check that one can read audio files
+        self.background_paths = find_audio_files_in_paths(background_paths)        
 
         if sample_rate is not None:
             self.audio = Audio(sample_rate=sample_rate, mono=True)
