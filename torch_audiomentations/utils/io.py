@@ -84,16 +84,16 @@ class Audio:
 
         Parameters
         ----------
-        samples : (channel, time) Tensor
-            Single or multichannel samples
+        samples : (..., time) Tensor
+            Single (or multichannel) samples or batch of samples
 
         Returns
         -------
-        samples: (channel, time) Tensor
+        samples: (..., time) Tensor
             Power-normalized samples
         """
-        rms = samples.square().mean(dim=1).sqrt()
-        return (samples.t() / (rms + 1e-8)).t()
+        rms = samples.square().mean(dim=-1, keepdim=True).sqrt()
+        return samples / (rms + 1e-8)
 
     @staticmethod
     def get_audio_metadata(file_path) -> tuple:
