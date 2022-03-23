@@ -4,5 +4,5 @@ try:
 except ModuleNotFoundError:
     # PyTorch<=1.6
     raise Exception(
-        "torch-audiomentations does not pytorch<=1.6. Please upgrade to pytorch 1.7 or newer.",
+        "torch-audiomentations does not support pytorch<=1.6. Please upgrade to pytorch 1.7 or newer.",
     )
