@@ -1,5 +1,6 @@
 import os
 from pathlib import Path
+from typing import List, Union
 
 import soundfile
 
@@ -7,6 +8,36 @@ from .dsp import resample_audio
 
 SUPPORTED_EXTENSIONS = (".wav",)
 
+def find_audio_files_in_paths(
+    paths: Union[List[Path], List[str], Path, str],
+    filename_endings=SUPPORTED_EXTENSIONS,
+    traverse_subdirectories=True,
+    follow_symlinks=True,
+):
+    """Return a list of paths to all audio files with the given extension(s) contained in the list or in its directories.
+    Also traverses subdirectories by default.
+    """
+
+    file_paths = []
+
+
+    if isinstance(paths, (list, tuple, set)):
+        paths = list(paths)
+    else:
+        paths = [paths]
+
+    for p in paths:
+        if str(p).lower().endswith(SUPPORTED_EXTENSIONS):
+            file_path = Path(os.path.abspath(p))
+            file_paths.append(file_path)
+        elif os.path.isdir(p):
+            file_paths += find_audio_files(
+                p,
+                filename_endings=filename_endings,
+                traverse_subdirectories=traverse_subdirectories,
+                follow_symlinks=follow_symlinks
+            )
+    return file_paths
 
 def find_audio_files(
     root_path,
