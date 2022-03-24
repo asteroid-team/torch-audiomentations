@@ -197,6 +197,7 @@ classification. It was successfully applied in the paper
 ### Added
 
 * Add support for min SNR == max SNR in `AddBackgroundNoise`
+* Add support for librosa 0.9.0
 
 ### Fixed
 
