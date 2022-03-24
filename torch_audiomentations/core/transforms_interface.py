@@ -112,7 +112,10 @@ class BaseWaveformTransform(torch.nn.Module):
             warnings.warn(
                 "An empty samples tensor was passed to {}".format(self.__class__.__name__)
             )
-            return samples
+            if targets is None:
+                return samples
+            else:
+                return samples, targets
 
         if len(samples.shape) != 3:
             raise RuntimeError(
@@ -445,7 +448,10 @@ class BaseWaveformTransform(torch.nn.Module):
             else:
                 raise Exception("Invalid p_mode {}".format(self.p_mode))
 
-        return samples
+        if targets is None:
+            return samples
+        else:
+            return samples, targets
 
     def _forward_unimplemented(self, *inputs) -> None:
         # Avoid IDE error message like "Class ... must implement all abstract methods"
