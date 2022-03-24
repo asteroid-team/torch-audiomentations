@@ -48,11 +48,17 @@ class Mix(BaseWaveformTransform):
         if self.min_snr_in_db > self.max_snr_in_db:
             raise ValueError("min_snr_in_db must not be greater than max_snr_in_db")
 
-        # TODO: make it configuration via a "string"
         self.mix_target = mix_target
-        self._mix_target = lambda target, background_target, snr: torch.maximize(
-            target, background_target
-        )
+        if mix_target == "original":
+            self._mix_target = lambda target, background_target, snr: target
+
+        elif mix_target == "union":
+            self._mix_target = lambda target, background_target, snr: torch.maximize(
+                target, background_target
+            )
+
+        else:
+            raise ValueError("mix_target must be one of 'original' or 'union'.")
 
     def randomize_parameters(
         self,
