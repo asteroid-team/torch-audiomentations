@@ -16,4 +16,4 @@ from .core.composition import Compose, SomeOf, OneOf
 from .utils.config import from_dict, from_yaml
 from .utils.convolution import convolve
 
-__version__ = "0.10.0"
+__version__ = "0.10.1"
