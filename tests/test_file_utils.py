@@ -8,7 +8,7 @@ from pathlib import Path
 import pytest
 
 from tests.utils import TEST_FIXTURES_DIR
-from torch_audiomentations.utils.file import find_audio_files
+from torch_audiomentations.utils.file import find_audio_files, find_audio_files_in_paths
 
 
 class TestFileUtils:
@@ -17,6 +17,21 @@ class TestFileUtils:
         file_paths = [Path(fp).name for fp in file_paths]
         assert set(file_paths) == {
             "acoustic_guitar_0.wav",
+            "bg.wav",
+            "bg_short.WAV",
+            "impulse_response_0.wav",
+            "stereo_noise.wav",
+        }
+
+    def test_find_audio_files_in_paths(self):
+        paths = [
+            os.path.join(TEST_FIXTURES_DIR, "bg"),
+            os.path.join(TEST_FIXTURES_DIR, "bg_short"),
+            os.path.join(TEST_FIXTURES_DIR, "ir", "impulse_response_0.wav"),
+        ]
+        file_paths = find_audio_files_in_paths(paths)
+        file_paths = [Path(fp).name for fp in file_paths]
+        assert set(file_paths) == {
             "bg.wav",
             "bg_short.WAV",
             "impulse_response_0.wav",
