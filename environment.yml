@@ -6,7 +6,7 @@ dependencies:
 - cudatoolkit=10.1
 - ffmpeg
 - matplotlib>=3,<4
-- numpy>=1.15,<1.18
+- numpy>=1.15,<1.22
 - pip>=20.1,<=21
 - python=3.7.3
 - pytorch::pytorch=1.7.1

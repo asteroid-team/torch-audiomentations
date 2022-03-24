@@ -1,4 +1,4 @@
-numpy>=1.14,<1.18
+numpy>=1.14,<1.22
 scipy>=1.5.2
 torch==1.7.1
 torchaudio>=0.7.0
