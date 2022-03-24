@@ -53,7 +53,7 @@ class Mix(BaseWaveformTransform):
             self._mix_target = lambda target, background_target, snr: target
 
         elif mix_target == "union":
-            self._mix_target = lambda target, background_target, snr: torch.maximize(
+            self._mix_target = lambda target, background_target, snr: torch.maximum(
                 target, background_target
             )
 
