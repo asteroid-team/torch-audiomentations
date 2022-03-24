@@ -28,7 +28,7 @@ class TestGain(unittest.TestCase):
             * np.array([[[1.0, 0.5, -0.25, -0.125, 0.0]]], dtype=np.float32),
             decimal=6,
         )
-        self.assertEqual(processed_samples.dtype, np.float32)
+        assert processed_samples.dtype == np.float32
 
     def test_gain_per_channel(self):
         samples = np.array(

@@ -167,11 +167,11 @@ class Audio:
             if self.mono:
                 # librosa expects mono audio to be of shape (n,), but we have (1, n).
                 samples = librosa.core.resample(
-                    samples[0], sample_rate, self.sample_rate
+                    samples[0], orig_sr=sample_rate, target_sr=self.sample_rate
                 )[None]
             else:
                 samples = librosa.core.resample(
-                    samples.T, sample_rate, self.sample_rate
+                    samples.T, orig_sr=sample_rate, target_sr=self.sample_rate
                 ).T
 
             samples = torch.tensor(samples)
