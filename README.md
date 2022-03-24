@@ -197,6 +197,8 @@ classification. It was successfully applied in the paper
 
 ## Unreleased
 
+## [v0.10.1] - 2022-03-24
+
 ### Added
 
 * Add support for min SNR == max SNR in `AddBackgroundNoise`
