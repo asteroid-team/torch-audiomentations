@@ -86,7 +86,11 @@ class Compose(BaseCompose):
                 else:
                     # FIXME: add support for targets?
                     samples = self.transforms[i](samples)
-        return samples
+
+        if targets is None:
+            return samples
+        else:
+            return samples, targets
 
 
 class SomeOf(BaseCompose):
@@ -167,7 +171,11 @@ class SomeOf(BaseCompose):
                 else:
                     # FIXME: add support for targets?
                     samples = self.transforms[i](samples)
-        return samples
+
+        if targets is None:
+            return samples
+        else:
+            return samples, targets
 
 
 class OneOf(SomeOf):
