@@ -141,10 +141,10 @@ class BaseWaveformTransform(torch.nn.Module):
         if sample_rate is None and self.is_sample_rate_required():
             raise RuntimeError("sample_rate is required")
 
-        if self.is_targets_required():
+        if targets is None and self.is_targets_required():
+            raise RuntimeError("targets is required")
 
-            if targets is None:
-                raise RuntimeError("targets is required")
+        if targets is not None:
 
             if len(targets.shape) != 4:
                 raise RuntimeError(
