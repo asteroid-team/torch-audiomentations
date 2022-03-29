@@ -4,22 +4,20 @@ import warnings
 from torch_audiomentations.utils.multichannel import is_multichannel
 from ..core.transforms_interface import MultichannelAudioNotSupportedException
 
+
 class RandomCrop(torch.nn.Module):
+
+    """Crop the audio to predefined length in seconds."""
 
     supports_multichannel = True
 
-    def __init__(
-        self,
-        seconds: float,
-        sampling_rate: int
-    ):
-        super(RandomCrop,self).__init__()
+    def __init__(self, seconds: float, sampling_rate: int):
+        super(RandomCrop, self).__init__()
         self.sampling_rate = sampling_rate
         self.num_samples = int(self.sampling_rate * seconds)
 
-    
     def forward(self, samples, sampling_rate: typing.Optional[int] = None):
-        
+
         sample_rate = sampling_rate or self.sampling_rate
         if sample_rate is None:
             raise RuntimeError("sample_rate is required")
@@ -51,22 +49,20 @@ class RandomCrop(torch.nn.Module):
                     )
                 )
 
-
         if samples.shape[2] < self.num_samples:
             warnings.warn("audio length less than cropping length")
             return samples
-            
-        
-        start_indices = torch.randint(0,samples.shape[2] - self.num_samples,(samples.shape[2],))
-        samples_cropped = torch.empty((samples.shape[0],samples.shape[1],self.num_samples))
-        for i,sample in enumerate(samples):
-            
-            samples_cropped[i] = sample.unsqueeze(0)[:,:,start_indices[i]:start_indices[i]+self.num_samples]
-        
+
+        start_indices = torch.randint(
+            0, samples.shape[2] - self.num_samples, (samples.shape[2],)
+        )
+        samples_cropped = torch.empty(
+            (samples.shape[0], samples.shape[1], self.num_samples)
+        )
+        for i, sample in enumerate(samples):
+
+            samples_cropped[i] = sample.unsqueeze(0)[
+                :, :, start_indices[i] : start_indices[i] + self.num_samples
+            ]
+
         return samples_cropped
-
-
-
-
-
-
