@@ -1,6 +1,9 @@
 import torch
+from torch import Tensor
+from typing import Optional
 
 from ..core.transforms_interface import BaseWaveformTransform
+from ..utils.object_dict import ObjectDict
 
 
 class TimeInversion(BaseWaveformTransform):
@@ -12,8 +15,13 @@ class TimeInversion(BaseWaveformTransform):
     https://arxiv.org/pdf/2106.13043.pdf
     """
 
+    supported_modes = {"per_batch", "per_example", "per_channel"}
+
     supports_multichannel = True
     requires_sample_rate = False
+
+    supports_target = True
+    requires_target = False
 
     def __init__(
         self,
@@ -39,11 +47,11 @@ class TimeInversion(BaseWaveformTransform):
 
     def apply_transform(
         self,
-        selected_samples: torch.Tensor,
-        sample_rate: int = None,
-        targets: torch.Tensor = None,
-        target_rate: int = None,
-    ):
+        samples: Tensor = None,
+        sample_rate: Optional[int] = None,
+        targets: Optional[Tensor] = None,
+        target_rate: Optional[int] = None,
+    ) -> ObjectDict:
 
         # torch.flip() is supposed to be slower than np.flip()
         # An alternative is to use advanced indexing: https://github.com/pytorch/pytorch/issues/16424
@@ -51,10 +59,15 @@ class TimeInversion(BaseWaveformTransform):
         # transformed_samples = selected_samples[..., reverse_index]
         # return transformed_samples
 
-        flipped_samples = torch.flip(selected_samples, dims=(-1,))
+        flipped_samples = torch.flip(samples, dims=(-1,))
         if targets is None:
             flipped_targets = targets
         else:
             flipped_targets = torch.flip(targets, dims=(-2,))
 
-        return flipped_samples, flipped_targets
+        return ObjectDict(
+            samples=flipped_samples,
+            sample_rate=sample_rate,
+            targets=flipped_targets,
+            target_rate=target_rate,
+        )

@@ -23,21 +23,27 @@ class TestSomeOf(unittest.TestCase):
         augment = SomeOf(2, self.transforms)
 
         self.assertEqual(len(augment.transform_indexes), 0)  # no transforms applied yet
-        processed_samples = augment(samples=self.audio, sample_rate=self.sample_rate)
+        processed_samples = augment(
+            samples=self.audio, sample_rate=self.sample_rate
+        ).samples
         self.assertEqual(len(augment.transform_indexes), 2)  # 2 transforms applied
 
     def test_someof_with_p_zero(self):
         augment = SomeOf(2, self.transforms, p=0.0)
 
         self.assertEqual(len(augment.transform_indexes), 0)  # no transforms applied yet
-        processed_samples = augment(samples=self.audio, sample_rate=self.sample_rate)
+        processed_samples = augment(
+            samples=self.audio, sample_rate=self.sample_rate
+        ).samples
         self.assertEqual(len(augment.transform_indexes), 0)  # 0 transforms applied
 
     def test_someof_tuple(self):
         augment = SomeOf((1, None), self.transforms)
 
         self.assertEqual(len(augment.transform_indexes), 0)  # no transforms applied yet
-        processed_samples = augment(samples=self.audio, sample_rate=self.sample_rate)
+        processed_samples = augment(
+            samples=self.audio, sample_rate=self.sample_rate
+        ).samples
         self.assertTrue(
             len(augment.transform_indexes) > 0
         )  # at least one transform applied
@@ -51,7 +57,7 @@ class TestSomeOf(unittest.TestCase):
         self.assertEqual(len(augment.transform_indexes), 0)  # no transforms applied yet
         processed_samples1 = augment(
             samples=samples, sample_rate=self.sample_rate
-        ).numpy()
+        ).samples.numpy()
         transform_indexes1 = augment.transform_indexes
         self.assertEqual(len(augment.transform_indexes), 2)
 
@@ -59,7 +65,7 @@ class TestSomeOf(unittest.TestCase):
 
         processed_samples2 = augment(
             samples=samples, sample_rate=self.sample_rate
-        ).numpy()
+        ).samples.numpy()
         transform_indexes2 = augment.transform_indexes
         assert_array_equal(processed_samples1, processed_samples2)
         assert_array_equal(transform_indexes1, transform_indexes2)

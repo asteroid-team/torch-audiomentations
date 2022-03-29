@@ -1,13 +1,15 @@
 import random
 from pathlib import Path
-from typing import Union, List
+from typing import Union, List, Optional
 
 import torch
+from torch import Tensor
 
 from ..core.transforms_interface import BaseWaveformTransform, EmptyPathException
 from ..utils.dsp import calculate_rms
 from ..utils.file import find_audio_files
 from ..utils.io import Audio
+from ..utils.object_dict import ObjectDict
 
 
 class AddBackgroundNoise(BaseWaveformTransform):
@@ -15,10 +17,15 @@ class AddBackgroundNoise(BaseWaveformTransform):
     Add background noise to the input audio.
     """
 
+    supported_modes = {"per_batch", "per_example", "per_channel"}
+
     # Note: This transform has only partial support for multichannel audio. Noises that are not
     # mono get mixed down to mono before they are added to all channels in the input.
     supports_multichannel = True
     requires_sample_rate = True
+
+    supports_target = True
+    requires_target = False
 
     def __init__(
         self,
@@ -102,17 +109,17 @@ class AddBackgroundNoise(BaseWaveformTransform):
 
     def randomize_parameters(
         self,
-        selected_samples: torch.Tensor,
-        sample_rate: int = None,
-        targets: torch.Tensor = None,
-        target_rate: int = None,
+        samples: Tensor = None,
+        sample_rate: Optional[int] = None,
+        targets: Optional[Tensor] = None,
+        target_rate: Optional[int] = None,
     ):
         """
 
-        :params selected_samples: (batch_size, num_channels, num_samples)
+        :params samples: (batch_size, num_channels, num_samples)
         """
 
-        batch_size, _, num_samples = selected_samples.shape
+        batch_size, _, num_samples = samples.shape
 
         # (batch_size, num_samples) RMS-normalized background noise
         audio = self.audio if hasattr(self, "audio") else Audio(sample_rate, mono=True)
@@ -126,19 +133,15 @@ class AddBackgroundNoise(BaseWaveformTransform):
                 size=(batch_size,),
                 fill_value=self.min_snr_in_db,
                 dtype=torch.float32,
-                device=selected_samples.device,
+                device=samples.device,
             )
         else:
             snr_distribution = torch.distributions.Uniform(
                 low=torch.tensor(
-                    self.min_snr_in_db,
-                    dtype=torch.float32,
-                    device=selected_samples.device,
+                    self.min_snr_in_db, dtype=torch.float32, device=samples.device,
                 ),
                 high=torch.tensor(
-                    self.max_snr_in_db,
-                    dtype=torch.float32,
-                    device=selected_samples.device,
+                    self.max_snr_in_db, dtype=torch.float32, device=samples.device,
                 ),
                 validate_args=True,
             )
@@ -148,24 +151,26 @@ class AddBackgroundNoise(BaseWaveformTransform):
 
     def apply_transform(
         self,
-        selected_samples: torch.Tensor,
-        sample_rate: int = None,
-        targets: torch.Tensor = None,
-        target_rate: int = None,
-    ):
-        batch_size, num_channels, num_samples = selected_samples.shape
+        samples: Tensor = None,
+        sample_rate: Optional[int] = None,
+        targets: Optional[Tensor] = None,
+        target_rate: Optional[int] = None,
+    ) -> ObjectDict:
+        batch_size, num_channels, num_samples = samples.shape
 
         # (batch_size, num_samples)
-        background = self.transform_parameters["background"].to(selected_samples.device)
+        background = self.transform_parameters["background"].to(samples.device)
 
         # (batch_size, num_channels)
-        background_rms = calculate_rms(selected_samples) / (
+        background_rms = calculate_rms(samples) / (
             10 ** (self.transform_parameters["snr_in_db"].unsqueeze(dim=-1) / 20)
         )
 
-        return (
-            selected_samples
+        return ObjectDict(
+            samples=samples
             + background_rms.unsqueeze(-1)
             * background.view(batch_size, 1, num_samples).expand(-1, num_channels, -1),
-            targets,
+            sample_rate=sample_rate,
+            targets=targets,
+            target_rate=target_rate,
         )

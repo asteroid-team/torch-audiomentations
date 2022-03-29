@@ -65,7 +65,7 @@ def test_transform_is_differentiable(augment):
     optim = SGD([samples], lr=1.0)
     for i in range(10):
         optim.zero_grad()
-        transformed = augment(samples=samples, sample_rate=sample_rate)
+        transformed = augment(samples=samples, sample_rate=sample_rate).samples
         # Compute mean absolute error
         loss = torch.mean(torch.abs(samples - transformed))
         loss.backward()

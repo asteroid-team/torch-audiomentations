@@ -1,6 +1,7 @@
 import random
 from pathlib import Path
-from typing import Union, List
+from typing import Union, List, Optional
+from torch import Tensor
 
 import torch
 from torch.nn.utils.rnn import pad_sequence
@@ -9,6 +10,7 @@ from ..core.transforms_interface import BaseWaveformTransform, EmptyPathExceptio
 from ..utils.convolution import convolve
 from ..utils.file import find_audio_files
 from ..utils.io import Audio
+from ..utils.object_dict import ObjectDict
 
 
 class ApplyImpulseResponse(BaseWaveformTransform):
@@ -16,10 +18,15 @@ class ApplyImpulseResponse(BaseWaveformTransform):
     Convolve the given audio with impulse responses.
     """
 
+    supported_modes = {"per_batch", "per_example", "per_channel"}
+
     # Note: This transform has only partial support for multichannel audio. IRs that are not
     # mono get mixed down to mono before they are convolved with all channels in the input.
     supports_multichannel = True
     requires_sample_rate = True
+
+    supports_target = False  # FIXME: some work is needed to support targets (see FIXMEs in apply_transform)
+    requires_target = False
 
     def __init__(
         self,
@@ -72,13 +79,13 @@ class ApplyImpulseResponse(BaseWaveformTransform):
 
     def randomize_parameters(
         self,
-        selected_samples: torch.Tensor,
-        sample_rate: int = None,
-        targets: torch.Tensor = None,
-        target_rate: int = None,
+        samples: Tensor = None,
+        sample_rate: Optional[int] = None,
+        targets: Optional[Tensor] = None,
+        target_rate: Optional[int] = None,
     ):
 
-        batch_size, _, _ = selected_samples.shape
+        batch_size, _, _ = samples.shape
 
         audio = self.audio if hasattr(self, "audio") else Audio(sample_rate, mono=True)
 
@@ -94,19 +101,19 @@ class ApplyImpulseResponse(BaseWaveformTransform):
 
     def apply_transform(
         self,
-        selected_samples: torch.Tensor,
-        sample_rate: int = None,
-        targets: torch.Tensor = None,
-        target_rate: int = None,
-    ):
+        samples: Tensor = None,
+        sample_rate: Optional[int] = None,
+        targets: Optional[Tensor] = None,
+        target_rate: Optional[int] = None,
+    ) -> ObjectDict:
 
-        batch_size, num_channels, num_samples = selected_samples.shape
+        batch_size, num_channels, num_samples = samples.shape
 
         # (batch_size, 1, max_ir_length)
-        ir = self.transform_parameters["ir"].to(selected_samples.device)
+        ir = self.transform_parameters["ir"].to(samples.device)
 
         convolved_samples = convolve(
-            selected_samples, ir.expand(-1, num_channels, -1), mode=self.convolve_mode
+            samples, ir.expand(-1, num_channels, -1), mode=self.convolve_mode
         )
 
         if self.compensate_for_propagation_delay:
@@ -123,9 +130,18 @@ class ApplyImpulseResponse(BaseWaveformTransform):
                 dim=0,
             )
 
-            # FIXME should we compensate targets as well?
-            return convolved_samples, targets
+            return ObjectDict(
+                samples=convolved_samples,
+                sample_rate=sample_rate,
+                targets=targets,  # FIXME compensate targets as well?
+                target_rate=target_rate,
+            )
 
         else:
-            # FIXME should we strip targets as well?
-            return convolved_samples[..., :num_samples], targets
+            return ObjectDict(
+                samples=convolved_samples[..., :num_samples],
+                sample_rate=sample_rate,
+                targets=targets,  # FIXME crop targets as well?
+                target_rate=target_rate,
+            )
+

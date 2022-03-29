@@ -12,7 +12,7 @@ class TestTimeInversion(unittest.TestCase):
 
     def test_single_channel(self):
         samples = self.samples.unsqueeze(0).unsqueeze(0)  # (B, C, T): (1, 1, 100)
-        processed_samples = self.augment(samples=samples, sample_rate=16000)
+        processed_samples = self.augment(samples=samples, sample_rate=16000).samples
 
         self.assertEqual(processed_samples.shape, samples.shape)
         self.assertTrue(
@@ -25,7 +25,7 @@ class TestTimeInversion(unittest.TestCase):
         samples = torch.stack([self.samples, self.samples], dim=0).unsqueeze(
             0
         )  # (B, C, T): (1, 2, 100)
-        processed_samples = self.augment(samples=samples, sample_rate=16000)
+        processed_samples = self.augment(samples=samples, sample_rate=16000).samples
 
         self.assertEqual(processed_samples.shape, samples.shape)
         self.assertTrue(

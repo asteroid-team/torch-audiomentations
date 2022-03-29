@@ -1,7 +1,9 @@
 import torch
-import typing
+from typing import Optional
+from torch import Tensor
 
 from ..core.transforms_interface import BaseWaveformTransform
+from ..utils.object_dict import ObjectDict
 
 
 def shift_gpu(tensor: torch.Tensor, r: torch.Tensor, rollover: bool = False):
@@ -51,6 +53,14 @@ class Shift(BaseWaveformTransform):
     Shift the audio forwards or backwards, with or without rollover
     """
 
+    supported_modes = {"per_batch", "per_example", "per_channel"}
+
+    supports_multichannel = True
+    requires_sample_rate = True
+
+    supports_target = False  # FIXME: some work is needed to support targets (see FIXMEs in apply_transform)
+    requires_target = False
+
     def __init__(
         self,
         min_shift: float = -0.5,
@@ -59,9 +69,9 @@ class Shift(BaseWaveformTransform):
         rollover: bool = True,
         mode: str = "per_example",
         p: float = 0.5,
-        p_mode: typing.Optional[str] = None,
-        sample_rate: typing.Optional[int] = None,
-        target_rate: typing.Optional[int] = None,
+        p_mode: Optional[str] = None,
+        sample_rate: Optional[int] = None,
+        target_rate: Optional[int] = None,
     ):
         """
 
@@ -99,18 +109,18 @@ class Shift(BaseWaveformTransform):
 
     def randomize_parameters(
         self,
-        selected_samples: torch.Tensor,
-        sample_rate: int = None,
-        targets: torch.Tensor = None,
-        target_rate: int = None,
+        samples: Tensor = None,
+        sample_rate: Optional[int] = None,
+        targets: Optional[Tensor] = None,
+        target_rate: Optional[int] = None,
     ):
         if self.shift_unit == "samples":
             min_shift_in_samples = self.min_shift
             max_shift_in_samples = self.max_shift
 
         elif self.shift_unit == "fraction":
-            min_shift_in_samples = int(round(self.min_shift * selected_samples.shape[-1]))
-            max_shift_in_samples = int(round(self.max_shift * selected_samples.shape[-1]))
+            min_shift_in_samples = int(round(self.min_shift * samples.shape[-1]))
+            max_shift_in_samples = int(round(self.max_shift * samples.shape[-1]))
 
         elif self.shift_unit == "seconds":
             min_shift_in_samples = int(round(self.min_shift * sample_rate))
@@ -129,13 +139,13 @@ class Shift(BaseWaveformTransform):
             <= max_shift_in_samples
             <= torch.iinfo(torch.int32).max
         )
-        selected_batch_size = selected_samples.size(0)
+        selected_batch_size = samples.size(0)
         if min_shift_in_samples == max_shift_in_samples:
             self.transform_parameters["num_samples_to_shift"] = torch.full(
                 size=(selected_batch_size,),
                 fill_value=min_shift_in_samples,
                 dtype=torch.int32,
-                device=selected_samples.device,
+                device=samples.device,
             )
 
         else:
@@ -144,28 +154,27 @@ class Shift(BaseWaveformTransform):
                 high=max_shift_in_samples + 1,
                 size=(selected_batch_size,),
                 dtype=torch.int32,
-                device=selected_samples.device,
+                device=samples.device,
             )
 
     def apply_transform(
         self,
-        selected_samples: torch.Tensor,
-        sample_rate: int = None,
-        targets: torch.Tensor = None,
-        target_rate: int = None,
-    ):
+        samples: Tensor = None,
+        sample_rate: Optional[int] = None,
+        targets: Optional[Tensor] = None,
+        target_rate: Optional[int] = None,
+    ) -> ObjectDict:
 
         num_samples_to_shift = self.transform_parameters["num_samples_to_shift"]
 
         # Select fastest implementation based on device
-        shift = shift_gpu if selected_samples.device.type == "cuda" else shift_cpu
-        shifted_samples = shift(selected_samples, num_samples_to_shift, self.rollover)
+        shift = shift_gpu if samples.device.type == "cuda" else shift_cpu
+        shifted_samples = shift(samples, num_samples_to_shift, self.rollover)
 
-        if targets is None:
+        if targets is None or target_rate == 0:
             shifted_targets = targets
+
         else:
-            # FIXME corner case where target_rate is missing
-            # FIXME corner case where target is not correlated with the input length
             num_frames_to_shift = int(
                 round(target_rate * num_samples_to_shift / sample_rate)
             )
@@ -173,12 +182,13 @@ class Shift(BaseWaveformTransform):
                 targets.transpose(-2, -1), num_frames_to_shift, self.rollover
             ).transpose(-2, -1)
 
-        return shifted_samples, shifted_targets
+        return ObjectDict(
+            samples=shifted_samples,
+            sample_rate=sample_rate,
+            targets=shifted_targets,
+            target_rate=target_rate,
+        )
 
     def is_sample_rate_required(self) -> bool:
         # Sample rate is required only if shift_unit is "seconds"
         return self.shift_unit == "seconds"
-
-    def is_target_rate_required(self) -> bool:
-        # FIXME should be True only when targets is passed to apply_transform
-        return self.requires_target_rate

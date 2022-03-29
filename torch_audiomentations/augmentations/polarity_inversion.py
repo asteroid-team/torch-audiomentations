@@ -1,7 +1,8 @@
-import typing
-import torch
+from torch import Tensor
+from typing import Optional
 
 from ..core.transforms_interface import BaseWaveformTransform
+from ..utils.object_dict import ObjectDict
 
 
 class PolarityInversion(BaseWaveformTransform):
@@ -15,16 +16,21 @@ class PolarityInversion(BaseWaveformTransform):
     training phase-aware machine learning models.
     """
 
+    supported_modes = {"per_batch", "per_example", "per_channel"}
+
     supports_multichannel = True
     requires_sample_rate = False
+
+    supports_target = True
+    requires_target = False
 
     def __init__(
         self,
         mode: str = "per_example",
         p: float = 0.5,
-        p_mode: typing.Optional[str] = None,
-        sample_rate: typing.Optional[int] = None,
-        target_rate: typing.Optional[int] = None,
+        p_mode: Optional[str] = None,
+        sample_rate: Optional[int] = None,
+        target_rate: Optional[int] = None,
     ):
         super().__init__(
             mode=mode,
@@ -36,9 +42,16 @@ class PolarityInversion(BaseWaveformTransform):
 
     def apply_transform(
         self,
-        selected_samples: torch.Tensor,
-        sample_rate: int = None,
-        targets: torch.Tensor = None,
-        target_rate: int = None,
-    ):
-        return -selected_samples, targets
+        samples: Tensor = None,
+        sample_rate: Optional[int] = None,
+        targets: Optional[Tensor] = None,
+        target_rate: Optional[int] = None,
+    ) -> ObjectDict:
+
+        return ObjectDict(
+            samples=-samples,
+            sample_rate=sample_rate,
+            targets=targets,
+            target_rate=target_rate,
+        )
+

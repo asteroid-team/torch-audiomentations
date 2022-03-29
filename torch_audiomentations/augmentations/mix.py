@@ -1,9 +1,11 @@
 from typing import Optional
 import torch
+from torch import Tensor
 
 from ..core.transforms_interface import BaseWaveformTransform
 from ..utils.dsp import calculate_rms
 from ..utils.io import Audio
+from ..utils.object_dict import ObjectDict
 
 
 class Mix(BaseWaveformTransform):
@@ -19,11 +21,13 @@ class Mix(BaseWaveformTransform):
 
     """
 
-    supports_multichannel = True
     supported_modes = {"per_example", "per_channel"}
+
+    supports_multichannel = True
     requires_sample_rate = False
-    requires_targets = False
-    requires_target_rate = False
+
+    supports_target = True
+    requires_target = False
 
     def __init__(
         self,
@@ -62,19 +66,19 @@ class Mix(BaseWaveformTransform):
 
     def randomize_parameters(
         self,
-        selected_samples,
+        samples: Tensor = None,
         sample_rate: Optional[int] = None,
-        targets=None,
+        targets: Optional[Tensor] = None,
         target_rate: Optional[int] = None,
     ):
 
-        batch_size, num_channels, num_samples = selected_samples.shape
+        batch_size, num_channels, num_samples = samples.shape
         snr_distribution = torch.distributions.Uniform(
             low=torch.tensor(
-                self.min_snr_in_db, dtype=torch.float32, device=selected_samples.device,
+                self.min_snr_in_db, dtype=torch.float32, device=samples.device,
             ),
             high=torch.tensor(
-                self.max_snr_in_db, dtype=torch.float32, device=selected_samples.device,
+                self.max_snr_in_db, dtype=torch.float32, device=samples.device,
             ),
             validate_args=True,
         )
@@ -86,31 +90,35 @@ class Mix(BaseWaveformTransform):
 
         # randomize index of second sample
         self.transform_parameters["sample_idx"] = torch.randint(
-            0, batch_size, (batch_size,), device=selected_samples.device,
+            0, batch_size, (batch_size,), device=samples.device,
         )
 
     def apply_transform(
         self,
-        selected_samples: torch.Tensor,
-        sample_rate: int = None,
-        targets: torch.Tensor = None,
-        target_rate: int = None,
-    ):
+        samples: Tensor = None,
+        sample_rate: Optional[int] = None,
+        targets: Optional[Tensor] = None,
+        target_rate: Optional[int] = None,
+    ) -> ObjectDict:
 
         snr = self.transform_parameters["snr_in_db"]
         idx = self.transform_parameters["sample_idx"]
 
-        background_samples = Audio.rms_normalize(selected_samples[idx])
-        background_rms = calculate_rms(selected_samples) / (
-            10 ** (snr.unsqueeze(dim=-1) / 20)
-        )
+        background_samples = Audio.rms_normalize(samples[idx])
+        background_rms = calculate_rms(samples) / (10 ** (snr.unsqueeze(dim=-1) / 20))
 
-        perturbed_samples = (
-            selected_samples + background_rms.unsqueeze(-1) * background_samples
-        )
+        mixed_samples = samples + background_rms.unsqueeze(-1) * background_samples
+
         if targets is None:
-            return perturbed_samples
+            mixed_targets = None
 
-        background_targets = targets[idx]
-        perturbed_targets = self._mix_target(targets, background_targets, snr)
-        return perturbed_samples, perturbed_targets
+        else:
+            background_targets = targets[idx]
+            mixed_targets = self._mix_target(targets, background_targets, snr)
+
+        return ObjectDict(
+            samples=mixed_samples,
+            sample_rate=sample_rate,
+            targets=mixed_targets,
+            target_rate=target_rate,
+        )

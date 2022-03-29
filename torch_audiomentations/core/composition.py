@@ -1,10 +1,11 @@
 import random
-from typing import List
+from typing import List, Union, Optional, Tuple
 
-import torch
-import typing
+from torch import Tensor
+import torch.nn
 
 from torch_audiomentations.core.transforms_interface import BaseWaveformTransform
+from torch_audiomentations.utils.object_dict import ObjectDict
 
 
 class BaseCompose(torch.nn.Module):
@@ -12,7 +13,9 @@ class BaseCompose(torch.nn.Module):
 
     def __init__(
         self,
-        transforms: List[torch.nn.Module],
+        transforms: List[
+            torch.nn.Module
+        ],  # FIXME: do we really want to support regular nn.Module?
         shuffle: bool = False,
         p: float = 1.0,
         p_mode="per_batch",
@@ -65,32 +68,34 @@ class BaseCompose(torch.nn.Module):
 class Compose(BaseCompose):
     def forward(
         self,
-        samples,
-        sample_rate: typing.Optional[int] = None,
-        targets=None,
-        target_rate: typing.Optional[int] = None,
-    ):
+        samples: Tensor = None,
+        sample_rate: Optional[int] = None,
+        targets: Optional[Tensor] = None,
+        target_rate: Optional[int] = None,
+    ) -> ObjectDict:
+
+        inputs = ObjectDict(
+            samples=samples,
+            sample_rate=sample_rate,
+            targets=targets,
+            target_rate=target_rate,
+        )
+
         if random.random() < self.p:
             transform_indexes = list(range(len(self.transforms)))
             if self.shuffle:
                 random.shuffle(transform_indexes)
             for i in transform_indexes:
                 tfm = self.transforms[i]
-                if isinstance(tfm, BaseWaveformTransform):
-                    if targets is None:
-                        samples = self.transforms[i](samples, sample_rate)
-                    else:
-                        samples, targets = self.transforms[i](
-                            samples, sample_rate, targets=targets, target_rate=target_rate
-                        )
-                else:
-                    # FIXME: add support for targets?
-                    samples = self.transforms[i](samples)
+                if isinstance(tfm, (BaseWaveformTransform, BaseCompose)):
+                    inputs = self.transforms[i](**inputs)
 
-        if targets is None:
-            return samples
-        else:
-            return samples, targets
+                else:
+                    assert isinstance(tfm, torch.nn.Module)
+                    # FIXME: do we really want to support regular nn.Module?
+                    inputs.samples = self.transforms[i](inputs.samples)
+
+        return inputs
 
 
 class SomeOf(BaseCompose):
@@ -112,7 +117,7 @@ class SomeOf(BaseCompose):
 
     def __init__(
         self,
-        num_transforms: typing.Union[int, typing.Tuple[int, int]],
+        num_transforms: Union[int, Tuple[int, int]],
         transforms: List[torch.nn.Module],
         p: float = 1.0,
         p_mode="per_batch",
@@ -149,11 +154,19 @@ class SomeOf(BaseCompose):
 
     def forward(
         self,
-        samples,
-        sample_rate: typing.Optional[int] = None,
-        targets=None,
-        target_rate: typing.Optional[int] = None,
-    ):
+        samples: Tensor = None,
+        sample_rate: Optional[int] = None,
+        targets: Optional[Tensor] = None,
+        target_rate: Optional[int] = None,
+    ) -> ObjectDict:
+
+        inputs = ObjectDict(
+            samples=samples,
+            sample_rate=sample_rate,
+            targets=targets,
+            target_rate=target_rate,
+        )
+
         if random.random() < self.p:
 
             if not self.are_parameters_frozen:
@@ -161,21 +174,15 @@ class SomeOf(BaseCompose):
 
             for i in self.transform_indexes:
                 tfm = self.transforms[i]
-                if isinstance(tfm, BaseWaveformTransform):
-                    if targets is None:
-                        samples = self.transforms[i](samples, sample_rate)
-                    else:
-                        samples, targets = self.transforms[i](
-                            samples, sample_rate, targets=targets, target_rate=target_rate
-                        )
-                else:
-                    # FIXME: add support for targets?
-                    samples = self.transforms[i](samples)
+                if isinstance(tfm, (BaseWaveformTransform, BaseCompose)):
+                    inputs = self.transforms[i](**inputs)
 
-        if targets is None:
-            return samples
-        else:
-            return samples, targets
+                else:
+                    assert isinstance(tfm, torch.nn.Module)
+                    # FIXME: do we really want to support regular nn.Module?
+                    inputs.samples = self.transforms[i](inputs.samples)
+
+        return inputs
 
 
 class OneOf(SomeOf):

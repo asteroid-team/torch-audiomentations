@@ -1,15 +1,14 @@
-import torch
+from torch import Tensor
+from typing import Optional
 
 from ..augmentations.low_pass_filter import LowPassFilter
+from ..utils.object_dict import ObjectDict
 
 
 class HighPassFilter(LowPassFilter):
     """
     Apply high-pass filtering to the input audio.
     """
-
-    supports_multichannel = True
-    requires_sample_rate = True
 
     def __init__(
         self,
@@ -43,15 +42,18 @@ class HighPassFilter(LowPassFilter):
 
     def apply_transform(
         self,
-        selected_samples: torch.Tensor,
-        sample_rate: int = None,
-        targets: torch.Tensor = None,
-        target_rate: int = None,
-    ):
-        low_pass_filtered_samples, low_pass_filtered_targets = super().apply_transform(
-            selected_samples.clone(),
-            sample_rate,
+        samples: Tensor = None,
+        sample_rate: Optional[int] = None,
+        targets: Optional[Tensor] = None,
+        target_rate: Optional[int] = None,
+    ) -> ObjectDict:
+
+        perturbed = super().apply_transform(
+            samples=samples.clone(),
+            sample_rate=sample_rate,
             targets=targets.clone() if targets is not None else None,
             target_rate=target_rate,
         )
-        return selected_samples - low_pass_filtered_samples, low_pass_filtered_targets
+
+        perturbed.samples = samples - perturbed.samples
+        return perturbed

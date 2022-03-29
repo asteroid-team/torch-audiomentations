@@ -1,10 +1,12 @@
 import warnings
 
 import torch
-import typing
+from torch import Tensor
+from typing import Optional
 from torch.distributions import Bernoulli
 
 from torch_audiomentations.utils.multichannel import is_multichannel
+from torch_audiomentations.utils.object_dict import ObjectDict
 
 
 class MultichannelAudioNotSupportedException(Exception):
@@ -21,19 +23,21 @@ class ModeNotSupportedException(Exception):
 
 class BaseWaveformTransform(torch.nn.Module):
 
-    supports_multichannel = True
     supported_modes = {"per_batch", "per_example", "per_channel"}
+
+    supports_multichannel = True
     requires_sample_rate = True
-    requires_targets = False
-    requires_target_rate = False
+
+    supports_target = True
+    requires_target = False
 
     def __init__(
         self,
         mode: str = "per_example",
         p: float = 0.5,
-        p_mode: typing.Optional[str] = None,
-        sample_rate: typing.Optional[int] = None,
-        target_rate: typing.Optional[int] = None,
+        p_mode: Optional[str] = None,
+        sample_rate: Optional[int] = None,
+        target_rate: Optional[int] = None,
     ):
         """
 
@@ -96,35 +100,41 @@ class BaseWaveformTransform(torch.nn.Module):
 
     def forward(
         self,
-        samples,
-        sample_rate: typing.Optional[int] = None,
-        targets=None,
-        target_rate: typing.Optional[int] = None,
-    ):
+        samples: Tensor = None,
+        sample_rate: Optional[int] = None,
+        targets: Optional[Tensor] = None,
+        target_rate: Optional[int] = None,
+        # TODO: add support for additional **kwargs (batch_size, ...)-shaped tensors
+        # TODO: but do that only when we actually have a use case for it...
+    ) -> ObjectDict:
 
         if not self.training:
-            if targets is None:
-                return samples
-            else:
-                return samples, targets
-
-        if len(samples) == 0:
-            warnings.warn(
-                "An empty samples tensor was passed to {}".format(self.__class__.__name__)
+            return ObjectDict(
+                samples=samples,
+                sample_rate=sample_rate,
+                targets=targets,
+                target_rate=target_rate,
             )
-            if targets is None:
-                return samples
-            else:
-                return samples, targets
 
-        if len(samples.shape) != 3:
+        if not isinstance(samples, Tensor) or len(samples.shape) != 3:
             raise RuntimeError(
-                "torch-audiomentations expects input tensors to be three-dimensional, with"
+                "torch-audiomentations expects three-dimensional input tensors, with"
                 " dimension ordering like [batch_size, num_channels, num_samples]. If your"
                 " audio is mono, you can use a shape like [batch_size, 1, num_samples]."
             )
 
         batch_size, num_channels, num_samples = samples.shape
+
+        if batch_size * num_channels * num_samples == 0:
+            warnings.warn(
+                "An empty samples tensor was passed to {}".format(self.__class__.__name__)
+            )
+            return ObjectDict(
+                samples=samples,
+                sample_rate=sample_rate,
+                targets=targets,
+                target_rate=target_rate,
+            )
 
         if is_multichannel(samples):
             if num_channels > num_samples:
@@ -133,6 +143,7 @@ class BaseWaveformTransform(torch.nn.Module):
                     " other words, the shape must be (batch size, channels, samples), not"
                     " (batch_size, samples, channels)"
                 )
+
             if not self.supports_multichannel:
                 raise MultichannelAudioNotSupportedException(
                     "{} only supports mono audio, not multichannel audio".format(
@@ -144,34 +155,54 @@ class BaseWaveformTransform(torch.nn.Module):
         if sample_rate is None and self.is_sample_rate_required():
             raise RuntimeError("sample_rate is required")
 
-        if targets is None and self.is_targets_required():
+        if targets is None and self.is_target_required():
             raise RuntimeError("targets is required")
 
-        if targets is not None:
+        has_targets = targets is not None
 
-            if len(targets.shape) != 4:
+        if has_targets and not self.supports_target:
+            warnings.warn(f"Targets are not (yet) supported by {self.__class__.__name__}")
+
+        if has_targets:
+
+            if not isinstance(targets, Tensor) or len(targets.shape) != 4:
+
                 raise RuntimeError(
-                    "torch-audiomentations expects target tensors to be four-dimensional, with"
+                    "torch-audiomentations expects four-dimensional target tensors, with"
                     " dimension ordering like [batch_size, num_channels, num_frames, num_classes]."
                     " If your target is binary, you can use a shape like [batch_size, num_channels, num_frames, 1]."
                     " If your target is for the whole channel, you can use a shape like [batch_size, num_channels, 1, num_classes]."
                 )
 
-            batch_size_, num_channels_, num_frames, num_classes = targets.shape
+            (
+                target_batch_size,
+                target_num_channels,
+                num_frames,
+                num_classes,
+            ) = targets.shape
 
-            if batch_size_ != batch_size:
+            if target_batch_size != batch_size:
                 raise RuntimeError(
-                    f"samples ({batch_size}) and target ({batch_size_}) batch sizes must be equal."
+                    f"samples ({batch_size}) and target ({target_batch_size}) batch sizes must be equal."
                 )
-            if num_channels != num_channels_:
+            if num_channels != target_num_channels:
                 raise RuntimeError(
-                    f"samples ({num_channels}) and target ({num_channels_}) number of channels must be equal."
+                    f"samples ({num_channels}) and target ({target_num_channels}) number of channels must be equal."
                 )
 
             target_rate = target_rate or self.target_rate
-            if target_rate is None and self.is_target_rate_required():
-                # IDEA: automatically estimate target_rate based on samples, sample_rate, and targets
-                raise RuntimeError("target_rate is required")
+            if target_rate is None:
+                if num_frames > 1:
+                    target_rate = round(sample_rate * num_frames / num_samples)
+                    warnings.warn(
+                        f"target_rate is required by {self.__class__.__name__}. "
+                        f"It has been automatically inferred from targets shape to {target_rate}. "
+                        f"If this is incorrect, you can pass it directly."
+                    )
+                else:
+                    # corner case where num_frames == 1, meaning that the target is for the whole sample,
+                    # not frame-based. we arbitrarily set target_rate to 0.
+                    target_rate = 0
 
         if not self.are_parameters_frozen:
 
@@ -197,11 +228,11 @@ class BaseWaveformTransform(torch.nn.Module):
 
             cloned_samples = samples.clone()
 
-            if targets is None:
+            if has_targets:
+                cloned_targets = targets.clone()
+            else:
                 cloned_targets = None
                 selected_targets = None
-            else:
-                cloned_targets = targets.clone()
 
             if self.p_mode == "per_channel":
 
@@ -212,7 +243,7 @@ class BaseWaveformTransform(torch.nn.Module):
                     self.transform_parameters["should_apply"]
                 ]
 
-                if targets is not None:
+                if has_targets:
                     cloned_targets = cloned_targets.reshape(
                         batch_size * num_channels, 1, num_frames, num_classes
                     )
@@ -222,14 +253,14 @@ class BaseWaveformTransform(torch.nn.Module):
 
                 if not self.are_parameters_frozen:
                     self.randomize_parameters(
-                        selected_samples,
+                        samples=selected_samples,
                         sample_rate=sample_rate,
                         targets=selected_targets,
                         target_rate=target_rate,
                     )
 
-                perturbed_samples, perturbed_targets = self.apply_transform(
-                    selected_samples,
+                perturbed: ObjectDict = self.apply_transform(
+                    samples=selected_samples,
                     sample_rate=sample_rate,
                     targets=selected_targets,
                     target_rate=target_rate,
@@ -237,22 +268,25 @@ class BaseWaveformTransform(torch.nn.Module):
 
                 cloned_samples[
                     self.transform_parameters["should_apply"]
-                ] = perturbed_samples
+                ] = perturbed.samples
                 cloned_samples = cloned_samples.reshape(
                     batch_size, num_channels, num_samples
                 )
 
-                if targets is None:
-                    return cloned_samples
-
-                else:
+                if has_targets:
                     cloned_targets[
                         self.transform_parameters["should_apply"]
-                    ] = perturbed_targets
+                    ] = perturbed.targets
                     cloned_targets = cloned_targets.reshape(
                         batch_size, num_channels, num_frames, num_classes
                     )
-                    return cloned_samples, cloned_targets
+
+                return ObjectDict(
+                    samples=cloned_samples,
+                    sample_rate=perturbed.sample_rate,
+                    targets=cloned_targets,
+                    target_rate=perturbed.target_rate,
+                )
 
             elif self.p_mode == "per_example":
 
@@ -260,7 +294,7 @@ class BaseWaveformTransform(torch.nn.Module):
                     self.transform_parameters["should_apply"]
                 ]
 
-                if targets is not None:
+                if has_targets:
                     selected_targets = cloned_targets[
                         self.transform_parameters["should_apply"]
                     ]
@@ -269,14 +303,14 @@ class BaseWaveformTransform(torch.nn.Module):
 
                     if not self.are_parameters_frozen:
                         self.randomize_parameters(
-                            selected_samples,
-                            sample_rate,
+                            samples=selected_samples,
+                            sample_rate=sample_rate,
                             targets=selected_targets,
                             target_rate=target_rate,
                         )
 
-                    perturbed_samples, perturbed_targets = self.apply_transform(
-                        selected_samples,
+                    perturbed: ObjectDict = self.apply_transform(
+                        samples=selected_samples,
                         sample_rate=sample_rate,
                         targets=selected_targets,
                         target_rate=target_rate,
@@ -284,59 +318,83 @@ class BaseWaveformTransform(torch.nn.Module):
 
                     cloned_samples[
                         self.transform_parameters["should_apply"]
-                    ] = perturbed_samples
+                    ] = perturbed.samples
 
-                    if targets is None:
-                        return cloned_samples
-
-                    else:
+                    if has_targets:
                         cloned_targets[
                             self.transform_parameters["should_apply"]
-                        ] = perturbed_targets
-                        return cloned_samples, cloned_targets
+                        ] = perturbed.targets
+
+                    return ObjectDict(
+                        samples=cloned_samples,
+                        sample_rate=perturbed.sample_rate,
+                        targets=cloned_targets,
+                        target_rate=perturbed.target_rate,
+                    )
 
                 elif self.mode == "per_channel":
 
-                    b, c, s = selected_samples.shape
+                    (
+                        selected_batch_size,
+                        selected_num_channels,
+                        selected_num_samples,
+                    ) = selected_samples.shape
 
-                    selected_samples = selected_samples.reshape(b * c, 1, s)
+                    assert selected_num_samples == num_samples
 
-                    if targets is not None:
+                    selected_samples = selected_samples.reshape(
+                        selected_batch_size * selected_num_channels,
+                        1,
+                        selected_num_samples,
+                    )
+
+                    if has_targets:
                         selected_targets = selected_targets.reshape(
-                            b * c, 1, num_frames, num_classes
+                            selected_batch_size * selected_num_channels,
+                            1,
+                            num_frames,
+                            num_classes,
                         )
 
                     if not self.are_parameters_frozen:
                         self.randomize_parameters(
-                            selected_samples,
-                            sample_rate,
+                            samples=selected_samples,
+                            sample_rate=sample_rate,
                             targets=selected_targets,
                             target_rate=target_rate,
                         )
 
-                    perturbed_samples, perturbed_targets = self.apply_transform(
+                    perturbed: ObjectDict = self.apply_transform(
                         selected_samples,
                         sample_rate=sample_rate,
                         targets=selected_targets,
                         target_rate=target_rate,
                     )
 
-                    perturbed_samples = perturbed_samples.reshape(b, c, s)
+                    perturbed.samples = perturbed.samples.reshape(
+                        selected_batch_size, selected_num_channels, selected_num_samples
+                    )
                     cloned_samples[
                         self.transform_parameters["should_apply"]
-                    ] = perturbed_samples
+                    ] = perturbed.samples
 
-                    if targets is None:
-                        return cloned_samples
-
-                    else:
-                        perturbed_targets = perturbed_targets.reshape(
-                            b, c, num_frames, num_classes
+                    if has_targets:
+                        perturbed.targets = perturbed.targets.reshape(
+                            selected_batch_size,
+                            selected_num_channels,
+                            num_frames,
+                            num_classes,
                         )
                         cloned_targets[
                             self.transform_parameters["should_apply"]
-                        ] = perturbed_targets
-                        return cloned_samples, cloned_targets
+                        ] = perturbed.targets
+
+                    return ObjectDict(
+                        samples=cloned_samples,
+                        sample_rate=perturbed.sample_rate,
+                        targets=cloned_targets,
+                        target_rate=perturbed.target_rate,
+                    )
 
                 else:
                     raise Exception("Invalid mode/p_mode combination")
@@ -349,60 +407,54 @@ class BaseWaveformTransform(torch.nn.Module):
                         1, batch_size * num_channels, num_samples
                     )
 
-                    if targets is not None:
+                    if has_targets:
                         cloned_targets = cloned_targets.reshape(
                             1, batch_size * num_channels, num_frames, num_classes
                         )
 
                     if not self.are_parameters_frozen:
                         self.randomize_parameters(
-                            cloned_samples,
-                            sample_rate,
+                            samples=cloned_samples,
+                            sample_rate=sample_rate,
                             targets=cloned_targets,
                             target_rate=target_rate,
                         )
 
-                    perturbed_samples, perturbed_targets = self.apply_transform(
-                        cloned_samples,
-                        sample_rate,
+                    perturbed: ObjectDict = self.apply_transform(
+                        samples=cloned_samples,
+                        sample_rate=sample_rate,
                         targets=cloned_targets,
                         target_rate=target_rate,
                     )
-                    perturbed_samples = perturbed_samples.reshape(
+                    perturbed.samples = perturbed.samples.reshape(
                         batch_size, num_channels, num_samples
                     )
 
-                    if targets is None:
-                        return perturbed_samples
-
-                    else:
-                        perturbed_targets = perturbed_targets.reshape(
+                    if has_targets:
+                        perturbed.targets = perturbed.targets.reshape(
                             batch_size, num_channels, num_frames, num_classes
                         )
-                        return perturbed_samples, perturbed_targets
+
+                    return perturbed
 
                 elif self.mode == "per_example":
 
                     if not self.are_parameters_frozen:
                         self.randomize_parameters(
-                            cloned_samples,
-                            sample_rate,
+                            samples=cloned_samples,
+                            sample_rate=sample_rate,
                             targets=cloned_targets,
                             target_rate=target_rate,
                         )
 
-                    perturbed_samples, perturbed_targets = self.apply_transform(
-                        cloned_samples,
-                        sample_rate,
+                    perturbed = self.apply_transform(
+                        samples=cloned_samples,
+                        sample_rate=sample_rate,
                         targets=cloned_targets,
                         target_rate=target_rate,
                     )
 
-                    if targets is None:
-                        return perturbed_samples
-
-                    else:
-                        return perturbed_samples, perturbed_targets
+                    return perturbed
 
                 elif self.mode == "per_channel":
 
@@ -410,48 +462,49 @@ class BaseWaveformTransform(torch.nn.Module):
                         batch_size * num_channels, 1, num_samples
                     )
 
-                    if targets is not None:
+                    if has_targets:
                         cloned_targets = cloned_targets.reshape(
                             batch_size * num_channels, 1, num_frames, num_classes
                         )
 
                     if not self.are_parameters_frozen:
                         self.randomize_parameters(
-                            cloned_samples,
-                            sample_rate,
+                            samples=cloned_samples,
+                            sample_rate=sample_rate,
                             targets=cloned_targets,
                             target_rate=target_rate,
                         )
 
-                    perturbed_samples, perturbed_targets = self.apply_transform(
+                    perturbed: ObjectDict = self.apply_transform(
                         cloned_samples,
                         sample_rate,
                         targets=cloned_targets,
                         target_rate=target_rate,
                     )
 
-                    perturbed_samples = perturbed_samples.reshape(
+                    perturbed.samples = perturbed.samples.reshape(
                         batch_size, num_channels, num_samples
                     )
 
-                    if targets is None:
-                        return perturbed_samples
-
-                    else:
-                        perturbed_targets = perturbed_targets.reshape(
+                    if has_targets:
+                        perturbed.targets = perturbed.targets.reshape(
                             batch_size, num_channels, num_frames, num_classes
                         )
 
-                        return perturbed_samples, perturbed_targets
+                    return perturbed
+
                 else:
                     raise Exception("Invalid mode")
+
             else:
                 raise Exception("Invalid p_mode {}".format(self.p_mode))
 
-        if targets is None:
-            return samples
-        else:
-            return samples, targets
+        return ObjectDict(
+            samples=samples,
+            sample_rate=sample_rate,
+            targets=targets,
+            target_rate=target_rate,
+        )
 
     def _forward_unimplemented(self, *inputs) -> None:
         # Avoid IDE error message like "Class ... must implement all abstract methods"
@@ -460,20 +513,20 @@ class BaseWaveformTransform(torch.nn.Module):
 
     def randomize_parameters(
         self,
-        selected_samples,
-        sample_rate: typing.Optional[int] = None,
-        targets=None,
-        target_rate: typing.Optional[int] = None,
+        samples: Tensor = None,
+        sample_rate: Optional[int] = None,
+        targets: Optional[Tensor] = None,
+        target_rate: Optional[int] = None,
     ):
         pass
 
     def apply_transform(
         self,
-        selected_samples,
-        sample_rate: typing.Optional[int] = None,
-        targets=None,
-        target_rate: typing.Optional[int] = None,
-    ):
+        samples: Tensor = None,
+        sample_rate: Optional[int] = None,
+        targets: Optional[Tensor] = None,
+        target_rate: Optional[int] = None,
+    ) -> ObjectDict:
 
         raise NotImplementedError()
 
@@ -499,8 +552,5 @@ class BaseWaveformTransform(torch.nn.Module):
     def is_sample_rate_required(self) -> bool:
         return self.requires_sample_rate
 
-    def is_targets_required(self) -> bool:
-        return self.requires_targets
-
-    def is_target_rate_required(self) -> bool:
-        return self.requires_target_rate
+    def is_target_required(self) -> bool:
+        return self.requires_target
