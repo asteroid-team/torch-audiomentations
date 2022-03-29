@@ -53,8 +53,8 @@ class RandomCrop(torch.nn.Module):
 
 
         if samples.shape[2] < self.num_samples:
-            self.num_samples = samples.shape[2]
-            raise RuntimeWarning("audio length less than cropping length")
+            warnings.warn("audio length less than cropping length")
+            return samples
             
         
         start_indices = torch.randint(0,samples.shape[2] - self.num_samples,(samples.shape[2],))
