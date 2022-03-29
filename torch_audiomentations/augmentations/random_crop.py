@@ -7,9 +7,10 @@ class RandomCrop(torch.nn.Module):
 
     def __init__(
         self,
-        seconds: int,
+        seconds: float,
         sampling_rate: int
     ):
+        super(RandomCrop,self).__init__()
         self.sampling_rate = sampling_rate
         self.num_samples = self.sampling_rate * seconds
 
