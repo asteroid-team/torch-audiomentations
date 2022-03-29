@@ -6,7 +6,6 @@ from ..core.transforms_interface import MultichannelAudioNotSupportedException
 
 class RandomCrop(torch.nn.Module):
 
-    requires_sample_rate = True
     supports_multichannel = True
 
     def __init__(
