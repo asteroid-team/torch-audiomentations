@@ -7,14 +7,30 @@ from ..core.transforms_interface import MultichannelAudioNotSupportedException
 
 class RandomCrop(torch.nn.Module):
 
-    """Crop the audio to predefined length in seconds."""
+    """Crop the audio to predefined length in max_length."""
 
     supports_multichannel = True
 
-    def __init__(self, seconds: float, sampling_rate: int):
+    def __init__(self, 
+        max_length: float, 
+        sampling_rate: int, 
+        max_length_unit:str = "seconds"
+    ):
+        """
+        :param max_length: length to which samples are to be cropped.
+        :sampling_rate: sampling rate of input samples.
+        :max_length_unit: defines the unit of max_length.
+            "seconds": Number of seconds
+            "samples": Number of audio samples
+        """
         super(RandomCrop, self).__init__()
         self.sampling_rate = sampling_rate
-        self.num_samples = int(self.sampling_rate * seconds)
+        if max_length_unit == "seconds":
+            self.num_samples = int(self.sampling_rate * max_length)
+        elif max_length_unit == "samples":
+            self.num_samples = int(max_length)
+        else:
+            raise ValueError('max_length must be "samples" or "seconds"')
 
     def forward(self, samples, sampling_rate: typing.Optional[int] = None):
 
