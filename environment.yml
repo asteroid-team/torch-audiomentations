@@ -28,4 +28,4 @@ dependencies:
   - setuptools>=41.0.0
   - tqdm==4.49.0
   - twine
-  - torch-pitch-shift>=1.2.1
+  - torch-pitch-shift>=1.2.2
