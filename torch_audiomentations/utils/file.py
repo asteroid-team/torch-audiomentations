@@ -8,6 +8,7 @@ from .dsp import resample_audio
 
 SUPPORTED_EXTENSIONS = (".wav",)
 
+
 def find_audio_files_in_paths(
     paths: Union[List[Path], List[str], Path, str],
     filename_endings=SUPPORTED_EXTENSIONS,
@@ -19,7 +20,6 @@ def find_audio_files_in_paths(
     """
 
     file_paths = []
-
 
     if isinstance(paths, (list, tuple, set)):
         paths = list(paths)
@@ -35,9 +35,10 @@ def find_audio_files_in_paths(
                 p,
                 filename_endings=filename_endings,
                 traverse_subdirectories=traverse_subdirectories,
-                follow_symlinks=follow_symlinks
+                follow_symlinks=follow_symlinks,
             )
     return file_paths
+
 
 def find_audio_files(
     root_path,

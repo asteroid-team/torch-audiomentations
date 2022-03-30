@@ -45,7 +45,7 @@ class AddBackgroundNoise(BaseWaveformTransform):
         super().__init__(mode, p, p_mode, sample_rate)
 
         # TODO: check that one can read audio files
-        self.background_paths = find_audio_files_in_paths(background_paths)        
+        self.background_paths = find_audio_files_in_paths(background_paths)
 
         if sample_rate is not None:
             self.audio = Audio(sample_rate=sample_rate, mono=True)
