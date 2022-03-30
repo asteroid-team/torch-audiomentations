@@ -1,13 +1,9 @@
 # Inspired by tornado
 # https://www.tornadoweb.org/en/stable/_modules/tornado/util.html#ObjectDict
 
-try:
-    import typing
-    from typing import cast
+import typing
 
-    _ObjectDictBase = typing.Dict[str, typing.Any]
-except ImportError:
-    _ObjectDictBase = dict
+_ObjectDictBase = typing.Dict[str, typing.Any]
 
 
 class ObjectDict(_ObjectDictBase):
