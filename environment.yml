@@ -2,24 +2,24 @@ name: torch-audiomentations-gpu
 channels:
 - defaults
 - conda-forge
-- pytorch-lts
+- pytorch
 dependencies:
-- cudatoolkit=11.1
+- cudatoolkit=11.3
 - ffmpeg
 - matplotlib>=3,<4
-- numpy>=1.15,<1.22
+- numpy>=1.15,<2
 - pip>=20.1,<=21
 - python=3.8.12
-- pytorch-lts::pytorch=1.8.2
-- pytorch-lts::torchaudio=0.8.2
+- pytorch::pytorch=1.11.0
+- pytorch::torchaudio=0.11.0
 - scipy=1.5.2
-- seaborn>=0.9,<0.11
+- seaborn>=0.9,<1.0
 - pip:
   - audioread==2.1.8
   - black
   - coverage==5.3
   - julius>=0.2.3,<0.3
-  - librosa==0.9.0
+  - librosa==0.9.1
   - pandas==1.1.4
   - py-cpuinfo==7.0.0
   - pytest==5.3.4
