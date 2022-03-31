@@ -30,7 +30,7 @@ class RandomCrop(torch.nn.Module):
         elif max_length_unit == "samples":
             self.num_samples = int(max_length)
         else:
-            raise ValueError('max_length must be "samples" or "seconds"')
+            raise ValueError('max_length_unit must be "samples" or "seconds"')
 
     def forward(self, samples, sampling_rate: typing.Optional[int] = None):
 
