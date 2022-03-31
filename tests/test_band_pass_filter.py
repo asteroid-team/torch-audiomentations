@@ -1,12 +1,10 @@
-import unittest
-
 import numpy as np
 import torch
 
 from torch_audiomentations import BandPassFilter
 
 
-class TestBandPassFilter(unittest.TestCase):
+class TestBandPassFilter:
     def test_band_pass_filter(self):
         samples = np.array(
             [
@@ -23,5 +21,5 @@ class TestBandPassFilter(unittest.TestCase):
             processed_samples = augment(
                 samples=torch.from_numpy(samples), sample_rate=sample_rate
             ).samples.numpy()
-            self.assertEqual(processed_samples.shape, samples.shape)
-            self.assertEqual(processed_samples.dtype, np.float32)
+            assert processed_samples.shape == samples.shape
+            assert processed_samples.dtype == np.float32

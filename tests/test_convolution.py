@@ -1,5 +1,3 @@
-import unittest
-
 import librosa
 import torch
 from numpy.testing import assert_almost_equal
@@ -9,7 +7,7 @@ from tests.utils import TEST_FIXTURES_DIR
 from torch_audiomentations.utils.convolution import convolve as torch_convolve
 
 
-class TestConvolution(unittest.TestCase):
+class TestConvolution:
     def test_convolve(self):
         sample_rate = 16000
 
