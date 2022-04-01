@@ -20,7 +20,7 @@ class TestGain(unittest.TestCase):
         augment = Gain(min_gain_in_db=-6.000001, max_gain_in_db=-6, p=1.0)
         processed_samples = augment(
             samples=torch.from_numpy(samples), sample_rate=sample_rate
-        ).numpy()
+        ).samples.numpy()
         expected_factor = convert_decibels_to_amplitude_ratio(-6)
         assert_almost_equal(
             processed_samples,
@@ -43,7 +43,7 @@ class TestGain(unittest.TestCase):
         )
         processed_samples = augment(
             samples=torch.from_numpy(samples_batch), sample_rate=sample_rate
-        ).numpy()
+        ).samples.numpy()
 
         num_unprocessed_channels = 0
         num_processed_channels = 0
@@ -140,7 +140,7 @@ class TestGain(unittest.TestCase):
         for i in range(100):
             processed_samples = augment(
                 samples=torch.from_numpy(samples_batch), sample_rate=sample_rate
-            ).numpy()
+            ).samples.numpy()
 
             if np.allclose(processed_samples, samples_batch):
                 continue
@@ -235,7 +235,7 @@ class TestGain(unittest.TestCase):
         )
         processed_samples = augment(
             samples=torch.from_numpy(samples_batch), sample_rate=None
-        ).numpy()
+        ).samples.numpy()
 
         num_unprocessed_examples = 0
         num_processed_examples = 0
@@ -331,7 +331,7 @@ class TestGain(unittest.TestCase):
         for i in range(1000):
             processed_samples = augment(
                 samples=torch.from_numpy(samples_batch), sample_rate=sample_rate
-            ).numpy()
+            ).samples.numpy()
 
             estimated_gain_factors = processed_samples / samples_batch
             self.assertAlmostEqual(
@@ -354,7 +354,7 @@ class TestGain(unittest.TestCase):
 
         processed_samples = augment(
             samples=torch.from_numpy(samples), sample_rate=sample_rate
-        ).numpy()
+        ).samples.numpy()
 
         np.testing.assert_array_equal(samples, processed_samples)
 
@@ -366,7 +366,7 @@ class TestGain(unittest.TestCase):
         augment = Gain(min_gain_in_db=-6, max_gain_in_db=6, p=0.5)
         processed_samples = augment(
             samples=torch.from_numpy(samples_batch), sample_rate=sample_rate
-        ).numpy()
+        ).samples.numpy()
         self.assertEqual(processed_samples.dtype, np.float32)
 
         num_unprocessed_examples = 0
@@ -406,7 +406,7 @@ class TestGain(unittest.TestCase):
         for _ in range(100):
             processed_samples = augment(
                 samples=torch.from_numpy(samples_batch), sample_rate=sample_rate
-            ).numpy()
+            ).samples.numpy()
             self.assertEqual(processed_samples.dtype, np.float32)
 
             if np.allclose(processed_samples, samples_batch):
@@ -456,7 +456,9 @@ class TestGain(unittest.TestCase):
         # Change the parameters after init
         augment.min_gain_in_db = -18
         augment.max_gain_in_db = 3
-        processed_samples = augment(samples=torch.from_numpy(samples_batch)).numpy()
+        processed_samples = augment(
+            samples=torch.from_numpy(samples_batch)
+        ).samples.numpy()
         self.assertEqual(processed_samples.dtype, np.float32)
 
         actual_gains_in_db = []
@@ -490,7 +492,7 @@ class TestGain(unittest.TestCase):
             augment(
                 samples=torch.from_numpy(samples_batch).cuda(), sample_rate=sample_rate
             )
-            .cpu()
+            .samples.cpu()
             .numpy()
         )
         self.assertEqual(processed_samples.dtype, np.float32)
@@ -538,7 +540,7 @@ class TestGain(unittest.TestCase):
                 samples=torch.from_numpy(samples).to(device=cuda_device),
                 sample_rate=sample_rate,
             )
-            .cpu()
+            .samples.cpu()
             .numpy()
         )
         expected_factor = convert_decibels_to_amplitude_ratio(-6)
@@ -558,7 +560,7 @@ class TestGain(unittest.TestCase):
         augment = Gain(min_gain_in_db=-6.000001, max_gain_in_db=-6, p=1.0).cuda()
         processed_samples = (
             augment(samples=torch.from_numpy(samples).cuda(), sample_rate=sample_rate)
-            .cpu()
+            .samples.cpu()
             .numpy()
         )
         expected_factor = convert_decibels_to_amplitude_ratio(-6)
@@ -578,7 +580,7 @@ class TestGain(unittest.TestCase):
         augment = Gain(min_gain_in_db=-6.000001, max_gain_in_db=-6, p=1.0).cuda().cpu()
         processed_samples = (
             augment(samples=torch.from_numpy(samples).cpu(), sample_rate=sample_rate)
-            .cpu()
+            .samples.cpu()
             .numpy()
         )
         expected_factor = convert_decibels_to_amplitude_ratio(-6)

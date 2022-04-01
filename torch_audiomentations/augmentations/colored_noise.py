@@ -1,10 +1,13 @@
 import torch
+from torch import Tensor
+from typing import Optional
 from math import ceil
 
 from torch_audiomentations.utils.fft import rfft, irfft
 from ..core.transforms_interface import BaseWaveformTransform
 from ..utils.dsp import calculate_rms
 from ..utils.io import Audio
+from ..utils.object_dict import ObjectDict
 
 
 def _gen_noise(f_decay, num_samples, sample_rate, device):
@@ -33,8 +36,13 @@ class AddColoredNoise(BaseWaveformTransform):
     Add colored noises to the input audio.
     """
 
+    supported_modes = {"per_batch", "per_example", "per_channel"}
+
     supports_multichannel = True
     requires_sample_rate = True
+
+    supports_target = True
+    requires_target = False
 
     def __init__(
         self,
@@ -46,6 +54,7 @@ class AddColoredNoise(BaseWaveformTransform):
         p: float = 0.5,
         p_mode: str = None,
         sample_rate: int = None,
+        target_rate: int = None,
     ):
         """
         :param min_snr_in_db: minimum SNR in dB.
@@ -61,9 +70,16 @@ class AddColoredNoise(BaseWaveformTransform):
         :param p:
         :param p_mode:
         :param sample_rate:
+        :param target_rate:
         """
 
-        super().__init__(mode, p, p_mode, sample_rate)
+        super().__init__(
+            mode=mode,
+            p=p,
+            p_mode=p_mode,
+            sample_rate=sample_rate,
+            target_rate=target_rate,
+        )
 
         self.min_snr_in_db = min_snr_in_db
         self.max_snr_in_db = max_snr_in_db
@@ -76,12 +92,16 @@ class AddColoredNoise(BaseWaveformTransform):
             raise ValueError("min_f_decay must not be greater than max_f_decay")
 
     def randomize_parameters(
-        self, selected_samples: torch.Tensor, sample_rate: int = None
+        self,
+        samples: Tensor = None,
+        sample_rate: Optional[int] = None,
+        targets: Optional[Tensor] = None,
+        target_rate: Optional[int] = None,
     ):
         """
         :params selected_samples: (batch_size, num_channels, num_samples)
         """
-        batch_size, _, num_samples = selected_samples.shape
+        batch_size, _, num_samples = samples.shape
 
         # (batch_size, ) SNRs
         for param, mini, maxi in [
@@ -89,21 +109,21 @@ class AddColoredNoise(BaseWaveformTransform):
             ("f_decay", self.min_f_decay, self.max_f_decay),
         ]:
             dist = torch.distributions.Uniform(
-                low=torch.tensor(
-                    mini, dtype=torch.float32, device=selected_samples.device
-                ),
-                high=torch.tensor(
-                    maxi, dtype=torch.float32, device=selected_samples.device
-                ),
+                low=torch.tensor(mini, dtype=torch.float32, device=samples.device),
+                high=torch.tensor(maxi, dtype=torch.float32, device=samples.device),
                 validate_args=True,
             )
             self.transform_parameters[param] = dist.sample(sample_shape=(batch_size,))
 
-    def apply_transform(self, selected_samples: torch.Tensor, sample_rate: int = None):
-        batch_size, num_channels, num_samples = selected_samples.shape
+    def apply_transform(
+        self,
+        samples: Tensor = None,
+        sample_rate: Optional[int] = None,
+        targets: Optional[Tensor] = None,
+        target_rate: Optional[int] = None,
+    ) -> ObjectDict:
 
-        if sample_rate is None:
-            sample_rate = self.sample_rate
+        batch_size, num_channels, num_samples = samples.shape
 
         # (batch_size, num_samples)
         noise = torch.stack(
@@ -112,17 +132,22 @@ class AddColoredNoise(BaseWaveformTransform):
                     self.transform_parameters["f_decay"][i],
                     num_samples,
                     sample_rate,
-                    selected_samples.device,
+                    samples.device,
                 )
                 for i in range(batch_size)
             ]
         )
 
         # (batch_size, num_channels)
-        noise_rms = calculate_rms(selected_samples) / (
+        noise_rms = calculate_rms(samples) / (
             10 ** (self.transform_parameters["snr_in_db"].unsqueeze(dim=-1) / 20)
         )
 
-        return selected_samples + noise_rms.unsqueeze(-1) * noise.view(
-            batch_size, 1, num_samples
-        ).expand(-1, num_channels, -1)
+        return ObjectDict(
+            samples=samples
+            + noise_rms.unsqueeze(-1)
+            * noise.view(batch_size, 1, num_samples).expand(-1, num_channels, -1),
+            sample_rate=sample_rate,
+            targets=targets,
+            target_rate=target_rate,
+        )

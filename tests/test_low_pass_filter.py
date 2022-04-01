@@ -21,6 +21,6 @@ class TestLowPassFilter(unittest.TestCase):
         augment = LowPassFilter(min_cutoff_freq=200, max_cutoff_freq=7000, p=1.0)
         processed_samples = augment(
             samples=torch.from_numpy(samples), sample_rate=sample_rate
-        ).numpy()
+        ).samples.numpy()
         self.assertEqual(processed_samples.shape, samples.shape)
         self.assertEqual(processed_samples.dtype, np.float32)

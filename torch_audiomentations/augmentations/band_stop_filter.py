@@ -1,6 +1,8 @@
-import torch
+from torch import Tensor
+from typing import Optional
 
 from ..augmentations.band_pass_filter import BandPassFilter
+from ..utils.object_dict import ObjectDict
 
 
 class BandStopFilter(BandPassFilter):
@@ -8,9 +10,6 @@ class BandStopFilter(BandPassFilter):
     Apply band-stop filtering to the input audio. Also known as notch filter,
     band reject filter and frequency mask.
     """
-
-    supports_multichannel = True
-    requires_sample_rate = True
 
     def __init__(
         self,
@@ -22,6 +21,7 @@ class BandStopFilter(BandPassFilter):
         p: float = 0.5,
         p_mode: str = None,
         sample_rate: int = None,
+        target_rate: int = None,
     ):
         """
         :param min_center_frequency: Minimum center frequency in hertz
@@ -34,6 +34,7 @@ class BandStopFilter(BandPassFilter):
         :param p:
         :param p_mode:
         :param sample_rate:
+        :param target_rate:
         """
 
         super().__init__(
@@ -41,14 +42,27 @@ class BandStopFilter(BandPassFilter):
             max_center_frequency,
             min_bandwidth_fraction,
             max_bandwidth_fraction,
-            mode,
-            p,
-            p_mode,
-            sample_rate,
+            mode=mode,
+            p=p,
+            p_mode=p_mode,
+            sample_rate=sample_rate,
+            target_rate=target_rate,
         )
 
-    def apply_transform(self, selected_samples: torch.Tensor, sample_rate: int = None):
-        band_pass_filtered_samples = super().apply_transform(
-            selected_samples.clone(), sample_rate
+    def apply_transform(
+        self,
+        samples: Tensor = None,
+        sample_rate: Optional[int] = None,
+        targets: Optional[Tensor] = None,
+        target_rate: Optional[int] = None,
+    ) -> ObjectDict:
+
+        perturbed = super().apply_transform(
+            samples.clone(),
+            sample_rate,
+            targets=targets.clone() if targets is not None else None,
+            target_rate=target_rate,
         )
-        return selected_samples - band_pass_filtered_samples
+
+        perturbed.samples = samples - perturbed.samples
+        return perturbed
