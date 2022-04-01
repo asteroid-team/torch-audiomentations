@@ -11,7 +11,7 @@ class ObjectDict(_ObjectDictBase):
     Make a dictionary behave like an object, with attribute-style access.
 
     Here are some examples of how it can be used:
-    
+
     o = ObjectDict(my_dict)
     # or like this:
     o = ObjectDict(samples=samples, sample_rate=sample_rate)

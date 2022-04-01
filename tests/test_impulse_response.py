@@ -55,7 +55,8 @@ def test_impulse_response_guaranteed_with_single_tensor_input(ir_transform, inpu
 
 
 @pytest.mark.parametrize(
-    "compensate_for_propagation_delay", [False, True],
+    "compensate_for_propagation_delay",
+    [False, True],
 )
 def test_impulse_response_guaranteed_with_batched_tensor_input(
     ir_path, sample_rate, input_audios, compensate_for_propagation_delay

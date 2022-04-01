@@ -126,8 +126,14 @@ class TestCompose(unittest.TestCase):
         self.assertGreater(num_gain_last, 10)
 
     def test_supported_modes_property(self):
-        augment = Compose(transforms=[PeakNormalization(p=1.0),],)
+        augment = Compose(
+            transforms=[
+                PeakNormalization(p=1.0),
+            ],
+        )
         assert augment.supported_modes == {"per_batch", "per_example", "per_channel"}
 
-        augment = Compose(transforms=[PeakNormalization(p=1.0), ShuffleChannels(p=1.0)],)
+        augment = Compose(
+            transforms=[PeakNormalization(p=1.0), ShuffleChannels(p=1.0)],
+        )
         assert augment.supported_modes == {"per_example"}

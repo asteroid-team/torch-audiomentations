@@ -11,10 +11,8 @@ class RandomCrop(torch.nn.Module):
 
     supports_multichannel = True
 
-    def __init__(self, 
-        max_length: float, 
-        sampling_rate: int, 
-        max_length_unit:str = "seconds"
+    def __init__(
+        self, max_length: float, sampling_rate: int, max_length_unit: str = "seconds"
     ):
         """
         :param max_length: length to which samples are to be cropped.

@@ -54,4 +54,3 @@ class PolarityInversion(BaseWaveformTransform):
             targets=targets,
             target_rate=target_rate,
         )
-

@@ -15,8 +15,8 @@ class Mix(BaseWaveformTransform):
     Signal-to-noise ratio (where "noise" is the second random sample) is selected
     randomly between `min_snr_in_db` and `max_snr_in_db`.
 
-    `mix_target` controls how resulting targets are generated. It can be one of 
-    "original" (targets are those of the original sample) or "union" (targets are the 
+    `mix_target` controls how resulting targets are generated. It can be one of
+    "original" (targets are those of the original sample) or "union" (targets are the
     union of original and overlapping targets)
 
     """
@@ -75,10 +75,14 @@ class Mix(BaseWaveformTransform):
         batch_size, num_channels, num_samples = samples.shape
         snr_distribution = torch.distributions.Uniform(
             low=torch.tensor(
-                self.min_snr_in_db, dtype=torch.float32, device=samples.device,
+                self.min_snr_in_db,
+                dtype=torch.float32,
+                device=samples.device,
             ),
             high=torch.tensor(
-                self.max_snr_in_db, dtype=torch.float32, device=samples.device,
+                self.max_snr_in_db,
+                dtype=torch.float32,
+                device=samples.device,
             ),
             validate_args=True,
         )
@@ -90,7 +94,10 @@ class Mix(BaseWaveformTransform):
 
         # randomize index of second sample
         self.transform_parameters["sample_idx"] = torch.randint(
-            0, batch_size, (batch_size,), device=samples.device,
+            0,
+            batch_size,
+            (batch_size,),
+            device=samples.device,
         )
 
     def apply_transform(

@@ -86,4 +86,3 @@ class Gain(BaseWaveformTransform):
             targets=targets,
             target_rate=target_rate,
         )
-

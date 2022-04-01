@@ -141,4 +141,3 @@ class ApplyImpulseResponse(BaseWaveformTransform):
                 targets=targets,  # FIXME crop targets as well?
                 target_rate=target_rate,
             )
-
