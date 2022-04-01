@@ -24,12 +24,12 @@ class ObjectDict(_ObjectDictBase):
     """
 
     def __getattr__(self, name):
-        # type: (str) -> Any
+        # type: (str) -> typing.Any
         try:
             return self[name]
         except KeyError:
             raise AttributeError(name)
 
     def __setattr__(self, name, value):
-        # type: (str, Any) -> None
+        # type: (str, typing.Any) -> None
         self[name] = value
