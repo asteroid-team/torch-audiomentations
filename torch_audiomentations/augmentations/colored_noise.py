@@ -55,6 +55,7 @@ class AddColoredNoise(BaseWaveformTransform):
         p_mode: str = None,
         sample_rate: int = None,
         target_rate: int = None,
+        output_type: Optional[str] = None,
     ):
         """
         :param min_snr_in_db: minimum SNR in dB.
@@ -79,6 +80,7 @@ class AddColoredNoise(BaseWaveformTransform):
             p_mode=p_mode,
             sample_rate=sample_rate,
             target_rate=target_rate,
+            output_type=output_type,
         )
 
         self.min_snr_in_db = min_snr_in_db

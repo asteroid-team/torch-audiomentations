@@ -20,7 +20,8 @@ class TestCompose(unittest.TestCase):
             [
                 Gain(min_gain_in_db=-6.000001, max_gain_in_db=-6, p=1.0),
                 PolarityInversion(p=1.0),
-            ]
+            ],
+            output_type="dict",
         )
         processed_samples = augment(
             samples=torch.from_numpy(samples), sample_rate=sample_rate
@@ -38,7 +39,9 @@ class TestCompose(unittest.TestCase):
         samples = np.array([[[1.0, 0.5, -0.25, -0.125, 0.0]]], dtype=np.float32)
         sample_rate = 16000
 
-        augment = Compose([Vol(gain=-6, gain_type="db"), PolarityInversion(p=1.0)])
+        augment = Compose(
+            [Vol(gain=-6, gain_type="db"), PolarityInversion(p=1.0),], output_type="dict"
+        )
         processed_samples = augment(
             samples=torch.from_numpy(samples), sample_rate=sample_rate
         ).samples.numpy()
@@ -61,6 +64,7 @@ class TestCompose(unittest.TestCase):
                 PolarityInversion(p=1.0),
             ],
             p=0.0,
+            output_type="dict",
         )
         processed_samples = augment(
             samples=torch.from_numpy(samples), sample_rate=sample_rate
@@ -75,9 +79,10 @@ class TestCompose(unittest.TestCase):
 
         augment = Compose(
             transforms=[
-                Gain(min_gain_in_db=-16.000001, max_gain_in_db=-2, p=1.0),
+                Gain(min_gain_in_db=-16.000001, max_gain_in_db=-2, p=1.0,),
                 PolarityInversion(p=1.0),
-            ]
+            ],
+            output_type="dict",
         )
 
         processed_samples1 = augment(
@@ -106,6 +111,7 @@ class TestCompose(unittest.TestCase):
                 PeakNormalization(p=1.0),
             ],
             shuffle=True,
+            output_type="dict",
         )
         num_peak_normalization_last = 0
         num_gain_last = 0
@@ -126,14 +132,11 @@ class TestCompose(unittest.TestCase):
         self.assertGreater(num_gain_last, 10)
 
     def test_supported_modes_property(self):
-        augment = Compose(
-            transforms=[
-                PeakNormalization(p=1.0),
-            ],
-        )
+        augment = Compose(transforms=[PeakNormalization(p=1.0),], output_type="dict")
         assert augment.supported_modes == {"per_batch", "per_example", "per_channel"}
 
         augment = Compose(
-            transforms=[PeakNormalization(p=1.0), ShuffleChannels(p=1.0)],
+            transforms=[PeakNormalization(p=1.0,), ShuffleChannels(p=1.0,),],
+            output_type="dict",
         )
         assert augment.supported_modes == {"per_example"}

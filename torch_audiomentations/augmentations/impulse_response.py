@@ -38,6 +38,7 @@ class ApplyImpulseResponse(BaseWaveformTransform):
         p_mode: str = None,
         sample_rate: int = None,
         target_rate: int = None,
+        output_type: Optional[str] = None,
     ):
         """
         :param ir_paths: Either a path to a folder with audio files or a list of paths to audio files.
@@ -60,6 +61,7 @@ class ApplyImpulseResponse(BaseWaveformTransform):
             p_mode=p_mode,
             sample_rate=sample_rate,
             target_rate=target_rate,
+            output_type=output_type,
         )
 
         # TODO: check that one can read audio files

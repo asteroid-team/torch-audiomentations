@@ -16,7 +16,7 @@ class TestBandPassFilter:
         )
         sample_rate = 16000
 
-        augment = BandPassFilter(p=1.0)
+        augment = BandPassFilter(p=1.0, output_type="dict")
         for _ in range(20):
             processed_samples = augment(
                 samples=torch.from_numpy(samples), sample_rate=sample_rate

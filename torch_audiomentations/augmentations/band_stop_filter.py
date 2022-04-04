@@ -22,6 +22,7 @@ class BandStopFilter(BandPassFilter):
         p_mode: str = None,
         sample_rate: int = None,
         target_rate: int = None,
+        output_type: Optional[str] = None,
     ):
         """
         :param min_center_frequency: Minimum center frequency in hertz
@@ -47,6 +48,7 @@ class BandStopFilter(BandPassFilter):
             p_mode=p_mode,
             sample_rate=sample_rate,
             target_rate=target_rate,
+            output_type=output_type,
         )
 
     def apply_transform(

@@ -19,6 +19,7 @@ class HighPassFilter(LowPassFilter):
         p_mode: str = None,
         sample_rate: int = None,
         target_rate: int = None,
+        output_type: Optional[str] = None,
     ):
         """
         :param min_cutoff_freq: Minimum cutoff frequency in hertz
@@ -38,6 +39,7 @@ class HighPassFilter(LowPassFilter):
             p_mode=p_mode,
             sample_rate=sample_rate,
             target_rate=target_rate,
+            output_type=output_type,
         )
 
     def apply_transform(

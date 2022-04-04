@@ -21,21 +21,21 @@ def get_example():
 class TestPitchShift(unittest.TestCase):
     def test_per_example_shift(self):
         samples = get_example()
-        aug = PitchShift(sample_rate=16000, p=1, mode="per_example")
+        aug = PitchShift(sample_rate=16000, p=1, mode="per_example", output_type="dict")
         aug.randomize_parameters(samples)
         results = aug.apply_transform(samples).samples
         self.assertEqual(results.shape, samples.shape)
 
     def test_per_channel_shift(self):
         samples = get_example()
-        aug = PitchShift(sample_rate=16000, p=1, mode="per_channel")
+        aug = PitchShift(sample_rate=16000, p=1, mode="per_channel", output_type="dict")
         aug.randomize_parameters(samples)
         results = aug.apply_transform(samples).samples
         self.assertEqual(results.shape, samples.shape)
 
     def test_per_batch_shift(self):
         samples = get_example()
-        aug = PitchShift(sample_rate=16000, p=1, mode="per_batch")
+        aug = PitchShift(sample_rate=16000, p=1, mode="per_batch", output_type="dict")
         aug.randomize_parameters(samples)
         results = aug.apply_transform(samples).samples
         self.assertEqual(results.shape, samples.shape)
@@ -49,6 +49,7 @@ class TestPitchShift(unittest.TestCase):
                 mode="per_example",
                 min_transpose_semitones=0.0,
                 max_transpose_semitones=0.0,
+                output_type="dict",
             )
         except ValueError:
             error = True

@@ -30,6 +30,7 @@ class PitchShift(BaseWaveformTransform):
         p_mode: str = None,
         sample_rate: int = None,
         target_rate: int = None,
+        output_type: Optional[str] = None,
     ):
         """
         :param sample_rate:
@@ -46,6 +47,7 @@ class PitchShift(BaseWaveformTransform):
             p_mode=p_mode,
             sample_rate=sample_rate,
             target_rate=target_rate,
+            output_type=output_type,
         )
 
         if min_transpose_semitones > max_transpose_semitones:

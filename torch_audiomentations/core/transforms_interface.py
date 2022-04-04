@@ -38,6 +38,7 @@ class BaseWaveformTransform(torch.nn.Module):
         p_mode: Optional[str] = None,
         sample_rate: Optional[int] = None,
         target_rate: Optional[int] = None,
+        output_type: Optional[str] = None,
     ):
         """
 
@@ -59,6 +60,8 @@ class BaseWaveformTransform(torch.nn.Module):
             calling the transform.
         :param target_rate: target_rate can be set either here or when
             calling the transform.
+        :param output_type: This optional argument can be set to "tensor" or "dict".
+
         """
         super().__init__()
         assert 0.0 <= p <= 1.0
@@ -69,6 +72,29 @@ class BaseWaveformTransform(torch.nn.Module):
             self.p_mode = self.mode
         self.sample_rate = sample_rate
         self.target_rate = target_rate
+
+        if output_type is None:
+            warnings.warn(
+                f"Transforms now expect an `output_type` argument that currently defaults to 'tensor', "
+                f"will default to 'dict' in v0.12, and will be removed in v0.13. Make sure to update "
+                f"your code to something like:\n"
+                f"  >>> augment = {self.__class__.__name__}(..., output_type='dict')\n"
+                f"  >>> augmented_samples = augment(samples).samples",
+                FutureWarning,
+            )
+            output_type = "tensor"
+
+        elif output_type == "tensor":
+            warnings.warn(
+                f"`output_type` argument will default to 'dict' in v0.12, and will be removed in v0.13. "
+                f"Make sure to update your code to something like:\n"
+                f"your code to something like:\n"
+                f"  >>> augment = {self.__class__.__name__}(..., output_type='dict')\n"
+                f"  >>> augmented_samples = augment(samples).samples",
+                DeprecationWarning,
+            )
+
+        self.output_type = output_type
 
         # Check validity of mode/p_mode combination
         if self.mode not in self.supported_modes:
@@ -109,12 +135,13 @@ class BaseWaveformTransform(torch.nn.Module):
     ) -> ObjectDict:
 
         if not self.training:
-            return ObjectDict(
+            output = ObjectDict(
                 samples=samples,
                 sample_rate=sample_rate,
                 targets=targets,
                 target_rate=target_rate,
             )
+            return output.samples if self.output_type == "tensor" else output
 
         if not isinstance(samples, Tensor) or len(samples.shape) != 3:
             raise RuntimeError(
@@ -129,12 +156,13 @@ class BaseWaveformTransform(torch.nn.Module):
             warnings.warn(
                 "An empty samples tensor was passed to {}".format(self.__class__.__name__)
             )
-            return ObjectDict(
+            output = ObjectDict(
                 samples=samples,
                 sample_rate=sample_rate,
                 targets=targets,
                 target_rate=target_rate,
             )
+            return output.samples if self.output_type == "tensor" else output
 
         if is_multichannel(samples):
             if num_channels > num_samples:
@@ -281,12 +309,13 @@ class BaseWaveformTransform(torch.nn.Module):
                         batch_size, num_channels, num_frames, num_classes
                     )
 
-                return ObjectDict(
+                output = ObjectDict(
                     samples=cloned_samples,
                     sample_rate=perturbed.sample_rate,
                     targets=cloned_targets,
                     target_rate=perturbed.target_rate,
                 )
+                return output.samples if self.output_type == "tensor" else output
 
             elif self.p_mode == "per_example":
 
@@ -325,12 +354,13 @@ class BaseWaveformTransform(torch.nn.Module):
                             self.transform_parameters["should_apply"]
                         ] = perturbed.targets
 
-                    return ObjectDict(
+                    output = ObjectDict(
                         samples=cloned_samples,
                         sample_rate=perturbed.sample_rate,
                         targets=cloned_targets,
                         target_rate=perturbed.target_rate,
                     )
+                    return output.samples if self.output_type == "tensor" else output
 
                 elif self.mode == "per_channel":
 
@@ -389,12 +419,13 @@ class BaseWaveformTransform(torch.nn.Module):
                             self.transform_parameters["should_apply"]
                         ] = perturbed.targets
 
-                    return ObjectDict(
+                    output = ObjectDict(
                         samples=cloned_samples,
                         sample_rate=perturbed.sample_rate,
                         targets=cloned_targets,
                         target_rate=perturbed.target_rate,
                     )
+                    return output.samples if self.output_type == "tensor" else output
 
                 else:
                     raise Exception("Invalid mode/p_mode combination")
@@ -435,7 +466,9 @@ class BaseWaveformTransform(torch.nn.Module):
                             batch_size, num_channels, num_frames, num_classes
                         )
 
-                    return perturbed
+                    return (
+                        perturbed.samples if self.output_type == "tensor" else perturbed
+                    )
 
                 elif self.mode == "per_example":
 
@@ -454,7 +487,9 @@ class BaseWaveformTransform(torch.nn.Module):
                         target_rate=target_rate,
                     )
 
-                    return perturbed
+                    return (
+                        perturbed.samples if self.output_type == "tensor" else perturbed
+                    )
 
                 elif self.mode == "per_channel":
 
@@ -491,7 +526,9 @@ class BaseWaveformTransform(torch.nn.Module):
                             batch_size, num_channels, num_frames, num_classes
                         )
 
-                    return perturbed
+                    return (
+                        perturbed.samples if self.output_type == "tensor" else perturbed
+                    )
 
                 else:
                     raise Exception("Invalid mode")
@@ -499,12 +536,13 @@ class BaseWaveformTransform(torch.nn.Module):
             else:
                 raise Exception("Invalid p_mode {}".format(self.p_mode))
 
-        return ObjectDict(
+        output = ObjectDict(
             samples=samples,
             sample_rate=sample_rate,
             targets=targets,
             target_rate=target_rate,
         )
+        return output.samples if self.output_type == "tensor" else output
 
     def _forward_unimplemented(self, *inputs) -> None:
         # Avoid IDE error message like "Class ... must implement all abstract methods"

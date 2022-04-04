@@ -19,7 +19,7 @@ class TestHighPassFilter(unittest.TestCase):
         )
         sample_rate = 16000
 
-        augment = HighPassFilter(p=1.0)
+        augment = HighPassFilter(p=1.0, output_type="dict")
         processed_samples = augment(
             samples=torch.from_numpy(samples), sample_rate=sample_rate
         ).samples.numpy()
@@ -38,7 +38,7 @@ class TestHighPassFilter(unittest.TestCase):
         )
         sample_rate = 16000
 
-        augment = HighPassFilter(p=1.0)
+        augment = HighPassFilter(p=1.0, output_type="dict")
         processed_samples = (
             augment(samples=torch.from_numpy(samples).cuda(), sample_rate=sample_rate)
             .samples.cpu()

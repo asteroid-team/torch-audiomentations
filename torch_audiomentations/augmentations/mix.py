@@ -39,6 +39,7 @@ class Mix(BaseWaveformTransform):
         p_mode: str = None,
         sample_rate: int = None,
         target_rate: int = None,
+        output_type: Optional[str] = None,
     ):
         super().__init__(
             mode=mode,
@@ -46,6 +47,7 @@ class Mix(BaseWaveformTransform):
             p_mode=p_mode,
             sample_rate=sample_rate,
             target_rate=target_rate,
+            output_type=output_type,
         )
         self.min_snr_in_db = min_snr_in_db
         self.max_snr_in_db = max_snr_in_db
@@ -75,14 +77,10 @@ class Mix(BaseWaveformTransform):
         batch_size, num_channels, num_samples = samples.shape
         snr_distribution = torch.distributions.Uniform(
             low=torch.tensor(
-                self.min_snr_in_db,
-                dtype=torch.float32,
-                device=samples.device,
+                self.min_snr_in_db, dtype=torch.float32, device=samples.device,
             ),
             high=torch.tensor(
-                self.max_snr_in_db,
-                dtype=torch.float32,
-                device=samples.device,
+                self.max_snr_in_db, dtype=torch.float32, device=samples.device,
             ),
             validate_args=True,
         )
@@ -94,10 +92,7 @@ class Mix(BaseWaveformTransform):
 
         # randomize index of second sample
         self.transform_parameters["sample_idx"] = torch.randint(
-            0,
-            batch_size,
-            (batch_size,),
-            device=samples.device,
+            0, batch_size, (batch_size,), device=samples.device,
         )
 
     def apply_transform(

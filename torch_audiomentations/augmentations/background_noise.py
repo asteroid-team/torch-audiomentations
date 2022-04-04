@@ -37,6 +37,7 @@ class AddBackgroundNoise(BaseWaveformTransform):
         p_mode: str = None,
         sample_rate: int = None,
         target_rate: int = None,
+        output_type: Optional[str] = None,
     ):
         """
 
@@ -56,6 +57,7 @@ class AddBackgroundNoise(BaseWaveformTransform):
             p_mode=p_mode,
             sample_rate=sample_rate,
             target_rate=target_rate,
+            output_type=output_type,
         )
 
         # TODO: check that one can read audio files
@@ -135,14 +137,10 @@ class AddBackgroundNoise(BaseWaveformTransform):
         else:
             snr_distribution = torch.distributions.Uniform(
                 low=torch.tensor(
-                    self.min_snr_in_db,
-                    dtype=torch.float32,
-                    device=samples.device,
+                    self.min_snr_in_db, dtype=torch.float32, device=samples.device,
                 ),
                 high=torch.tensor(
-                    self.max_snr_in_db,
-                    dtype=torch.float32,
-                    device=samples.device,
+                    self.max_snr_in_db, dtype=torch.float32, device=samples.device,
                 ),
                 validate_args=True,
             )

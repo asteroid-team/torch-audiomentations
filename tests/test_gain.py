@@ -17,7 +17,9 @@ class TestGain(unittest.TestCase):
         samples = np.array([[[1.0, 0.5, -0.25, -0.125, 0.0]]], dtype=np.float32)
         sample_rate = 16000
 
-        augment = Gain(min_gain_in_db=-6.000001, max_gain_in_db=-6, p=1.0)
+        augment = Gain(
+            min_gain_in_db=-6.000001, max_gain_in_db=-6, p=1.0, output_type="dict"
+        )
         processed_samples = augment(
             samples=torch.from_numpy(samples), sample_rate=sample_rate
         ).samples.numpy()
@@ -39,7 +41,11 @@ class TestGain(unittest.TestCase):
         sample_rate = 16000
 
         augment = Gain(
-            min_gain_in_db=-30.0, max_gain_in_db=0.0, mode="per_channel", p=0.5
+            min_gain_in_db=-30.0,
+            max_gain_in_db=0.0,
+            mode="per_channel",
+            p=0.5,
+            output_type="dict",
         )
         processed_samples = augment(
             samples=torch.from_numpy(samples_batch), sample_rate=sample_rate
@@ -135,6 +141,7 @@ class TestGain(unittest.TestCase):
             mode="per_channel",
             p=0.5,
             p_mode="per_batch",
+            output_type="dict",
         )
         num_processed_batches = 0
         for i in range(100):
@@ -232,6 +239,7 @@ class TestGain(unittest.TestCase):
             mode="per_channel",
             p=0.5,
             p_mode="per_example",
+            output_type="dict",
         )
         processed_samples = augment(
             samples=torch.from_numpy(samples_batch), sample_rate=None
@@ -325,7 +333,13 @@ class TestGain(unittest.TestCase):
         samples_batch = np.stack([samples] * 4, axis=0)
         sample_rate = 16000
 
-        augment = Gain(min_gain_in_db=-30.0, max_gain_in_db=0.0, mode="per_batch", p=0.5)
+        augment = Gain(
+            min_gain_in_db=-30.0,
+            max_gain_in_db=0.0,
+            mode="per_batch",
+            p=0.5,
+            output_type="dict",
+        )
         num_unprocessed_batches = 0
         num_processed_batches = 0
         for i in range(1000):
@@ -349,7 +363,7 @@ class TestGain(unittest.TestCase):
         samples = np.array([[[1.0, 0.5, -0.25, -0.125, 0.0]]], dtype=np.float32)
         sample_rate = 16000
 
-        augment = Gain(min_gain_in_db=-15, max_gain_in_db=5, p=1.0)
+        augment = Gain(min_gain_in_db=-15, max_gain_in_db=5, p=1.0, output_type="dict")
         augment.eval()
 
         processed_samples = augment(
@@ -363,7 +377,7 @@ class TestGain(unittest.TestCase):
         samples_batch = np.stack([samples] * 10000, axis=0)
         sample_rate = 16000
 
-        augment = Gain(min_gain_in_db=-6, max_gain_in_db=6, p=0.5)
+        augment = Gain(min_gain_in_db=-6, max_gain_in_db=6, p=0.5, output_type="dict")
         processed_samples = augment(
             samples=torch.from_numpy(samples_batch), sample_rate=sample_rate
         ).samples.numpy()
@@ -400,7 +414,13 @@ class TestGain(unittest.TestCase):
         samples_batch = np.stack([samples] * 100, axis=0)
         sample_rate = 16000
 
-        augment = Gain(min_gain_in_db=-6, max_gain_in_db=6, p=0.5, p_mode="per_batch")
+        augment = Gain(
+            min_gain_in_db=-6,
+            max_gain_in_db=6,
+            p=0.5,
+            p_mode="per_batch",
+            output_type="dict",
+        )
 
         num_processed_batches = 0
         for _ in range(100):
@@ -451,7 +471,11 @@ class TestGain(unittest.TestCase):
         sample_rate = 16000
 
         augment = Gain(
-            min_gain_in_db=-6, max_gain_in_db=6, p=0.5, sample_rate=sample_rate
+            min_gain_in_db=-6,
+            max_gain_in_db=6,
+            p=0.5,
+            sample_rate=sample_rate,
+            output_type="dict",
         )
         # Change the parameters after init
         augment.min_gain_in_db = -18
@@ -484,7 +508,9 @@ class TestGain(unittest.TestCase):
         samples_batch = np.stack([samples] * 10000, axis=0)
         sample_rate = 16000
 
-        augment = Gain(min_gain_in_db=-6, max_gain_in_db=6, p=0.5).cuda()
+        augment = Gain(
+            min_gain_in_db=-6, max_gain_in_db=6, p=0.5, output_type="dict"
+        ).cuda()
         # Change the parameters after init
         augment.min_gain_in_db = -18
         augment.max_gain_in_db = 3
@@ -518,7 +544,7 @@ class TestGain(unittest.TestCase):
         with self.assertRaises(ValueError):
             Gain(min_gain_in_db=18, max_gain_in_db=-3, p=0.5)
 
-        augment = Gain(min_gain_in_db=-6, max_gain_in_db=-3, p=1.0)
+        augment = Gain(min_gain_in_db=-6, max_gain_in_db=-3, p=1.0, output_type="dict")
         # Change the parameters after init
         augment.min_gain_in_db = 18
         augment.max_gain_in_db = 3
@@ -532,9 +558,9 @@ class TestGain(unittest.TestCase):
 
         cuda_device = torch.device("cuda")
 
-        augment = Gain(min_gain_in_db=-6.000001, max_gain_in_db=-6, p=1.0).to(
-            device=cuda_device
-        )
+        augment = Gain(
+            min_gain_in_db=-6.000001, max_gain_in_db=-6, p=1.0, output_type="dict"
+        ).to(device=cuda_device)
         processed_samples = (
             augment(
                 samples=torch.from_numpy(samples).to(device=cuda_device),
@@ -557,7 +583,9 @@ class TestGain(unittest.TestCase):
         samples = np.array([[[1.0, 0.5, -0.25, -0.125, 0.0]]], dtype=np.float32)
         sample_rate = 16000
 
-        augment = Gain(min_gain_in_db=-6.000001, max_gain_in_db=-6, p=1.0).cuda()
+        augment = Gain(
+            min_gain_in_db=-6.000001, max_gain_in_db=-6, p=1.0, output_type="dict"
+        ).cuda()
         processed_samples = (
             augment(samples=torch.from_numpy(samples).cuda(), sample_rate=sample_rate)
             .samples.cpu()
@@ -577,7 +605,11 @@ class TestGain(unittest.TestCase):
         samples = np.array([[[1.0, 0.5, -0.25, -0.125, 0.0]]], dtype=np.float32)
         sample_rate = 16000
 
-        augment = Gain(min_gain_in_db=-6.000001, max_gain_in_db=-6, p=1.0).cuda().cpu()
+        augment = (
+            Gain(min_gain_in_db=-6.000001, max_gain_in_db=-6, p=1.0, output_type="dict")
+            .cuda()
+            .cpu()
+        )
         processed_samples = (
             augment(samples=torch.from_numpy(samples).cpu(), sample_rate=sample_rate)
             .samples.cpu()
