@@ -6,7 +6,7 @@ from torch_audiomentations import TimeInversion
 
 class TestTimeInversion(unittest.TestCase):
     def setUp(self):
-        self.augment = TimeInversion(p=1.0)
+        self.augment = TimeInversion(p=1.0, output_type="dict")
         self.samples = torch.arange(1, 100, 1).type(torch.FloatTensor)
         self.expected_samples = torch.arange(99, 0, -1).type(torch.FloatTensor)
 

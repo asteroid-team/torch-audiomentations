@@ -31,6 +31,7 @@ class LowPassFilter(BaseWaveformTransform):
         p_mode: str = None,
         sample_rate: int = None,
         target_rate: int = None,
+        output_type: Optional[str] = None,
     ):
         """
         :param min_cutoff_freq: Minimum cutoff frequency in hertz
@@ -46,6 +47,7 @@ class LowPassFilter(BaseWaveformTransform):
             p_mode=p_mode,
             sample_rate=sample_rate,
             target_rate=target_rate,
+            output_type=output_type,
         )
 
         self.min_cutoff_freq = min_cutoff_freq
@@ -69,16 +71,12 @@ class LowPassFilter(BaseWaveformTransform):
         dist = torch.distributions.Uniform(
             low=convert_frequencies_to_mels(
                 torch.tensor(
-                    self.min_cutoff_freq,
-                    dtype=torch.float32,
-                    device=samples.device,
+                    self.min_cutoff_freq, dtype=torch.float32, device=samples.device,
                 )
             ),
             high=convert_frequencies_to_mels(
                 torch.tensor(
-                    self.max_cutoff_freq,
-                    dtype=torch.float32,
-                    device=samples.device,
+                    self.max_cutoff_freq, dtype=torch.float32, device=samples.device,
                 )
             ),
             validate_args=True,

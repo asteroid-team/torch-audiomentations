@@ -20,7 +20,7 @@ class TestPeakNormalization(unittest.TestCase):
         )
         sample_rate = 16000
 
-        augment = PeakNormalization(p=1.0)
+        augment = PeakNormalization(p=1.0, output_type="dict")
         processed_samples = augment(
             samples=torch.from_numpy(samples), sample_rate=sample_rate
         ).samples.numpy()
@@ -49,7 +49,9 @@ class TestPeakNormalization(unittest.TestCase):
         )
         sample_rate = 16000
 
-        augment = PeakNormalization(apply_to="only_too_loud_sounds", p=1.0)
+        augment = PeakNormalization(
+            apply_to="only_too_loud_sounds", p=1.0, output_type="dict"
+        )
         processed_samples = augment(
             samples=torch.from_numpy(samples), sample_rate=sample_rate
         ).samples.numpy()
@@ -75,7 +77,7 @@ class TestPeakNormalization(unittest.TestCase):
         )
         sample_rate = 16000
 
-        augment = PeakNormalization(p=1.0)
+        augment = PeakNormalization(p=1.0, output_type="dict")
         processed_samples = augment(
             samples=torch.from_numpy(samples), sample_rate=sample_rate
         ).samples.numpy()
@@ -99,7 +101,7 @@ class TestPeakNormalization(unittest.TestCase):
         )
         sample_rate = 16000
 
-        augment = PeakNormalization(p=1.0)
+        augment = PeakNormalization(p=1.0, output_type="dict")
         processed_samples = augment(
             samples=torch.from_numpy(samples), sample_rate=sample_rate
         ).samples.numpy()
@@ -124,7 +126,7 @@ class TestPeakNormalization(unittest.TestCase):
         )
         sample_rate = 16000
 
-        augment = PeakNormalization(p=0.0)
+        augment = PeakNormalization(p=0.0, output_type="dict")
         processed_samples = augment(
             samples=torch.from_numpy(samples), sample_rate=sample_rate
         ).samples.numpy()
@@ -154,7 +156,7 @@ class TestPeakNormalization(unittest.TestCase):
         )
         sample_rate = 16000
 
-        augment = PeakNormalization(p=1.0)
+        augment = PeakNormalization(p=1.0, output_type="dict")
         processed_samples = (
             augment(samples=torch.from_numpy(samples).cuda(), sample_rate=sample_rate)
             .samples.cpu()
@@ -179,7 +181,7 @@ class TestPeakNormalization(unittest.TestCase):
         samples_batch = np.stack([samples] * 1337, axis=0)
         sample_rate = 16000
 
-        augment = PeakNormalization(p=0.5)
+        augment = PeakNormalization(p=0.5, output_type="dict")
         processed_samples = augment(
             samples=torch.from_numpy(samples_batch), sample_rate=sample_rate
         ).samples.numpy()
@@ -208,7 +210,7 @@ class TestPeakNormalization(unittest.TestCase):
         )
         sample_rate = 16000
 
-        augment = PeakNormalization(p=1.0)
+        augment = PeakNormalization(p=1.0, output_type="dict")
         _ = augment(
             samples=torch.from_numpy(samples1), sample_rate=sample_rate
         ).samples.numpy()
@@ -241,7 +243,7 @@ class TestPeakNormalization(unittest.TestCase):
         )
         sample_rate = 16000
 
-        augment = PeakNormalization(apply_to="all", p=1.0)
+        augment = PeakNormalization(apply_to="all", p=1.0, output_type="dict")
         processed_samples = augment(
             samples=torch.from_numpy(samples), sample_rate=sample_rate
         ).samples.numpy()

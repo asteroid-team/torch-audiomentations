@@ -20,8 +20,12 @@ class TestAddColoredNoise(unittest.TestCase):
         ).unsqueeze(0)
 
         self.input_audios = torch.cat([self.input_audio] * self.batch_size, dim=0)
-        self.cl_noise_transform_guaranteed = AddColoredNoise(20, p=1.0)
-        self.cl_noise_transform_no_guarantee = AddColoredNoise(20, p=0.0)
+        self.cl_noise_transform_guaranteed = AddColoredNoise(
+            20, p=1.0, output_type="dict"
+        )
+        self.cl_noise_transform_no_guarantee = AddColoredNoise(
+            20, p=0.0, output_type="dict"
+        )
 
     def test_colored_noise_no_guarantee_with_single_tensor(self):
         mixed_input = self.cl_noise_transform_no_guarantee(
@@ -76,6 +80,6 @@ class TestAddColoredNoise(unittest.TestCase):
 
     def test_invalid_params(self):
         with self.assertRaises(ValueError):
-            AddColoredNoise(min_snr_in_db=30, max_snr_in_db=3, p=1.0)
+            AddColoredNoise(min_snr_in_db=30, max_snr_in_db=3, p=1.0, output_type="dict")
         with self.assertRaises(ValueError):
-            AddColoredNoise(min_f_decay=2, max_f_decay=1, p=1.0)
+            AddColoredNoise(min_f_decay=2, max_f_decay=1, p=1.0, output_type="dict")

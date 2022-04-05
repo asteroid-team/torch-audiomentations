@@ -35,6 +35,7 @@ class PeakNormalization(BaseWaveformTransform):
         p_mode: typing.Optional[str] = None,
         sample_rate: typing.Optional[int] = None,
         target_rate: typing.Optional[int] = None,
+        output_type: Optional[str] = None,
     ):
         super().__init__(
             mode=mode,
@@ -42,6 +43,7 @@ class PeakNormalization(BaseWaveformTransform):
             p_mode=p_mode,
             sample_rate=sample_rate,
             target_rate=target_rate,
+            output_type=output_type,
         )
         assert apply_to in ("all", "only_too_loud_sounds")
         self.apply_to = apply_to

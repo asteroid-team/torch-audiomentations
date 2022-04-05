@@ -16,7 +16,7 @@ class TestBandStopFilter:
         )
         sample_rate = 16000
 
-        augment = BandStopFilter(p=1.0)
+        augment = BandStopFilter(p=1.0, output_type="dict")
         processed_samples = augment(
             samples=torch.from_numpy(samples), sample_rate=sample_rate
         ).samples.numpy()

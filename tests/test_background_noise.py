@@ -38,11 +38,15 @@ class TestAddBackgroundNoise(unittest.TestCase):
 
         self.bg_path = TEST_FIXTURES_DIR / "bg"
         self.bg_short_path = TEST_FIXTURES_DIR / "bg_short"
-        self.bg_noise_transform_guaranteed = AddBackgroundNoise(self.bg_path, 20, p=1.0)
-        self.bg_short_noise_transform_guaranteed = AddBackgroundNoise(
-            self.bg_short_path, 20, p=1.0
+        self.bg_noise_transform_guaranteed = AddBackgroundNoise(
+            self.bg_path, 20, p=1.0, output_type="dict"
         )
-        self.bg_noise_transform_no_guarantee = AddBackgroundNoise(self.bg_path, 20, p=0.0)
+        self.bg_short_noise_transform_guaranteed = AddBackgroundNoise(
+            self.bg_short_path, 20, p=1.0, output_type="dict"
+        )
+        self.bg_noise_transform_no_guarantee = AddBackgroundNoise(
+            self.bg_path, 20, p=0.0, output_type="dict"
+        )
 
     def test_background_noise_no_guarantee_with_single_tensor(self):
         mixed_input = self.bg_noise_transform_no_guarantee(
@@ -118,7 +122,11 @@ class TestAddBackgroundNoise(unittest.TestCase):
         min_snr_in_db = 3
         max_snr_in_db = 30
         augment = AddBackgroundNoise(
-            self.bg_path, min_snr_in_db=min_snr_in_db, max_snr_in_db=max_snr_in_db, p=1.0
+            self.bg_path,
+            min_snr_in_db=min_snr_in_db,
+            max_snr_in_db=max_snr_in_db,
+            p=1.0,
+            output_type="dict",
         )
         augmented_audios = augment(self.input_audios, self.sample_rate).samples
 
@@ -142,13 +150,17 @@ class TestAddBackgroundNoise(unittest.TestCase):
     def test_invalid_params(self):
         with self.assertRaises(ValueError):
             augment = AddBackgroundNoise(
-                self.bg_path, min_snr_in_db=30, max_snr_in_db=3, p=1.0
+                self.bg_path, min_snr_in_db=30, max_snr_in_db=3, p=1.0, output_type="dict"
             )
 
     def test_min_equals_max(self):
         desired_snr = 3.0
         augment = AddBackgroundNoise(
-            self.bg_path, min_snr_in_db=desired_snr, max_snr_in_db=desired_snr, p=1.0
+            self.bg_path,
+            min_snr_in_db=desired_snr,
+            max_snr_in_db=desired_snr,
+            p=1.0,
+            output_type="dict",
         )
         augmented_audios = augment(self.input_audios, self.sample_rate).samples
 
@@ -171,11 +183,9 @@ class TestAddBackgroundNoise(unittest.TestCase):
             input_sample_rate = random.randint(1000, 5000)
             bg_sample_rate = random.randint(1000, 5000)
 
-            noise = np.random.uniform(
-                low=-0.2,
-                high=0.2,
-                size=(bg_length,),
-            ).astype(np.float32)
+            noise = np.random.uniform(low=-0.2, high=0.2, size=(bg_length,),).astype(
+                np.float32
+            )
             tmp_dir = os.path.join(tempfile.gettempdir(), str(uuid.uuid4()))
             try:
                 os.makedirs(tmp_dir)
@@ -192,6 +202,7 @@ class TestAddBackgroundNoise(unittest.TestCase):
                     max_snr_in_db=6,
                     p=1.0,
                     sample_rate=input_sample_rate,
+                    output_type="dict",
                 )
                 transform(input_audio)
             except Exception:

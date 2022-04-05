@@ -16,7 +16,9 @@ class TestLowPassFilter:
         )
         sample_rate = 16000
 
-        augment = LowPassFilter(min_cutoff_freq=200, max_cutoff_freq=7000, p=1.0)
+        augment = LowPassFilter(
+            min_cutoff_freq=200, max_cutoff_freq=7000, p=1.0, output_type="dict"
+        )
         processed_samples = augment(
             samples=torch.from_numpy(samples), sample_rate=sample_rate
         ).samples.numpy()

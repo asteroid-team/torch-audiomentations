@@ -72,6 +72,7 @@ class Shift(BaseWaveformTransform):
         p_mode: Optional[str] = None,
         sample_rate: Optional[int] = None,
         target_rate: Optional[int] = None,
+        output_type: Optional[str] = None,
     ):
         """
 
@@ -97,6 +98,7 @@ class Shift(BaseWaveformTransform):
             p_mode=p_mode,
             sample_rate=sample_rate,
             target_rate=target_rate,
+            output_type=output_type,
         )
         self.min_shift = min_shift
         self.max_shift = max_shift

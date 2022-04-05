@@ -34,6 +34,7 @@ class Gain(BaseWaveformTransform):
         p_mode: Optional[str] = None,
         sample_rate: Optional[int] = None,
         target_rate: Optional[int] = None,
+        output_type: Optional[str] = None,
     ):
         super().__init__(
             mode=mode,
@@ -41,6 +42,7 @@ class Gain(BaseWaveformTransform):
             p_mode=p_mode,
             sample_rate=sample_rate,
             target_rate=target_rate,
+            output_type=output_type,
         )
         self.min_gain_in_db = min_gain_in_db
         self.max_gain_in_db = max_gain_in_db

@@ -25,26 +25,34 @@ IR_PATH = TEST_FIXTURES_DIR / "ir"
     "augment",
     [
         # Differentiable transforms:
-        AddBackgroundNoise(BG_NOISE_PATH, 20, p=1.0),
-        ApplyImpulseResponse(IR_PATH, p=1.0),
+        AddBackgroundNoise(BG_NOISE_PATH, 20, p=1.0, output_type="dict"),
+        ApplyImpulseResponse(IR_PATH, p=1.0, output_type="dict"),
         Compose(
             transforms=[
                 Gain(min_gain_in_db=-15.0, max_gain_in_db=5.0, p=1.0),
                 PolarityInversion(p=1.0),
-            ]
+            ],
+            output_type="dict",
         ),
-        Gain(min_gain_in_db=-6.000001, max_gain_in_db=-6, p=1.0),
-        PolarityInversion(p=1.0),
-        Shift(p=1.0),
+        Gain(min_gain_in_db=-6.000001, max_gain_in_db=-6, p=1.0, output_type="dict"),
+        PolarityInversion(p=1.0, output_type="dict"),
+        Shift(p=1.0, output_type="dict"),
         # Non-differentiable transforms:
         # RuntimeError: one of the variables needed for gradient computation has been modified by an inplace operation:
         # [torch.DoubleTensor [1, 1, 5]], which is output 0 of IndexBackward, is at version 1; expected version 0 instead.
         # Hint: enable anomaly detection to find the operation that failed to compute its gradient,
         # with torch.autograd.set_detect_anomaly(True).
-        pytest.param(HighPassFilter(p=1.0), marks=pytest.mark.skip("Not differentiable")),
-        pytest.param(LowPassFilter(p=1.0), marks=pytest.mark.skip("Not differentiable")),
         pytest.param(
-            PeakNormalization(p=1.0), marks=pytest.mark.skip("Not differentiable")
+            HighPassFilter(p=1.0, output_type="dict"),
+            marks=pytest.mark.skip("Not differentiable"),
+        ),
+        pytest.param(
+            LowPassFilter(p=1.0, output_type="dict"),
+            marks=pytest.mark.skip("Not differentiable"),
+        ),
+        pytest.param(
+            PeakNormalization(p=1.0, output_type="dict"),
+            marks=pytest.mark.skip("Not differentiable"),
         ),
     ],
 )

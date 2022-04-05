@@ -35,7 +35,9 @@ class TestRandomCrop(unittest.TestCase):
         sampling_rate = 16000
         crop_to = 1.5
         desired_samples_len = sampling_rate * crop_to
-        Crop = RandomCrop(max_length=crop_to, sampling_rate=sampling_rate)
+        Crop = RandomCrop(
+            max_length=crop_to, sampling_rate=sampling_rate, output_type="dict"
+        )
         cropped_samples = Crop(samples)
 
         self.assertEqual(desired_samples_len, cropped_samples.size(-1))

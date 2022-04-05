@@ -30,6 +30,7 @@ class TimeInversion(BaseWaveformTransform):
         p_mode: str = None,
         sample_rate: int = None,
         target_rate: int = None,
+        output_type: Optional[str] = None,
     ):
         """
         :param mode:
@@ -43,6 +44,7 @@ class TimeInversion(BaseWaveformTransform):
             p_mode=p_mode,
             sample_rate=sample_rate,
             target_rate=target_rate,
+            output_type=output_type,
         )
 
     def apply_transform(

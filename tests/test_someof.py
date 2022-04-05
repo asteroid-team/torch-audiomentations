@@ -20,7 +20,7 @@ class TestSomeOf(unittest.TestCase):
         ]
 
     def test_someof(self):
-        augment = SomeOf(2, self.transforms)
+        augment = SomeOf(2, self.transforms, output_type="dict")
 
         self.assertEqual(len(augment.transform_indexes), 0)  # no transforms applied yet
         processed_samples = augment(
@@ -29,7 +29,7 @@ class TestSomeOf(unittest.TestCase):
         self.assertEqual(len(augment.transform_indexes), 2)  # 2 transforms applied
 
     def test_someof_with_p_zero(self):
-        augment = SomeOf(2, self.transforms, p=0.0)
+        augment = SomeOf(2, self.transforms, p=0.0, output_type="dict")
 
         self.assertEqual(len(augment.transform_indexes), 0)  # no transforms applied yet
         processed_samples = augment(
@@ -38,7 +38,7 @@ class TestSomeOf(unittest.TestCase):
         self.assertEqual(len(augment.transform_indexes), 0)  # 0 transforms applied
 
     def test_someof_tuple(self):
-        augment = SomeOf((1, None), self.transforms)
+        augment = SomeOf((1, None), self.transforms, output_type="dict")
 
         self.assertEqual(len(augment.transform_indexes), 0)  # no transforms applied yet
         processed_samples = augment(
@@ -49,7 +49,7 @@ class TestSomeOf(unittest.TestCase):
         )  # at least one transform applied
 
     def test_someof_freeze_and_unfreeze_parameters(self):
-        augment = SomeOf(2, self.transforms)
+        augment = SomeOf(2, self.transforms, output_type="dict")
 
         samples = np.array([[[1.0, 0.5, -0.25, -0.125, 0.0]]], dtype=np.float32)
         samples = torch.from_numpy(samples)
