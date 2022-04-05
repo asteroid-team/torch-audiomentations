@@ -1,5 +1,6 @@
 from pathlib import Path
-from typing import Any, Dict, Text, Union
+from typing import Any, Dict, Text, Optional, Union
+from importlib import import_module
 
 import torch_audiomentations
 from torch_audiomentations import Compose
@@ -9,6 +10,48 @@ from torch_audiomentations.core.transforms_interface import BaseWaveformTransfor
 # TODO: update when a new type of transform is added (e.g. BaseSpectrogramTransform? OneOf? SomeOf?)
 # https://github.com/asteroid-team/torch-audiomentations/issues/26
 Transform = Union[BaseWaveformTransform, Compose]
+
+
+def get_class_by_name(
+    class_name: str, default_module_name: str = "torch_audiomentations"
+) -> type:
+    """Load class by its name
+
+    Parameters
+    ----------
+    class_name : `str`
+    default_module_name : `str`, optional
+        When provided and `class_name` does not contain the absolute path.
+        Defaults to "torch_audiomentations".
+
+    Returns
+    -------
+    Klass : `type`
+        Class.
+
+    Example
+    -------
+    >>> YourAugmentation = get_class_by_name('your_package.your_module.YourAugmentation')
+    >>> YourAugmentation = get_class_by_name('YourAugmentation', default_module_name='your_package.your_module')
+    
+    >>> from torch_audiomentations import Gain
+    >>> assert Gain == get_class_by_name('Gain')
+    """
+    tokens = class_name.split(".")
+
+    if len(tokens) == 1:
+        if default_module_name is None:
+            msg = (
+                f'Could not infer module name from class name "{class_name}".'
+                f"Please provide default module name."
+            )
+            raise ValueError(msg)
+        module_name = default_module_name
+    else:
+        module_name = ".".join(tokens[:-1])
+        class_name = tokens[-1]
+
+    return getattr(import_module(module_name), class_name)
 
 
 def from_dict(config: Dict[Text, Union[Text, Dict[Text, Any]]]) -> Transform:
@@ -46,7 +89,7 @@ def from_dict(config: Dict[Text, Union[Text, Dict[Text, Any]]]) -> Transform:
         )
 
     try:
-        TransformClass = getattr(torch_audiomentations, TransformClassName)
+        TransformClass = get_class_by_name(TransformClassName)
     except AttributeError:
         raise ValueError(
             f"torch_audiomentations does not implement {TransformClassName} transform."
