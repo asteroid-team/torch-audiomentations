@@ -25,6 +25,8 @@ class Padding(BaseWaveformTransform):
         p_mode: Optional[str] = None,
         sample_rate: Optional[int] = None,
         target_rate: Optional[int] = None,
+        output_type: Optional[str] = None,
+
 
     ):
         super().__init__(
@@ -33,6 +35,8 @@ class Padding(BaseWaveformTransform):
             p_mode=p_mode,
             sample_rate=sample_rate,
             target_rate=target_rate,
+            output_type=output_type,
+
         )
         self.min_fraction = min_fraction
         self.max_fraction = max_fraction
