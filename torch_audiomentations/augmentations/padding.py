@@ -3,16 +3,18 @@ from typing import Optional
 from torch import Tensor 
 
 from ..core.transforms_interface import BaseWaveformTransform
+from ..utils.object_dict import ObjectDict
+
 
 class Padding(BaseWaveformTransform):
 
-    supported_modes = {"per_batch", "per_example"}
+    supported_modes = {"per_batch", "per_example", "per_channel"}
 
     def __init__(
         self,
         min_fraction = 0.1,
         max_fraction = 0.5,
-        pad_mode = "silence",
+        pad_section = "end",
         mode = "per_batch",
         p = 0.5,
         p_model: Optional[str] = None,
@@ -20,12 +22,12 @@ class Padding(BaseWaveformTransform):
     ):
         self.min_fraction = min_fraction
         self.max_fraction = max_fraction
-        self.pad_mode = pad_mode
+        self.pad_section = pad_section
         if not self.min_fraction>=0.0:
             raise ValueError("minimum fraction should be greater than zero.")
         if self.min_fraction<self.max_fraction:
             raise ValueError("minimum fraction should be greater than or equal to maximum fraction.")
-        assert self.pad_mode in ("silence", "wrap", "reflect"), 'pad_mode must be "silence", "wrap" or "reflect"'
+        assert self.pad_section in ("start", "end"), 'pad_section must be "start" or "end"'
 
 
 
@@ -43,7 +45,30 @@ class Padding(BaseWaveformTransform):
                                                     (samples.shape[0],)
         )
 
+
         
 
-    def apply_tranform(self):
-        pass
+    def apply_tranform(self,
+                       samples: Tensor,
+                       sample_rate: Optional[int] = None,
+                       targets:  Optional[int] = None,
+                       target_rate: Optional[int] = None,
+    
+    ) -> ObjectDict:
+        
+        for i,index in enumerate(self.transform_parameters['pad_length']):
+            if self.pad_section=="start":
+                samples[i,:,:i] = 0.0
+            else:
+                samples[i,:,-i:] = 0.0
+        
+        return ObjectDict(
+            samples=samples,
+            sample_rate=sample_rate,
+            targets=targets,
+            target_rate=target_rate,
+        )
+
+
+
+
