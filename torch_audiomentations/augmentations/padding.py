@@ -46,8 +46,6 @@ class Padding(BaseWaveformTransform):
         )
 
 
-        
-
     def apply_tranform(self,
                        samples: Tensor,
                        sample_rate: Optional[int] = None,
@@ -58,9 +56,9 @@ class Padding(BaseWaveformTransform):
         
         for i,index in enumerate(self.transform_parameters['pad_length']):
             if self.pad_section=="start":
-                samples[i,:,:i] = 0.0
+                samples[i,:,:index] = 0.0
             else:
-                samples[i,:,-i:] = 0.0
+                samples[i,:,-index:] = 0.0
         
         return ObjectDict(
             samples=samples,
