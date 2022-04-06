@@ -9,6 +9,11 @@ from ..utils.object_dict import ObjectDict
 class Padding(BaseWaveformTransform):
 
     supported_modes = {"per_batch", "per_example", "per_channel"}
+    supports_multichannel = True
+    requires_sample_rate = False
+
+    supports_target = True
+    requires_target = False
 
     def __init__(
         self,
@@ -17,16 +22,25 @@ class Padding(BaseWaveformTransform):
         pad_section = "end",
         mode = "per_batch",
         p = 0.5,
-        p_model: Optional[str] = None,
+        p_mode: Optional[str] = None,
         sample_rate: Optional[int] = None,
+        target_rate: Optional[int] = None,
+
     ):
+        super().__init__(
+            mode=mode,
+            p=p,
+            p_mode=p_mode,
+            sample_rate=sample_rate,
+            target_rate=target_rate,
+        )
         self.min_fraction = min_fraction
         self.max_fraction = max_fraction
         self.pad_section = pad_section
         if not self.min_fraction>=0.0:
             raise ValueError("minimum fraction should be greater than zero.")
-        if self.min_fraction<self.max_fraction:
-            raise ValueError("minimum fraction should be greater than or equal to maximum fraction.")
+        if self.min_fraction>self.max_fraction:
+            raise ValueError("minimum fraction should be less than or equal to maximum fraction.")
         assert self.pad_section in ("start", "end"), 'pad_section must be "start" or "end"'
 
 
@@ -46,7 +60,7 @@ class Padding(BaseWaveformTransform):
         )
 
 
-    def apply_tranform(self,
+    def apply_transform(self,
                        samples: Tensor,
                        sample_rate: Optional[int] = None,
                        targets:  Optional[int] = None,
