@@ -8,7 +8,7 @@ from torch_audiomentations.augmentations.padding import Padding
 
 
 class TestPadding(unittest.TestCase):
-    def test_PaddingEnd(self):
+    def test_padding_end(self):
 
         audio_samples = torch.rand(size=(2, 2, 32000), dtype=torch.float32)
         augment = Padding(
@@ -23,7 +23,7 @@ class TestPadding(unittest.TestCase):
         self.assertEqual(audio_samples.shape, padded_samples.shape)
         assert_almost_equal(padded_samples[..., -6400:].numpy(), np.zeros((2, 2, 6400)))
 
-    def test_PaddingStart(self):
+    def test_padding_start(self):
 
         audio_samples = torch.rand(size=(2, 2, 32000), dtype=torch.float32)
         augment = Padding(
@@ -38,7 +38,7 @@ class TestPadding(unittest.TestCase):
         self.assertEqual(audio_samples.shape, padded_samples.shape)
         assert_almost_equal(padded_samples[..., :6400].numpy(), np.zeros((2, 2, 6400)))
 
-    def test_Padding_zero(self):
+    def test_padding_zero(self):
 
         audio_samples = torch.rand(size=(2, 2, 32000), dtype=torch.float32)
         augment = Padding(min_fraction=0.2, max_fraction=0.5, p=0.0, output_type="dict")
@@ -47,7 +47,7 @@ class TestPadding(unittest.TestCase):
         self.assertEqual(audio_samples.shape, padded_samples.shape)
         assert_almost_equal(audio_samples.numpy(), padded_samples.numpy())
 
-    def test_Padding_perexample(self):
+    def test_padding_perexample(self):
 
         audio_samples = torch.rand(size=(10, 2, 32000), dtype=torch.float32)
         augment = Padding(
@@ -71,7 +71,7 @@ class TestPadding(unittest.TestCase):
 
         self.assertLess(padded_samples.sum(), audio_samples.numpy().sum())
 
-    def test_Padding_perchannel(self):
+    def test_padding_perchannel(self):
 
         audio_samples = torch.rand(size=(10, 2, 32000), dtype=torch.float32)
         augment = Padding(
@@ -95,7 +95,7 @@ class TestPadding(unittest.TestCase):
 
         self.assertLess(padded_samples.sum(), audio_samples.numpy().sum())
 
-    def test_Padding_variability_perexample(self):
+    def test_padding_variability_perexample(self):
 
         audio_samples = torch.rand(size=(10, 2, 32000), dtype=torch.float32)
         augment = Padding(
@@ -122,12 +122,12 @@ class TestPadding(unittest.TestCase):
         self.assertLess(num_unprocessed_examples, 8)
 
     @pytest.mark.skipif(not torch.cuda.is_available(), reason="Requires CUDA")
-    def test_Padding_cuda(self):
+    def test_padding_cuda(self):
 
         audio_samples = torch.rand(
             size=(2, 2, 32000), dtype=torch.float32, device=torch.device("cuda")
         )
-        augment = Padding(min_fraction=0.2, max_fraction=0.5, p=0.5, output_type="dict")
+        augment = Padding(min_fraction=0.2, max_fraction=0.5, p=1.0, output_type="dict")
         padded_samples = augment(audio_samples).samples
 
         self.assertEqual(audio_samples.shape, padded_samples.shape)
