@@ -12,6 +12,7 @@ class SpliceOut(BaseWaveformTransform):
 
     """
     spliceout augmentation proposed in https://arxiv.org/pdf/2110.00046.pdf
+    silence padding is added at the end to retain the audio length.
     """
 
     supported_modes = {"per_batch", "per_example"}
