@@ -67,10 +67,13 @@ class SpliceOut(BaseWaveformTransform):
                 mask[start:start+random_lengths[j]] = False
             
             spliceout_sample = torch.istft(spectrogram[:,:,mask], n_fft=self.n_fft)
-            padding = torch.zeros((1,samples[i].shape[-1]-spliceout_sample.shape[-1]),dtype=torch.float32)
-            spliceout_sample = torch.cat((spliceout_sample,padding),dim=-1)
+            padding = torch.zeros((samples[i].shape[0],samples[i].shape[-1]-spliceout_sample.shape[-1]),dtype=torch.float32)
+            spliceout_sample = torch.cat((spliceout_sample,padding),dim=-1).unsqueeze(0)
             spliceout_samples.append(spliceout_sample)
 
-        return torch.cat(spliceout_samples,dim=0)
+        return ObjectDict(samples = torch.cat(spliceout_samples,dim=0),
+                sample_rate=sample_rate,
+                targets=targets,
+                target_rate=target_rate,)
 
         
