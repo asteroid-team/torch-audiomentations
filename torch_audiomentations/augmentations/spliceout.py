@@ -2,8 +2,6 @@ from turtle import forward
 import torch
 from typing import Optional
 from torch import Tensor
-import torchaudio
-
 
 from ..core.transforms_interface import BaseWaveformTransform
 from ..utils.dsp import convert_decibels_to_amplitude_ratio
@@ -57,19 +55,23 @@ class SpliceOut(BaseWaveformTransform):
         targets: Optional[Tensor] = None,
         target_rate: Optional[int] = None) -> ObjectDict:
 
+        spliceout_samples = []
         for i in range(samples.shape[0]):
-            spectrogram = torchaudio.transforms.Spectrogram()(samples[i])
+
+            spectrogram = torch.stft(samples[i], n_fft=self.n_fft, return_complex=True)
             random_lengths = self.transform_parameters['splice_lengths'][i]
-            mask = torch.ones(spectrogram.shape[-1],dtype=bool)
+            mask = torch.ones(spectrogram.shape[-1], dtype=bool)
+            
             for j in range(self.num_time_intervals):
+
                 start = torch.randint(spectrogram.shape[-1]-random_lengths[j],size=(1,))
                 mask[start:start+random_lengths[j]] = False
+            
+            spliceout_sample = torch.istft(spectrogram[:,:,mask], n_fft=self.n_fft)
+            padding = torch.zeros((1,samples[i].shape[-1]-spliceout_sample.shape[-1]),dtype=torch.float32)
+            spliceout_sample = torch.cat((spliceout_sample,padding),dim=-1)
+            spliceout_samples.append(spliceout_sample)
 
-
-
-
-        
-        return super().apply_transform(samples, sample_rate, targets, target_rate)
-
+        return torch.cat(spliceout_samples,dim=0)
 
         
