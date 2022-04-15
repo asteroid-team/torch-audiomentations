@@ -43,7 +43,7 @@ class SpliceOut(BaseWaveformTransform):
         targets: Optional[Tensor] = None,
         target_rate: Optional[int] = None):
 
-        self.transform_parameters["splice_length"] = torch.randint(low=0,
+        self.transform_parameters["splice_lengths"] = torch.randint(low=0,
                                                     high=self.max_width,
                                                     size=(samples.shape[0],
                                                     self.num_time_intervals))
