@@ -7,20 +7,21 @@ from ..core.transforms_interface import BaseWaveformTransform
 from ..utils.dsp import convert_decibels_to_amplitude_ratio
 from ..utils.object_dict import ObjectDict
 
+
 class SpliceOut(BaseWaveformTransform):
-    
+
     """
     spliceout augmentation proposed in https://arxiv.org/pdf/2110.00046.pdf
     """
-    
-    supported_modes = {"per_batch","per_example"}
+
+    supported_modes = {"per_batch", "per_example"}
 
     def __init__(
         self,
         num_time_intervals,
         max_width,
         mode: str = "per_example",
-        n_fft = 400,
+        n_fft=400,
         p: float = 0.5,
         p_mode: Optional[str] = None,
         sample_rate: Optional[int] = None,
@@ -29,7 +30,7 @@ class SpliceOut(BaseWaveformTransform):
     ):
         """
         param num_time_intervals: number of time intervals to spliceout
-        param max_width: maximum width of each spliceout 
+        param max_width: maximum width of each spliceout
         param n_fft: size of FFT
         """
 
@@ -45,44 +46,51 @@ class SpliceOut(BaseWaveformTransform):
         self.max_width = max_width
         self.n_fft = n_fft
 
-
     def randomize_parameters(
-        self, samples: Tensor = None,
+        self,
+        samples: Tensor = None,
         sample_rate: Optional[int] = None,
         targets: Optional[Tensor] = None,
-        target_rate: Optional[int] = None):
+        target_rate: Optional[int] = None,
+    ):
 
-        self.transform_parameters["splice_lengths"] = torch.randint(low=0,
-                                                    high=self.max_width,
-                                                    size=(samples.shape[0],
-                                                    self.num_time_intervals))
+        self.transform_parameters["splice_lengths"] = torch.randint(
+            low=0, high=self.max_width, size=(samples.shape[0], self.num_time_intervals)
+        )
 
     def apply_transform(
-        self, samples: Tensor = None,
+        self,
+        samples: Tensor = None,
         sample_rate: Optional[int] = None,
         targets: Optional[Tensor] = None,
-        target_rate: Optional[int] = None) -> ObjectDict:
+        target_rate: Optional[int] = None,
+    ) -> ObjectDict:
 
         spliceout_samples = []
         for i in range(samples.shape[0]):
 
             spectrogram = torch.stft(samples[i], n_fft=self.n_fft, return_complex=True)
-            random_lengths = self.transform_parameters['splice_lengths'][i]
+            random_lengths = self.transform_parameters["splice_lengths"][i]
             mask = torch.ones(spectrogram.shape[-1], dtype=bool)
-            
+
             for j in range(self.num_time_intervals):
 
-                start = torch.randint(spectrogram.shape[-1]-random_lengths[j],size=(1,))
-                mask[start:start+random_lengths[j]] = False
-            
-            spliceout_sample = torch.istft(spectrogram[:,:,mask], n_fft=self.n_fft)
-            padding = torch.zeros((samples[i].shape[0],samples[i].shape[-1]-spliceout_sample.shape[-1]),dtype=torch.float32)
-            spliceout_sample = torch.cat((spliceout_sample,padding),dim=-1).unsqueeze(0)
+                start = torch.randint(
+                    spectrogram.shape[-1] - random_lengths[j], size=(1,)
+                )
+                mask[start : start + random_lengths[j]] = False
+
+            spliceout_sample = torch.istft(spectrogram[:, :, mask], n_fft=self.n_fft)
+            padding = torch.zeros(
+                (samples[i].shape[0], samples[i].shape[-1] - spliceout_sample.shape[-1]),
+                dtype=torch.float32,
+            )
+            spliceout_sample = torch.cat((spliceout_sample, padding), dim=-1).unsqueeze(0)
             spliceout_samples.append(spliceout_sample)
 
-        return ObjectDict(samples = torch.cat(spliceout_samples,dim=0),
-                sample_rate=sample_rate,
-                targets=targets,
-                target_rate=target_rate,)
-
-        
+        return ObjectDict(
+            samples=torch.cat(spliceout_samples, dim=0),
+            sample_rate=sample_rate,
+            targets=targets,
+            target_rate=target_rate,
+        )
