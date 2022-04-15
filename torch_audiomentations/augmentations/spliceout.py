@@ -9,13 +9,14 @@ from ..utils.object_dict import ObjectDict
 
 class SpliceOut(BaseWaveformTransform):
     
-    supported_modes = {"per_batch"}
+    supported_modes = {"per_batch","per_example"}
 
     def __init__(
         self,
         num_time_intervals,
         max_width,
-        mode: str = "per_batch",
+        mode: str = "per_example",
+        n_fft = 400,
         p: float = 0.5,
         p_mode: Optional[str] = None,
         sample_rate: Optional[int] = None,
@@ -33,6 +34,7 @@ class SpliceOut(BaseWaveformTransform):
         )
         self.num_time_intervals = num_time_intervals
         self.max_width = max_width
+        self.n_fft = n_fft
 
 
     def randomize_parameters(
@@ -45,9 +47,6 @@ class SpliceOut(BaseWaveformTransform):
                                                     high=self.max_width,
                                                     size=(samples.shape[0],
                                                     self.num_time_intervals))
-
-
-
 
     def apply_transform(
         self, samples: Tensor = None,
