@@ -9,6 +9,10 @@ from ..utils.object_dict import ObjectDict
 
 class SpliceOut(BaseWaveformTransform):
     
+    """
+    spliceout augmentation proposed in https://arxiv.org/pdf/2110.00046.pdf
+    """
+    
     supported_modes = {"per_batch","per_example"}
 
     def __init__(
@@ -23,6 +27,11 @@ class SpliceOut(BaseWaveformTransform):
         target_rate: Optional[int] = None,
         output_type: Optional[str] = None,
     ):
+        """
+        param num_time_intervals: number of time intervals to spliceout
+        param max_width: maximum width of each spliceout 
+        param n_fft: size of FFT
+        """
 
         super().__init__(
             mode=mode,
