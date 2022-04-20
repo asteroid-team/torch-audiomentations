@@ -23,9 +23,11 @@ from torch_audiomentations import (
     PitchShift,
     BandStopFilter,
     TimeInversion,
+    Padding,
 )
 from torch_audiomentations.augmentations.shuffle_channels import ShuffleChannels
 from torch_audiomentations.core.transforms_interface import ModeNotSupportedException
+from torch_audiomentations.utils.object_dict import ObjectDict
 
 SAMPLE_RATE = 44100
 
@@ -150,6 +152,8 @@ if __name__ == "__main__":
             {"get_instance": lambda: Gain(mode=mode, p=1.0), "num_runs": 5},
             {"get_instance": lambda: HighPassFilter(mode=mode, p=1.0), "num_runs": 5},
             {"get_instance": lambda: LowPassFilter(mode=mode, p=1.0), "num_runs": 5},
+            {"get_instance": lambda: Padding(mode=mode, p=1.0), "num_runs": 5},
+            {"get_instance": lambda: PeakNormalization(mode=mode, p=1.0), "num_runs": 1},
             {
                 "get_instance": lambda: PitchShift(
                     sample_rate=SAMPLE_RATE, mode=mode, p=1.0
@@ -157,7 +161,6 @@ if __name__ == "__main__":
                 "num_runs": 5,
             },
             {"get_instance": lambda: PolarityInversion(mode=mode, p=1.0), "num_runs": 1},
-            {"get_instance": lambda: PeakNormalization(mode=mode, p=1.0), "num_runs": 1},
             {"get_instance": lambda: Shift(mode=mode, p=1.0), "num_runs": 5},
             {"get_instance": lambda: ShuffleChannels(mode=mode, p=1.0), "num_runs": 5},
             {"get_instance": lambda: TimeInversion(mode=mode, p=1.0), "num_runs": 1},
@@ -180,7 +183,17 @@ if __name__ == "__main__":
                 with timer() as t:
                     augmented_samples = augmenter(
                         samples=samples, sample_rate=SAMPLE_RATE
-                    ).numpy()
+                    )
+                    print(
+                        augmenter.__class__.__name__,
+                        "is output ObjectDict:",
+                        type(augmented_samples) is ObjectDict,
+                    )
+                    augmented_samples = (
+                        augmented_samples.samples.numpy()
+                        if type(augmented_samples) is ObjectDict
+                        else augmented_samples.numpy()
+                    )
                 execution_times[transform_name].append(t.execution_time)
                 for example_idx, original_filename in enumerate(filenames):
                     output_file_path = os.path.join(

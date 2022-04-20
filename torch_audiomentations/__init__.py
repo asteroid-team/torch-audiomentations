@@ -8,6 +8,7 @@ from .augmentations.identity import Identity
 from .augmentations.impulse_response import ApplyImpulseResponse
 from .augmentations.low_pass_filter import LowPassFilter
 from .augmentations.mix import Mix
+from .augmentations.padding import Padding
 from .augmentations.peak_normalization import PeakNormalization
 from .augmentations.pitch_shift import PitchShift
 from .augmentations.polarity_inversion import PolarityInversion
