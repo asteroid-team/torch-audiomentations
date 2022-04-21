@@ -112,7 +112,12 @@ class BandPassFilter(BaseWaveformTransform):
         )
 
         bandwidth_dist = torch.distributions.Uniform(
-            low=self.min_bandwidth_fraction, high=self.max_bandwidth_fraction,
+            low=torch.tensor(
+                self.min_bandwidth_fraction, dtype=torch.float32, device=samples.device
+            ),
+            high=torch.tensor(
+                self.max_bandwidth_fraction, dtype=torch.float32, device=samples.device
+            )
         )
         self.transform_parameters["bandwidth"] = bandwidth_dist.sample(
             sample_shape=(batch_size,)
