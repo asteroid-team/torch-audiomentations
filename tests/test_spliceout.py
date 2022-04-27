@@ -13,7 +13,7 @@ class TestSplitout(unittest.TestCase):
         audio_samples = torch.rand(size=(8, 1, 32000), dtype=torch.float32)
         augment = Compose(
             [
-                SpliceOut(num_time_intervals=10, max_width=400, output_type="dict"),
+                SpliceOut(num_time_intervals=10, max_width=25, output_type="dict"),
             ],
             output_type="dict",
         )
@@ -30,7 +30,7 @@ class TestSplitout(unittest.TestCase):
             [
                 SpliceOut(
                     num_time_intervals=10,
-                    max_width=400,
+                    max_width=25,
                     mode="per_batch",
                     p=1.0,
                     output_type="dict",
@@ -51,7 +51,7 @@ class TestSplitout(unittest.TestCase):
         audio_samples = torch.rand(size=(8, 2, 32000), dtype=torch.float32)
         augment = Compose(
             [
-                SpliceOut(num_time_intervals=10, max_width=400, output_type="dict"),
+                SpliceOut(num_time_intervals=10, max_width=25, output_type="dict"),
             ],
             output_type="dict",
         )
@@ -74,7 +74,7 @@ class TestSplitout(unittest.TestCase):
         )
         augment = Compose(
             [
-                SpliceOut(num_time_intervals=10, max_width=400, output_type="dict"),
+                SpliceOut(num_time_intervals=10, max_width=25, output_type="dict"),
             ],
             output_type="dict",
         )
