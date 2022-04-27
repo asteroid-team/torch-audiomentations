@@ -23,7 +23,7 @@ class SpliceOut(BaseWaveformTransform):
     def __init__(
         self,
         num_time_intervals=8,
-        max_width=400,
+        max_width=25,
         mode: str = "per_example",
         p: float = 0.5,
         p_mode: Optional[str] = None,
@@ -33,7 +33,7 @@ class SpliceOut(BaseWaveformTransform):
     ):
         """
         param num_time_intervals: number of time intervals to spliceout
-        param max_width: maximum width of each spliceout
+        param max_width: maximum width of each spliceout in milliseconds
         param n_fft: size of FFT
         """
 
@@ -58,7 +58,7 @@ class SpliceOut(BaseWaveformTransform):
 
         self.transform_parameters["splice_lengths"] = torch.randint(
             low=int(sample_rate * 0.01),
-            high=self.max_width,
+            high=int(sample_rate*self.max_width*1e-3),
             size=(samples.shape[0], self.num_time_intervals),
         )
 
