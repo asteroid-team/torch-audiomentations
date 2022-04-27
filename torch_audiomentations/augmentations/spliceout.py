@@ -3,6 +3,7 @@ from turtle import forward
 import torch
 from typing import Optional
 from torch import Tensor
+from torch.nn.functional import pad
 
 from ..core.transforms_interface import BaseWaveformTransform
 from ..utils.dsp import convert_decibels_to_amplitude_ratio
@@ -17,6 +18,7 @@ class SpliceOut(BaseWaveformTransform):
     """
 
     supported_modes = {"per_batch", "per_example"}
+    requires_sample_rate = True
 
     def __init__(
         self,
@@ -46,7 +48,6 @@ class SpliceOut(BaseWaveformTransform):
         self.num_time_intervals = num_time_intervals
         self.max_width = max_width
     
-
     def randomize_parameters(
         self,
         samples: Tensor = None,
@@ -56,7 +57,7 @@ class SpliceOut(BaseWaveformTransform):
     ):
 
         self.transform_parameters["splice_lengths"] = torch.randint(
-            low=0, high=self.max_width, size=(samples.shape[0], self.num_time_intervals)
+            low=int(sample_rate*0.01), high=self.max_width, size=(samples.shape[0], self.num_time_intervals)
         )
 
     def apply_transform(
@@ -68,25 +69,38 @@ class SpliceOut(BaseWaveformTransform):
     ) -> ObjectDict:
 
         spliceout_samples = []
+        hann_window_len = int(sample_rate*0.02)
+        hann_window = torch.hann_window(hann_window_len)
+        hann_window_left, hann_window_right = hann_window[:hann_window_len//2],hann_window[hann_window_len//2:]
+        
         for i in range(samples.shape[0]):
 
             random_lengths = self.transform_parameters["splice_lengths"][i]
             mask = torch.ones(samples[i].shape[-1], dtype=bool)
-
+            all_starts = []
+            
             for j in range(self.num_time_intervals):
-
-                start = torch.randint(
+                start = torch.randint(int(sample_rate*0.01),
                     samples[i].shape[-1] - random_lengths[j], size=(1,)
                 )
                 mask[start : start + random_lengths[j]] = False
-
-            spliceout_sample = samples[i][:,mask]
+                all_starts.append(start)
+                
+            spliceout_sample = samples[i][:,mask] 
             padding = torch.zeros(
                 (samples[i].shape[0], samples[i].shape[-1] - spliceout_sample.shape[-1]),
                 dtype=torch.float32,
             )
-            spliceout_sample = torch.cat((spliceout_sample, padding), dim=-1).unsqueeze(0)
-            spliceout_samples.append(spliceout_sample)
+            spliceout_sample = torch.cat((spliceout_sample, padding), dim=-1)
+            
+            for start in all_starts:
+                start = start - (~mask[:start]).sum()                           ##locating relative index after masking
+                right_mask, left_mask = spliceout_sample[:,start : start + hann_window_len//2 ], spliceout_sample[:,start - hann_window_len//2 : start ]
+                right_mask = right_mask * hann_window_right
+                left_mask = left_mask * hann_window_left
+                spliceout_sample[:,start - hann_window_len//4 : start + hann_window_len//4  ]= right_mask + left_mask
+
+            spliceout_samples.append(spliceout_sample.unsqueeze(0))
 
         return ObjectDict(
             samples=torch.cat(spliceout_samples, dim=0),
