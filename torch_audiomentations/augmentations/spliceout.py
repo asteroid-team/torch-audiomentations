@@ -23,7 +23,7 @@ class SpliceOut(BaseWaveformTransform):
     def __init__(
         self,
         num_time_intervals=8,
-        max_width=25,
+        max_width=400,
         mode: str = "per_example",
         p: float = 0.5,
         p_mode: Optional[str] = None,
@@ -96,7 +96,7 @@ class SpliceOut(BaseWaveformTransform):
             spliceout_sample = samples[i][:, mask]
             padding = torch.zeros(
                 (samples[i].shape[0], samples[i].shape[-1] - spliceout_sample.shape[-1]),
-                dtype=torch.float32,
+                dtype=torch.float32,device=spliceout_sample.device
             )
             spliceout_sample = torch.cat((spliceout_sample, padding), dim=-1)
 
@@ -110,9 +110,15 @@ class SpliceOut(BaseWaveformTransform):
                 )
                 right_mask = right_mask * hann_window_right
                 left_mask = left_mask * hann_window_left
-                spliceout_sample[
-                    :, start - hann_window_len // 4 : start + hann_window_len // 4
-                ] = (right_mask + left_mask)
+                if (hann_window_len/2)%2 == 0:
+                    spliceout_sample[
+                        :, start - hann_window_len // 4 : start + hann_window_len // 4
+                    ] = (right_mask + left_mask)
+                else:
+                    spliceout_sample[
+                        :, start - hann_window_len // 4 : start + 1 + hann_window_len // 4
+                    ] = (right_mask + left_mask)
+
 
             spliceout_samples.append(spliceout_sample.unsqueeze(0))
 
