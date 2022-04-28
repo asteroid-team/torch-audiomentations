@@ -23,6 +23,21 @@ class TestSpliceout(unittest.TestCase):
 
         assert spliceout_samples.dtype == np.float32
 
+    def test_spliceout_odd_hann(self):
+
+        audio_samples = torch.rand(size=(8, 1, 32000), dtype=torch.float32)
+        augment = Compose(
+            [
+                SpliceOut(num_time_intervals=10, max_width=400, output_type="dict"),
+            ],
+            output_type="dict",
+        )
+        spliceout_samples = augment(
+            samples=audio_samples, sample_rate=16100
+        ).samples.numpy()
+
+        assert spliceout_samples.dtype == np.float32
+
     def test_spliceout_perbatch(self):
 
         audio_samples = torch.rand(size=(8, 1, 32000), dtype=torch.float32)
