@@ -31,7 +31,7 @@ class SpectralGating(BaseWaveformTransform):
         self.n_fft = n_fft
         self.win_length = win_length
         self.hop_length = hop_length
-        self.decrease_prop = decrease_prop  ##max decrease prop
+        self.decrease_prop = min(1.0,decrease_prop)  ##max decrease prop
 
 
 
