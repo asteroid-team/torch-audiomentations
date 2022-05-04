@@ -25,6 +25,7 @@ from torch_audiomentations import (
     TimeInversion,
 )
 from torch_audiomentations.augmentations.shuffle_channels import ShuffleChannels
+from torch_audiomentations.augmentations.spliceout import SpliceOut
 from torch_audiomentations.core.transforms_interface import ModeNotSupportedException
 
 SAMPLE_RATE = 44100
@@ -160,6 +161,10 @@ if __name__ == "__main__":
             {"get_instance": lambda: PeakNormalization(mode=mode, p=1.0), "num_runs": 1},
             {"get_instance": lambda: Shift(mode=mode, p=1.0), "num_runs": 5},
             {"get_instance": lambda: ShuffleChannels(mode=mode, p=1.0), "num_runs": 5},
+            {
+                "get_instance": lambda: SpliceOut(mode=mode, p=1.0),
+                "num_runs": 5,
+            },
             {"get_instance": lambda: TimeInversion(mode=mode, p=1.0), "num_runs": 1},
         ]
 
