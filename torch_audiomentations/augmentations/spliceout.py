@@ -57,7 +57,7 @@ class SpliceOut(BaseWaveformTransform):
     ):
 
         self.transform_parameters["splice_lengths"] = torch.randint(
-            low=int(sample_rate * 0.01),
+            low=0,
             high=int(sample_rate*self.max_width*1e-3),
             size=(samples.shape[0], self.num_time_intervals),
         )
@@ -70,60 +70,46 @@ class SpliceOut(BaseWaveformTransform):
         target_rate: Optional[int] = None,
     ) -> ObjectDict:
 
-        spliceout_samples = []
-        hann_window_len = int(sample_rate * 0.02)
-        hann_window = torch.hann_window(hann_window_len)
-        hann_window_left, hann_window_right = (
-            hann_window[: hann_window_len // 2],
-            hann_window[hann_window_len // 2 :],
-        )
-
+        
         for i in range(samples.shape[0]):
 
             random_lengths = self.transform_parameters["splice_lengths"][i]
-            mask = torch.ones(samples[i].shape[-1], dtype=bool)
-            all_starts = []
-
+            crossfades = []
+            indices = []
             for j in range(self.num_time_intervals):
                 start = torch.randint(
-                    int(sample_rate * 0.01),
+                    0,
                     samples[i].shape[-1] - random_lengths[j],
                     size=(1,),
                 )
-                mask[start : start + random_lengths[j]] = False
-                all_starts.append(start)
+                
+                if random_lengths[j]%2 != 0:
+                    random_lengths[j] += 1
 
-            spliceout_sample = samples[i][:, mask]
-            padding = torch.zeros(
-                (samples[i].shape[0], samples[i].shape[-1] - spliceout_sample.shape[-1]),
-                dtype=torch.float32,device=spliceout_sample.device
-            )
-            spliceout_sample = torch.cat((spliceout_sample, padding), dim=-1)
-
-            for start in all_starts:
-                start = (
-                    start - (~mask[:start]).sum()
-                )  ##locating relative index after masking
-                right_mask, left_mask = (
-                    spliceout_sample[:, start : start + hann_window_len // 2],
-                    spliceout_sample[:, start - hann_window_len // 2 : start],
+                hann_window_len = random_lengths[j]
+                hann_window = torch.hann_window(hann_window_len)
+                hann_window_left, hann_window_right = (
+                    hann_window[: hann_window_len // 2],
+                    hann_window[hann_window_len // 2 :],
                 )
-                right_mask = right_mask * hann_window_right
-                left_mask = left_mask * hann_window_left
-                if (hann_window_len/2)%2 == 0:
-                    spliceout_sample[
-                        :, start - hann_window_len // 4 : start + hann_window_len // 4
-                    ] = (right_mask + left_mask)
-                else:
-                    spliceout_sample[
-                        :, start - hann_window_len // 4 : start + 1 + hann_window_len // 4
-                    ] = (right_mask + left_mask)
+                
+                fading_out, fading_in = samples[i][:,start : start + random_lengths[j]//2 ],samples[i][:,start + random_lengths[j]//2 : start + random_lengths[j] ] 
+                crossfade = hann_window_right * fading_out + hann_window_left * fading_in
+                crossfades.append(crossfade)
+                indices.append((start,random_lengths[j]))
+            
 
+            ##adjusting sample length and adding crossfade
+            prev_length = 0
+            for crossfade,(start,length) in zip(crossfades,indices):
+                length += prev_length
+                sample = sample[:,:start],crossfade,sample[:,start+length:]
 
-            spliceout_samples.append(spliceout_sample.unsqueeze(0))
+               
+
 
         return ObjectDict(
-            samples=torch.cat(spliceout_samples, dim=0),
+            samples=samples,
             sample_rate=sample_rate,
             targets=targets,
             target_rate=target_rate,
