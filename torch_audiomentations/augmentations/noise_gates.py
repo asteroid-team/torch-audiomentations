@@ -1,3 +1,4 @@
+from dis import dis
 import torch
 from torch import Tensor
 from typing import Optional
@@ -30,6 +31,8 @@ class SpectralGating(BaseWaveformTransform):
         self.n_fft = n_fft
         self.win_length = win_length
         self.hop_length = hop_length
+        self.decrease_prop = decrease_prop  ##max decrease prop
+
 
 
     def randomize_parameters(
@@ -39,7 +42,10 @@ class SpectralGating(BaseWaveformTransform):
         targets: Optional[Tensor] = None,
         target_rate: Optional[int] = None):
 
-        pass
+        dist = torch.distributions.Uniform(0.0,self.decrease_prop)
+        self.transform_parameters['decrease_prop'] = dist.sample((samples.shape[0],))
+
+        
 
     def apply_transform(
         self,
