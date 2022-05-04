@@ -70,16 +70,16 @@ class SpliceOut(BaseWaveformTransform):
         target_rate: Optional[int] = None,
     ) -> ObjectDict:
 
+        spliceout_samples = []
         
         for i in range(samples.shape[0]):
 
             random_lengths = self.transform_parameters["splice_lengths"][i]
-            crossfades = []
-            indices = []
+            sample = samples[i][:,:]
             for j in range(self.num_time_intervals):
                 start = torch.randint(
                     0,
-                    samples[i].shape[-1] - random_lengths[j],
+                    sample.shape[-1] - random_lengths[j],
                     size=(1,),
                 )
                 
@@ -93,23 +93,20 @@ class SpliceOut(BaseWaveformTransform):
                     hann_window[hann_window_len // 2 :],
                 )
                 
-                fading_out, fading_in = samples[i][:,start : start + random_lengths[j]//2 ],samples[i][:,start + random_lengths[j]//2 : start + random_lengths[j] ] 
+                fading_out, fading_in = sample[:,start : start + random_lengths[j]//2 ],sample[:,start + random_lengths[j]//2 : start + random_lengths[j] ] 
                 crossfade = hann_window_right * fading_out + hann_window_left * fading_in
-                crossfades.append(crossfade)
-                indices.append((start,random_lengths[j]))
+                sample = torch.cat((sample[:,:start],crossfade[:,:],sample[:,start+random_lengths[j]:]),dim=-1)
+
+            padding = torch.zeros(
+                (samples[i].shape[0], samples[i].shape[-1] - sample.shape[-1]),
+                dtype=torch.float32,
+            )
+            sample = torch.cat((sample, padding), dim=-1)
+            spliceout_samples.append(sample.unsqueeze(0))
             
 
-            ##adjusting sample length and adding crossfade
-            prev_length = 0
-            for crossfade,(start,length) in zip(crossfades,indices):
-                length += prev_length
-                sample = sample[:,:start],crossfade,sample[:,start+length:]
-
-               
-
-
         return ObjectDict(
-            samples=samples,
+            samples=torch.cat(spliceout_samples,dim=0),
             sample_rate=sample_rate,
             targets=targets,
             target_rate=target_rate,
