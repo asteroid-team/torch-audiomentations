@@ -99,7 +99,7 @@ class SpliceOut(BaseWaveformTransform):
 
             padding = torch.zeros(
                 (samples[i].shape[0], samples[i].shape[-1] - sample.shape[-1]),
-                dtype=torch.float32,
+                dtype=torch.float32,device=sample.device
             )
             sample = torch.cat((sample, padding), dim=-1)
             spliceout_samples.append(sample.unsqueeze(0))
