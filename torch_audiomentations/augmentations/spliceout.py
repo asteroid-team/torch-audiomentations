@@ -87,7 +87,7 @@ class SpliceOut(BaseWaveformTransform):
                     random_lengths[j] += 1
 
                 hann_window_len = random_lengths[j]
-                hann_window = torch.hann_window(hann_window_len)
+                hann_window = torch.hann_window(hann_window_len, device=samples.device)
                 hann_window_left, hann_window_right = (
                     hann_window[: hann_window_len // 2],
                     hann_window[hann_window_len // 2 :],
