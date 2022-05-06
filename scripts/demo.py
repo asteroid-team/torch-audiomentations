@@ -27,11 +27,11 @@ from torch_audiomentations import (
     VTLP,
 )
 from torch_audiomentations.augmentations.shuffle_channels import ShuffleChannels
-from torch_audiomentations.core.transforms_interface import ModeNotSupportedException, \
-    MultichannelAudioNotSupportedException
+from torch_audiomentations.core.transforms_interface import (
+    ModeNotSupportedException,
+    MultichannelAudioNotSupportedException,
+)
 from torch_audiomentations.utils.object_dict import ObjectDict
-
-SAMPLE_RATE = 44100
 
 BASE_DIR = Path(os.path.abspath(os.path.dirname(os.path.dirname(__file__))))
 SCRIPTS_DIR = BASE_DIR / "scripts"
@@ -91,9 +91,10 @@ if __name__ == "__main__":
 
     for filenames in batch:
         audios = []
+        batch_sample_rate = None
         for filename in filenames:
-            samples1, _ = librosa.load(
-                os.path.join(TEST_FIXTURES_DIR, filename), sr=SAMPLE_RATE, mono=False
+            samples1, batch_sample_rate = librosa.load(
+                os.path.join(TEST_FIXTURES_DIR, filename), sr=None, mono=False
             )
             if samples1.ndim == 1:
                 samples1 = samples1.reshape((1, -1))
@@ -101,7 +102,9 @@ if __name__ == "__main__":
         samples = np.stack(audios, axis=0)
         samples = torch.from_numpy(samples)
 
-        modes = ["per_batch", "per_example"]
+        modes = ["per_example"]
+        if samples.shape[0] > 1:
+            modes.append("per_batch")
         if samples.shape[1] > 1:
             modes.append("per_channel")
         for mode in modes:
@@ -176,7 +179,7 @@ if __name__ == "__main__":
                 },
                 {
                     "get_instance": lambda: PitchShift(
-                        sample_rate=SAMPLE_RATE, mode=mode, p=1.0
+                        sample_rate=batch_sample_rate, mode=mode, p=1.0
                     ),
                     "num_runs": 5,
                 },
@@ -210,7 +213,7 @@ if __name__ == "__main__":
                     with timer() as t:
                         try:
                             augmented_samples = augmenter(
-                                samples=samples, sample_rate=SAMPLE_RATE
+                                samples=samples, sample_rate=batch_sample_rate
                             )
                         except MultichannelAudioNotSupportedException as e:
                             print(e)
@@ -235,7 +238,7 @@ if __name__ == "__main__":
                         )
                         wavfile.write(
                             output_file_path,
-                            rate=SAMPLE_RATE,
+                            rate=batch_sample_rate,
                             data=augmented_samples[example_idx].transpose(),
                         )
 
