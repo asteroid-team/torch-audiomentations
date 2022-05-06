@@ -55,8 +55,6 @@ class VTLP(BaseWaveformTransform):
         )
         if min_warp_factor >= max_warp_factor:
             raise ValueError("max_warp_factor must be > min_warp_factor")
-        if not sample_rate:
-            raise ValueError("sample_rate is invalid.")
 
         self.min_warp_factor = min_warp_factor
         self.max_warp_factor = max_warp_factor
