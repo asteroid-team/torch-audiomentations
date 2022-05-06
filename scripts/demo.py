@@ -27,7 +27,8 @@ from torch_audiomentations import (
     VTLP,
 )
 from torch_audiomentations.augmentations.shuffle_channels import ShuffleChannels
-from torch_audiomentations.core.transforms_interface import ModeNotSupportedException
+from torch_audiomentations.core.transforms_interface import ModeNotSupportedException, \
+    MultichannelAudioNotSupportedException
 from torch_audiomentations.utils.object_dict import ObjectDict
 
 SAMPLE_RATE = 44100
@@ -86,142 +87,170 @@ if __name__ == "__main__":
     np.random.seed(43)
     random.seed(43)
 
-    filenames = ["perfect-alley1.ogg", "perfect-alley2.ogg"]
-    samples1, _ = librosa.load(
-        os.path.join(TEST_FIXTURES_DIR, filenames[0]), sr=SAMPLE_RATE, mono=False
-    )
-    samples2, _ = librosa.load(
-        os.path.join(TEST_FIXTURES_DIR, filenames[1]), sr=SAMPLE_RATE, mono=False
-    )
-    samples = np.stack((samples1, samples2), axis=0)
-    samples = torch.from_numpy(samples)
+    batch = [["p286_011.wav"], ["perfect-alley1.ogg", "perfect-alley2.ogg"]]
 
-    modes = ["per_batch", "per_example", "per_channel"]
-    for mode in modes:
-        transforms = [
-            {
-                "get_instance": lambda: AddBackgroundNoise(
-                    background_paths=TEST_FIXTURES_DIR / "bg", mode=mode, p=1.0
-                ),
-                "num_runs": 5,
-            },
-            {"get_instance": lambda: AddColoredNoise(mode=mode, p=1.0), "num_runs": 5},
-            {
-                "get_instance": lambda: ApplyImpulseResponse(
-                    ir_paths=TEST_FIXTURES_DIR / "ir", mode=mode, p=1.0
-                ),
-                "num_runs": 1,
-            },
-            {
-                "get_instance": lambda: ApplyImpulseResponse(
-                    ir_paths=TEST_FIXTURES_DIR / "ir",
-                    compensate_for_propagation_delay=True,
-                    mode=mode,
-                    p=1.0,
-                ),
-                "name": "ApplyImpulseResponse with compensate_for_propagation_delay set to True",
-                "num_runs": 1,
-            },
-            {"get_instance": lambda: BandPassFilter(mode=mode, p=1.0), "num_runs": 5},
-            {"get_instance": lambda: BandStopFilter(mode=mode, p=1.0), "num_runs": 5},
-            {
-                "get_instance": lambda: Compose(
-                    transforms=[
-                        Gain(
-                            min_gain_in_db=-18.0, max_gain_in_db=-16.0, mode=mode, p=1.0
-                        ),
-                        PeakNormalization(mode=mode, p=1.0),
-                    ],
-                    shuffle=True,
-                ),
-                "name": "Shuffled Compose with Gain and PeakNormalization",
-                "num_runs": 5,
-            },
-            {
-                "get_instance": lambda: Compose(
-                    transforms=[
-                        Gain(
-                            min_gain_in_db=-18.0, max_gain_in_db=-16.0, mode=mode, p=0.5
-                        ),
-                        PolarityInversion(mode=mode, p=0.5),
-                    ],
-                    shuffle=True,
-                ),
-                "name": "Compose with Gain and PolarityInversion",
-                "num_runs": 5,
-            },
-            {"get_instance": lambda: Gain(mode=mode, p=1.0), "num_runs": 5},
-            {"get_instance": lambda: HighPassFilter(mode=mode, p=1.0), "num_runs": 5},
-            {"get_instance": lambda: LowPassFilter(mode=mode, p=1.0), "num_runs": 5},
-            {"get_instance": lambda: Padding(mode=mode, p=1.0), "num_runs": 5},
-            {"get_instance": lambda: PeakNormalization(mode=mode, p=1.0), "num_runs": 1},
-            {
-                "get_instance": lambda: PitchShift(
-                    sample_rate=SAMPLE_RATE, mode=mode, p=1.0
-                ),
-                "num_runs": 5,
-            },
-            {"get_instance": lambda: PolarityInversion(mode=mode, p=1.0), "num_runs": 1},
-            {"get_instance": lambda: Shift(mode=mode, p=1.0), "num_runs": 5},
-            {"get_instance": lambda: ShuffleChannels(mode=mode, p=1.0), "num_runs": 5},
-            {"get_instance": lambda: VTLP(mode=mode, p=1.0), "num_runs": 5},
-            {"get_instance": lambda: TimeInversion(mode=mode, p=1.0), "num_runs": 1},
-        ]
-
-        execution_times = {}
-
-        for transform in transforms:
-            try:
-                augmenter = transform["get_instance"]()
-            except ModeNotSupportedException:
-                continue
-            transform_name = (
-                transform.get("name")
-                if transform.get("name")
-                else augmenter.__class__.__name__
+    for filenames in batch:
+        audios = []
+        for filename in filenames:
+            samples1, _ = librosa.load(
+                os.path.join(TEST_FIXTURES_DIR, filename), sr=SAMPLE_RATE, mono=False
             )
-            execution_times[transform_name] = []
-            for i in range(transform["num_runs"]):
-                with timer() as t:
-                    augmented_samples = augmenter(
-                        samples=samples, sample_rate=SAMPLE_RATE
-                    )
-                    print(
-                        augmenter.__class__.__name__,
-                        "is output ObjectDict:",
-                        type(augmented_samples) is ObjectDict,
-                    )
-                    augmented_samples = (
-                        augmented_samples.samples.numpy()
-                        if type(augmented_samples) is ObjectDict
-                        else augmented_samples.numpy()
-                    )
-                execution_times[transform_name].append(t.execution_time)
-                for example_idx, original_filename in enumerate(filenames):
-                    output_file_path = os.path.join(
-                        output_dir,
-                        "{}_{}_{:03d}_{}.wav".format(
-                            transform_name, mode, i, Path(original_filename).stem
-                        ),
-                    )
-                    wavfile.write(
-                        output_file_path,
-                        rate=SAMPLE_RATE,
-                        data=augmented_samples[example_idx].transpose(),
-                    )
+            if samples1.ndim == 1:
+                samples1 = samples1.reshape((1, -1))
+            audios.append(samples1)
+        samples = np.stack(audios, axis=0)
+        samples = torch.from_numpy(samples)
 
-        for transform_name in execution_times:
-            if len(execution_times[transform_name]) > 1:
-                print(
-                    "{:<52} {:.3f} s (std: {:.3f} s)".format(
-                        transform_name,
-                        np.mean(execution_times[transform_name]),
-                        np.std(execution_times[transform_name]),
-                    )
+        modes = ["per_batch", "per_example"]
+        if samples.shape[1] > 1:
+            modes.append("per_channel")
+        for mode in modes:
+            transforms = [
+                {
+                    "get_instance": lambda: AddBackgroundNoise(
+                        background_paths=TEST_FIXTURES_DIR / "bg", mode=mode, p=1.0
+                    ),
+                    "num_runs": 5,
+                },
+                {
+                    "get_instance": lambda: AddColoredNoise(mode=mode, p=1.0),
+                    "num_runs": 5,
+                },
+                {
+                    "get_instance": lambda: ApplyImpulseResponse(
+                        ir_paths=TEST_FIXTURES_DIR / "ir", mode=mode, p=1.0
+                    ),
+                    "num_runs": 1,
+                },
+                {
+                    "get_instance": lambda: ApplyImpulseResponse(
+                        ir_paths=TEST_FIXTURES_DIR / "ir",
+                        compensate_for_propagation_delay=True,
+                        mode=mode,
+                        p=1.0,
+                    ),
+                    "name": "ApplyImpulseResponse with compensate_for_propagation_delay set to True",
+                    "num_runs": 1,
+                },
+                {"get_instance": lambda: BandPassFilter(mode=mode, p=1.0), "num_runs": 5},
+                {"get_instance": lambda: BandStopFilter(mode=mode, p=1.0), "num_runs": 5},
+                {
+                    "get_instance": lambda: Compose(
+                        transforms=[
+                            Gain(
+                                min_gain_in_db=-18.0,
+                                max_gain_in_db=-16.0,
+                                mode=mode,
+                                p=1.0,
+                            ),
+                            PeakNormalization(mode=mode, p=1.0),
+                        ],
+                        shuffle=True,
+                    ),
+                    "name": "Shuffled Compose with Gain and PeakNormalization",
+                    "num_runs": 5,
+                },
+                {
+                    "get_instance": lambda: Compose(
+                        transforms=[
+                            Gain(
+                                min_gain_in_db=-18.0,
+                                max_gain_in_db=-16.0,
+                                mode=mode,
+                                p=0.5,
+                            ),
+                            PolarityInversion(mode=mode, p=0.5),
+                        ],
+                        shuffle=True,
+                    ),
+                    "name": "Compose with Gain and PolarityInversion",
+                    "num_runs": 5,
+                },
+                {"get_instance": lambda: Gain(mode=mode, p=1.0), "num_runs": 5},
+                {"get_instance": lambda: HighPassFilter(mode=mode, p=1.0), "num_runs": 5},
+                {"get_instance": lambda: LowPassFilter(mode=mode, p=1.0), "num_runs": 5},
+                {"get_instance": lambda: Padding(mode=mode, p=1.0), "num_runs": 5},
+                {
+                    "get_instance": lambda: PeakNormalization(mode=mode, p=1.0),
+                    "num_runs": 1,
+                },
+                {
+                    "get_instance": lambda: PitchShift(
+                        sample_rate=SAMPLE_RATE, mode=mode, p=1.0
+                    ),
+                    "num_runs": 5,
+                },
+                {
+                    "get_instance": lambda: PolarityInversion(mode=mode, p=1.0),
+                    "num_runs": 1,
+                },
+                {"get_instance": lambda: Shift(mode=mode, p=1.0), "num_runs": 5},
+                {
+                    "get_instance": lambda: ShuffleChannels(mode=mode, p=1.0),
+                    "num_runs": 5,
+                },
+                {"get_instance": lambda: VTLP(mode=mode, p=1.0), "num_runs": 5},
+                {"get_instance": lambda: TimeInversion(mode=mode, p=1.0), "num_runs": 1},
+            ]
+
+            execution_times = {}
+
+            for transform in transforms:
+                try:
+                    augmenter = transform["get_instance"]()
+                except ModeNotSupportedException:
+                    continue
+                transform_name = (
+                    transform.get("name")
+                    if transform.get("name")
+                    else augmenter.__class__.__name__
                 )
-            else:
-                print(
-                    "{:<52} {:.3f} s".format(
-                        transform_name, np.mean(execution_times[transform_name])
+                execution_times[transform_name] = []
+                for i in range(transform["num_runs"]):
+                    with timer() as t:
+                        try:
+                            augmented_samples = augmenter(
+                                samples=samples, sample_rate=SAMPLE_RATE
+                            )
+                        except MultichannelAudioNotSupportedException as e:
+                            print(e)
+                            continue
+                        print(
+                            augmenter.__class__.__name__,
+                            "is output ObjectDict:",
+                            type(augmented_samples) is ObjectDict,
+                        )
+                        augmented_samples = (
+                            augmented_samples.samples.numpy()
+                            if type(augmented_samples) is ObjectDict
+                            else augmented_samples.numpy()
+                        )
+                    execution_times[transform_name].append(t.execution_time)
+                    for example_idx, original_filename in enumerate(filenames):
+                        output_file_path = os.path.join(
+                            output_dir,
+                            "{}_{}_{:03d}_{}.wav".format(
+                                transform_name, mode, i, Path(original_filename).stem
+                            ),
+                        )
+                        wavfile.write(
+                            output_file_path,
+                            rate=SAMPLE_RATE,
+                            data=augmented_samples[example_idx].transpose(),
+                        )
+
+            for transform_name in execution_times:
+                if len(execution_times[transform_name]) > 1:
+                    print(
+                        "{:<52} {:.3f} s (std: {:.3f} s)".format(
+                            transform_name,
+                            np.mean(execution_times[transform_name]),
+                            np.std(execution_times[transform_name]),
+                        )
                     )
-                )
+                else:
+                    print(
+                        "{:<52} {:.3f} s".format(
+                            transform_name, np.mean(execution_times[transform_name])
+                        )
+                    )
