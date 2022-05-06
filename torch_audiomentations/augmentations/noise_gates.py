@@ -11,6 +11,8 @@ from torch_audiomentations.utils.object_dict import ObjectDict
 
 class SpectralGating(BaseWaveformTransform):
 
+    supported_modes = {"per_batch", "per_example", "per_channel"}
+
     def __init__(
         self,
         std_away = 1.0,
@@ -28,12 +30,21 @@ class SpectralGating(BaseWaveformTransform):
         target_rate: Optional[int] = None,
         output_type: Optional[str] = None,
     ):
-        super(SpectralGating, self).__init__()
+        super(SpectralGating, self).__init__(
+            mode=mode,
+            p=p,
+            p_mode=p_mode,
+            sample_rate=sample_rate,
+            target_rate=target_rate,
+            output_type=output_type,
+        )
         self.n_fft = n_fft
         self.win_length = win_length
         self.hop_length = hop_length
         self.decrease_prop = min(1.0,decrease_prop)  ##max decrease prop
         self.q = q
+        self.n_grad_freq = n_grad_freq
+        self.n_grad_time = n_grad_time
 
 
 
@@ -78,10 +89,33 @@ class SpectralGating(BaseWaveformTransform):
             audio_stft_abs = torch.stft(samples.squeeze(1),n_fft=self.n_fft,win_length=self.win_length,hop_length=self.hop_length)[:,:,:,0]
             audio_stft_db = AmplitudeToDB()(audio_stft_abs)
             noise_threshold = torch.quantile(audio_stft_db,q=self.q,dim=-1)
-            noise_threshold = noise_threshold.unsqueeze(-1).expand(audio_stft_db.shape)
+            noise_threshold = noise_threshold.unsqueeze(-1).expand(audio_stft_db.shape).unsqueeze(1)
 
-        print("SAMPLES",audio_stft_abs.shape,"THRESHOLD",noise_threshold.shape)
-    
+        print("SAMPLES",samples.shape,"THRESHOLD",noise_threshold.shape,"MODE",self.mode)
+        smoothing_filter = torch.outer(
+            torch.cat( 
+                (torch.linspace(0,1,self.n_grad_freq+1),
+                torch.linspace(1,0,self.n_grad_freq+2))
+            )[1:-1],
+            torch.cat(
+                (torch.linspace(0,1,self.n_grad_time+1),
+                torch.linspace(1,0,self.n_grad_time+2)
+                )
+
+            )[1:-1]
+        )
+        smoothing_filter = smoothing_filter/smoothing_filter.sum()
+        print("Smoothing", smoothing_filter.shape)
+
+        for sample,noise_thresh_matrix in zip(samples,noise_threshold):
+            for sample_dim,noise_dim in zip(sample,noise_thresh_matrix):
+                audio_stft_abs = torch.stft(sample_dim,n_fft=self.n_fft,win_length=self.win_length,hop_length=self.hop_length)[:,:,0]
+                audio_stft_db = AmplitudeToDB()(audio_stft_abs)
+                noise_mask = audio_stft_db < noise_dim
+
+
+
+
     
         return ObjectDict(
             samples=samples,
