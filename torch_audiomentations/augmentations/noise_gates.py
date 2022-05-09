@@ -106,7 +106,7 @@ class SpectralGating(BaseWaveformTransform):
         )
         smoothing_filter = smoothing_filter/smoothing_filter.sum()
         print("Smoothing", smoothing_filter.shape)
-
+        cleaned_audios = []
         for i,sample,noise_thresh_matrix in zip(np.arange(0,samples.shape[0]),samples,noise_threshold):
             for sample_dim,noise_dim in zip(sample,noise_thresh_matrix):
                 audio_stft = torch.stft(sample_dim,n_fft=self.n_fft,win_length=self.win_length,hop_length=self.hop_length)
@@ -120,18 +120,15 @@ class SpectralGating(BaseWaveformTransform):
 
                 cleaned_audio_stft = torch.stack(
                                     (DB_to_amplitude(cleaned_audio_real,ref=1,power=0.5)*audio_stft[:,:,0].sign(),
-                                    1j * cleaned_audio_img),dim=-1)
-                print(cleaned_audio_stft.shape) 
-
-
-
-
-
-
-
+                                    cleaned_audio_img),dim=-1)
+                cleaned_audio = torch.istft(cleaned_audio_stft,hop_length=self.hop_length,win_length=self.win_length,n_fft=self.n_fft).unsqueeze(0)
+                padding = torch.zeros((1,sample.shape[-1]-cleaned_audio.shape[1]),device=sample.device)
+                print("PADDING",padding.shape,"CLEANED",cleaned_audio.shape)
+                cleaned_audio = torch.cat((cleaned_audio,padding),dim=1)
+                cleaned_audios.append(cleaned_audio)
     
         return ObjectDict(
-            samples=samples,
+            samples=torch.cat(cleaned_audios,dim=0).reshape(samples.shape),
             sample_rate=sample_rate,
             targets=targets,
             target_rate=target_rate,
