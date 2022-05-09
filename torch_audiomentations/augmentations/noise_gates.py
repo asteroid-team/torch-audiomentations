@@ -118,7 +118,7 @@ class SpectralGating(BaseWaveformTransform):
                 cleaned_audio_real = audio_stft_db * (1-noise_mask) + torch.ones(mask_gain_db.shape) * mask_gain_db * noise_mask
                 cleaned_audio_img = audio_stft[:,:,1] * (1-noise_mask)
 
-                cleaned_audio_stft = torch.cat(
+                cleaned_audio_stft = torch.stack(
                                     (DB_to_amplitude(cleaned_audio_real,ref=1,power=0.5)*audio_stft[:,:,0].sign(),
                                     1j * cleaned_audio_img),dim=-1)
                 print(cleaned_audio_stft.shape) 
