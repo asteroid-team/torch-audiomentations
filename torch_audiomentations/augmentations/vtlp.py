@@ -15,7 +15,7 @@ class VocalTractLengthPerturbation(BaseWaveformTransform):
     supported_modes = {"per_example"}
 
     supports_multichannel = False
-    requires_sample_rate = True
+    requires_sample_rate = False
 
     supports_target = True
     requires_target = False
@@ -29,7 +29,6 @@ class VocalTractLengthPerturbation(BaseWaveformTransform):
         mode: str = "per_example",
         p: float = 0.5,
         p_mode: str = None,
-        sample_rate: int = None,
         target_rate: int = None,
         output_type: Optional[str] = None,
     ):
@@ -49,20 +48,16 @@ class VocalTractLengthPerturbation(BaseWaveformTransform):
             mode=mode,
             p=p,
             p_mode=p_mode,
-            sample_rate=sample_rate,
             target_rate=target_rate,
             output_type=output_type,
         )
         if min_warp_factor >= max_warp_factor:
             raise ValueError("max_warp_factor must be > min_warp_factor")
-        if not sample_rate:
-            raise ValueError("sample_rate is invalid.")
 
         self.min_warp_factor = min_warp_factor
         self.max_warp_factor = max_warp_factor
         self.n_fft = n_fft
         self.hop_length = hop_length
-        self.sample_rate = sample_rate
 
     @classmethod
     def get_scale_factors(
