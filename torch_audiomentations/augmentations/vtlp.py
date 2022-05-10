@@ -7,7 +7,7 @@ from ..core.transforms_interface import BaseWaveformTransform
 from ..utils.object_dict import ObjectDict
 
 
-class VTLP(BaseWaveformTransform):
+class VocalTractLengthPerturbation(BaseWaveformTransform):
     """
     Apply Vocal Tract Length Perturbation as defined in 
     http://www.cs.toronto.edu/~hinton/absps/perturb.pdf

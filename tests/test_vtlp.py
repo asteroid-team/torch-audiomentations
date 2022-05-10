@@ -1,7 +1,7 @@
 import numpy as np
 import torch
 
-from torch_audiomentations import VTLP
+from torch_audiomentations import VocalTractLengthPerturbation
 
 
 class TestVTLP:
@@ -9,7 +9,7 @@ class TestVTLP:
         samples = torch.randn(3, 1, 32000)
         sample_rate = 16000
 
-        augment = VTLP(p=1.0, sample_rate=sample_rate, output_type="dict")
+        augment = VocalTractLengthPerturbation(p=1.0, sample_rate=sample_rate, output_type="dict")
         processed_samples = augment(
             samples=samples, sample_rate=sample_rate
         ).samples.numpy()
