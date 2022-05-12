@@ -18,7 +18,7 @@ class SpectralGating(BaseWaveformTransform):
         std_away = 1.0,
         n_grad_freq=2,
         n_grad_time=4,
-        q = 0.1,
+        q = 0.5,
         decrease_prop=1,
         n_fft=2048,
         win_length=2048,
@@ -55,7 +55,7 @@ class SpectralGating(BaseWaveformTransform):
         targets: Optional[Tensor] = None,
         target_rate: Optional[int] = None):
 
-        dist = torch.distributions.Uniform(0.0,self.decrease_prop)
+        dist = torch.distributions.Uniform(0.5 ,self.decrease_prop)
         self.transform_parameters['decrease_prop'] = dist.sample((samples.shape[0],))
 
         
@@ -66,11 +66,6 @@ class SpectralGating(BaseWaveformTransform):
         sample_rate: Optional[int] = None,
         targets: Optional[Tensor] = None,
         target_rate: Optional[int] = None) -> ObjectDict:
-
-
-                            ### (1,batch_size*num_channels, num_samples)
-                            ### (batch_size,num_channels,num_samples)  
-                            ### (batch_size*num_channels,1,num_samples)
 
         ### threshold 
         if self.mode == "per_batch":
@@ -91,7 +86,6 @@ class SpectralGating(BaseWaveformTransform):
             noise_threshold = torch.quantile(audio_stft_db,q=self.q,dim=-1)
             noise_threshold = noise_threshold.unsqueeze(-1).expand(audio_stft_db.shape).unsqueeze(1)
 
-        print("SAMPLES",samples.shape,"THRESHOLD",noise_threshold.shape,"MODE",self.mode)
         smoothing_filter = torch.outer(
             torch.cat( 
                 (torch.linspace(0,1,self.n_grad_freq+1),
@@ -105,7 +99,6 @@ class SpectralGating(BaseWaveformTransform):
             )[1:-1]
         )
         smoothing_filter = smoothing_filter/smoothing_filter.sum()
-        print("Smoothing", smoothing_filter.shape)
         cleaned_audios = []
         for i,sample,noise_thresh_matrix in zip(np.arange(0,samples.shape[0]),samples,noise_threshold):
             for sample_dim,noise_dim in zip(sample,noise_thresh_matrix):
@@ -123,7 +116,6 @@ class SpectralGating(BaseWaveformTransform):
                                     cleaned_audio_img),dim=-1)
                 cleaned_audio = torch.istft(cleaned_audio_stft,hop_length=self.hop_length,win_length=self.win_length,n_fft=self.n_fft).unsqueeze(0)
                 padding = torch.zeros((1,sample.shape[-1]-cleaned_audio.shape[1]),device=sample.device)
-                print("PADDING",padding.shape,"CLEANED",cleaned_audio.shape)
                 cleaned_audio = torch.cat((cleaned_audio,padding),dim=1)
                 cleaned_audios.append(cleaned_audio)
     
