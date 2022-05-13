@@ -18,7 +18,7 @@ class SpectralGating(BaseWaveformTransform):
         std_away = 1.0,
         n_grad_freq=2,
         n_grad_time=4,
-        q = 0.5,
+        q = 0.4,
         decrease_prop=1,
         n_fft=2048,
         win_length=2048,
@@ -67,25 +67,12 @@ class SpectralGating(BaseWaveformTransform):
         targets: Optional[Tensor] = None,
         target_rate: Optional[int] = None) -> ObjectDict:
 
-        ### threshold 
-        if self.mode == "per_batch":
-            assert samples.shape[0]==1
-            audio_stft_abs = torch.stft(samples.squeeze(0),n_fft=self.n_fft,win_length=self.win_length,hop_length=self.hop_length)[:,:,:,0]
-            audio_stft_db = amplitude_to_DB(audio_stft_abs, multiplier=20, amin=1e-10, db_multiplier=0.0)
-            audio_mean_db = audio_stft_db.mean(dim=0)
-            noise_threshold = torch.quantile(audio_mean_db,q=self.q,dim=-1)
-            noise_threshold = noise_threshold.unsqueeze(-1).expand(audio_mean_db.shape)[(None,)*2].expand((samples.shape[0],samples.shape[1],audio_stft_abs.shape[1],audio_stft_abs.shape[2]))
-        elif self.mode == "per_example":
-            audio_stft_abs = torch.stft(samples.mean(dim=1),n_fft=self.n_fft,win_length=self.win_length,hop_length=self.hop_length)[:,:,:,0]
-            audio_stft_db = amplitude_to_DB(audio_stft_abs, multiplier=20, amin=1e-10, db_multiplier=0.0)
-            noise_threshold = torch.quantile(audio_stft_db,q=self.q,dim=-1)
-            noise_threshold = noise_threshold.unsqueeze(-1).expand(audio_stft_db.shape).unsqueeze(1).expand((samples.shape[0],samples.shape[1],audio_stft_abs.shape[1],audio_stft_abs.shape[2]))
-        else:
-            audio_stft_abs = torch.stft(samples.squeeze(1),n_fft=self.n_fft,win_length=self.win_length,hop_length=self.hop_length)[:,:,:,0]
-            audio_stft_db = amplitude_to_DB(audio_stft_abs, multiplier=20, amin=1e-10, db_multiplier=0.0)
-            noise_threshold = torch.quantile(audio_stft_db,q=self.q,dim=-1)
-            noise_threshold = noise_threshold.unsqueeze(-1).expand(audio_stft_db.shape).unsqueeze(1)
 
+            
+        audio_stft_abs = torch.stft(samples.mean(dim=1),n_fft=self.n_fft,win_length=self.win_length,hop_length=self.hop_length)[:,:,:,0]
+        audio_stft_db = amplitude_to_DB(audio_stft_abs, multiplier=20, amin=1e-10, db_multiplier=0.0)
+        noise_threshold = torch.quantile(audio_stft_db,q=self.q,dim=-1).unsqueeze(-1).expand(audio_stft_db.shape).unsqueeze(1).expand((samples.shape[0],samples.shape[1],audio_stft_abs.shape[1],audio_stft_abs.shape[2]))
+       
         smoothing_filter = torch.outer(
             torch.cat( 
                 (torch.linspace(0,1,self.n_grad_freq+1),
