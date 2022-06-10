@@ -7,7 +7,7 @@ from torch import Tensor
 
 from ..core.transforms_interface import BaseWaveformTransform, EmptyPathException
 from ..utils.dsp import calculate_rms
-from ..utils.file import find_audio_files_in_paths, SUPPORTED_EXTENSIONS
+from ..utils.file import find_audio_files_in_paths
 from ..utils.io import Audio
 from ..utils.object_dict import ObjectDict
 
@@ -44,7 +44,7 @@ class AddBackgroundNoise(BaseWaveformTransform):
         :param background_paths: Either a path to a folder with audio files or a list of paths
             to audio files.
         :param min_snr_in_db: minimum SNR in dB.
-        :param max_snr_in_db: maximium SNR in dB.
+        :param max_snr_in_db: maximum SNR in dB.
         :param mode:
         :param p:
         :param p_mode:

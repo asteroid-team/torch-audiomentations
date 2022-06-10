@@ -59,7 +59,7 @@ class AddColoredNoise(BaseWaveformTransform):
     ):
         """
         :param min_snr_in_db: minimum SNR in dB.
-        :param max_snr_in_db: maximium SNR in dB.
+        :param max_snr_in_db: maximum SNR in dB.
         :param min_f_decay:
             defines the minimum frequency power decay (1/f**f_decay).
             Typical values are "white noise" (f_decay=0), "pink noise" (f_decay=1),
