@@ -197,6 +197,23 @@ classification. It was successfully applied in the paper
 
 ## Unreleased
 
+### Added
+
+* Add new transforms: `RandomCrop`, `Mix` and `SpliceOut`
+
+### Changed
+
+* Add `ObjectDict` output type as alternative to `torch.Tensor`. This alternative is opt-in for
+ now (for backwards-compatibility), but note that the old output type (`torch.Tensor`) is
+ deprecated and support for it will be removed in a future version.
+* Allow specifying a file path, a folder path, a list of files or a list of folders to
+  `AddBackgroundNoise` and `ApplyImpulseResponse`
+* Require newer version of `torch-pitch-shift` to ensure support for torchaudio 0.11 in `PitchShift`
+
+### Fixed
+
+* Fix a bug where `BandPassFilter` didn't work on GPU
+
 ## [v0.10.1] - 2022-03-24
 
 ### Added
