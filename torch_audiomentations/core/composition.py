@@ -236,4 +236,3 @@ class OneOf(SomeOf):
             p_mode=p_mode,
             output_type=output_type,
         )
-

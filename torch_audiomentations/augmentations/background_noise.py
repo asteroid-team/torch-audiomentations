@@ -137,10 +137,10 @@ class AddBackgroundNoise(BaseWaveformTransform):
         else:
             snr_distribution = torch.distributions.Uniform(
                 low=torch.tensor(
-                    self.min_snr_in_db, dtype=torch.float32, device=samples.device,
+                    self.min_snr_in_db, dtype=torch.float32, device=samples.device
                 ),
                 high=torch.tensor(
-                    self.max_snr_in_db, dtype=torch.float32, device=samples.device,
+                    self.max_snr_in_db, dtype=torch.float32, device=samples.device
                 ),
                 validate_args=True,
             )

@@ -27,4 +27,3 @@ class Identity(BaseWaveformTransform):
             targets=targets,
             target_rate=target_rate,
         )
-

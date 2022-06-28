@@ -24,7 +24,7 @@ class TestMix(unittest.TestCase):
         self.noise = (
             torch.from_numpy(
                 load_audio(
-                    TEST_FIXTURES_DIR / "bg" / "bg.wav", sample_rate=self.sample_rate,
+                    TEST_FIXTURES_DIR / "bg" / "bg.wav", sample_rate=self.sample_rate
                 )
             )
             .unsqueeze(0)

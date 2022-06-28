@@ -71,12 +71,12 @@ class LowPassFilter(BaseWaveformTransform):
         dist = torch.distributions.Uniform(
             low=convert_frequencies_to_mels(
                 torch.tensor(
-                    self.min_cutoff_freq, dtype=torch.float32, device=samples.device,
+                    self.min_cutoff_freq, dtype=torch.float32, device=samples.device
                 )
             ),
             high=convert_frequencies_to_mels(
                 torch.tensor(
-                    self.max_cutoff_freq, dtype=torch.float32, device=samples.device,
+                    self.max_cutoff_freq, dtype=torch.float32, device=samples.device
                 )
             ),
             validate_args=True,

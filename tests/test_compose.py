@@ -40,7 +40,11 @@ class TestCompose(unittest.TestCase):
         sample_rate = 16000
 
         augment = Compose(
-            [Vol(gain=-6, gain_type="db"), PolarityInversion(p=1.0),], output_type="dict"
+            [
+                Vol(gain=-6, gain_type="db"),
+                PolarityInversion(p=1.0),
+            ],
+            output_type="dict",
         )
         processed_samples = augment(
             samples=torch.from_numpy(samples), sample_rate=sample_rate
@@ -79,7 +83,11 @@ class TestCompose(unittest.TestCase):
 
         augment = Compose(
             transforms=[
-                Gain(min_gain_in_db=-16.000001, max_gain_in_db=-2, p=1.0,),
+                Gain(
+                    min_gain_in_db=-16.000001,
+                    max_gain_in_db=-2,
+                    p=1.0,
+                ),
                 PolarityInversion(p=1.0),
             ],
             output_type="dict",
@@ -132,11 +140,23 @@ class TestCompose(unittest.TestCase):
         self.assertGreater(num_gain_last, 10)
 
     def test_supported_modes_property(self):
-        augment = Compose(transforms=[PeakNormalization(p=1.0),], output_type="dict")
+        augment = Compose(
+            transforms=[
+                PeakNormalization(p=1.0),
+            ],
+            output_type="dict",
+        )
         assert augment.supported_modes == {"per_batch", "per_example", "per_channel"}
 
         augment = Compose(
-            transforms=[PeakNormalization(p=1.0,), ShuffleChannels(p=1.0,),],
+            transforms=[
+                PeakNormalization(
+                    p=1.0,
+                ),
+                ShuffleChannels(
+                    p=1.0,
+                ),
+            ],
             output_type="dict",
         )
         assert augment.supported_modes == {"per_example"}

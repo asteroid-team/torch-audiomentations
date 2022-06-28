@@ -33,7 +33,7 @@ def get_class_by_name(
     -------
     >>> YourAugmentation = get_class_by_name('your_package.your_module.YourAugmentation')
     >>> YourAugmentation = get_class_by_name('YourAugmentation', default_module_name='your_package.your_module')
-    
+
     >>> from torch_audiomentations import Gain
     >>> assert Gain == get_class_by_name('Gain')
     """

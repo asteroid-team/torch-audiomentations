@@ -58,7 +58,7 @@ class SpliceOut(BaseWaveformTransform):
 
         self.transform_parameters["splice_lengths"] = torch.randint(
             low=0,
-            high=int(sample_rate*self.max_width*1e-3),
+            high=int(sample_rate * self.max_width * 1e-3),
             size=(samples.shape[0], self.num_time_intervals),
         )
 
@@ -71,19 +71,19 @@ class SpliceOut(BaseWaveformTransform):
     ) -> ObjectDict:
 
         spliceout_samples = []
-        
+
         for i in range(samples.shape[0]):
 
             random_lengths = self.transform_parameters["splice_lengths"][i]
-            sample = samples[i][:,:]
+            sample = samples[i][:, :]
             for j in range(self.num_time_intervals):
                 start = torch.randint(
                     0,
                     sample.shape[-1] - random_lengths[j],
                     size=(1,),
                 )
-                
-                if random_lengths[j]%2 != 0:
+
+                if random_lengths[j] % 2 != 0:
                     random_lengths[j] += 1
 
                 hann_window_len = random_lengths[j]
@@ -92,21 +92,31 @@ class SpliceOut(BaseWaveformTransform):
                     hann_window[: hann_window_len // 2],
                     hann_window[hann_window_len // 2 :],
                 )
-                
-                fading_out, fading_in = sample[:,start : start + random_lengths[j]//2 ],sample[:,start + random_lengths[j]//2 : start + random_lengths[j] ] 
+
+                fading_out, fading_in = (
+                    sample[:, start : start + random_lengths[j] // 2],
+                    sample[:, start + random_lengths[j] // 2 : start + random_lengths[j]],
+                )
                 crossfade = hann_window_right * fading_out + hann_window_left * fading_in
-                sample = torch.cat((sample[:,:start],crossfade[:,:],sample[:,start+random_lengths[j]:]),dim=-1)
+                sample = torch.cat(
+                    (
+                        sample[:, :start],
+                        crossfade[:, :],
+                        sample[:, start + random_lengths[j] :],
+                    ),
+                    dim=-1,
+                )
 
             padding = torch.zeros(
                 (samples[i].shape[0], samples[i].shape[-1] - sample.shape[-1]),
-                dtype=torch.float32,device=sample.device
+                dtype=torch.float32,
+                device=sample.device,
             )
             sample = torch.cat((sample, padding), dim=-1)
             spliceout_samples.append(sample.unsqueeze(0))
-            
 
         return ObjectDict(
-            samples=torch.cat(spliceout_samples,dim=0),
+            samples=torch.cat(spliceout_samples, dim=0),
             sample_rate=sample_rate,
             targets=targets,
             target_rate=target_rate,

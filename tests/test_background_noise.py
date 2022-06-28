@@ -183,9 +183,11 @@ class TestAddBackgroundNoise(unittest.TestCase):
             input_sample_rate = random.randint(1000, 5000)
             bg_sample_rate = random.randint(1000, 5000)
 
-            noise = np.random.uniform(low=-0.2, high=0.2, size=(bg_length,),).astype(
-                np.float32
-            )
+            noise = np.random.uniform(
+                low=-0.2,
+                high=0.2,
+                size=(bg_length,),
+            ).astype(np.float32)
             tmp_dir = os.path.join(tempfile.gettempdir(), str(uuid.uuid4()))
             try:
                 os.makedirs(tmp_dir)

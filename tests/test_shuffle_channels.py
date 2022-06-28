@@ -10,7 +10,7 @@ from torch_audiomentations.core.transforms_interface import ModeNotSupportedExce
 class TestShuffleChannels:
     def test_shuffle_mono(self):
         samples = torch.from_numpy(
-            np.array([[[1.0, -1.0, 1.0, -1.0, 1.0]]], dtype=np.float32,)
+            np.array([[[1.0, -1.0, 1.0, -1.0, 1.0]]], dtype=np.float32)
         )
         augment = ShuffleChannels(p=1.0, output_type="dict")
 
@@ -36,7 +36,7 @@ class TestShuffleChannels:
         torch.manual_seed(42)
 
         samples = np.array(
-            [[1.0, -1.0, 1.0, -1.0, 1.0], [0.1, -0.1, 0.1, -0.1, 0.1]], dtype=np.float32,
+            [[1.0, -1.0, 1.0, -1.0, 1.0], [0.1, -0.1, 0.1, -0.1, 0.1]], dtype=np.float32
         )
         samples = np.stack([samples] * 1000, axis=0)
         samples = torch.from_numpy(samples).to(device)

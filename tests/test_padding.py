@@ -131,4 +131,6 @@ class TestPadding(unittest.TestCase):
         padded_samples = augment(audio_samples).samples
 
         self.assertEqual(audio_samples.shape, padded_samples.shape)
-        assert_almost_equal(padded_samples[..., -6400:].cpu().numpy(), np.zeros((2, 2, 6400)))
+        assert_almost_equal(
+            padded_samples[..., -6400:].cpu().numpy(), np.zeros((2, 2, 6400))
+        )
