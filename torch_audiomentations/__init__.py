@@ -7,13 +7,16 @@ from .augmentations.high_pass_filter import HighPassFilter
 from .augmentations.identity import Identity
 from .augmentations.impulse_response import ApplyImpulseResponse
 from .augmentations.low_pass_filter import LowPassFilter
+from .augmentations.mix import Mix
+from .augmentations.padding import Padding
 from .augmentations.peak_normalization import PeakNormalization
 from .augmentations.pitch_shift import PitchShift
 from .augmentations.polarity_inversion import PolarityInversion
+from .augmentations.random_crop import RandomCrop
 from .augmentations.shift import Shift
 from .augmentations.shuffle_channels import ShuffleChannels
-from .augmentations.time_inversion import TimeInversion
 from .augmentations.splice_out import SpliceOut
+from .augmentations.time_inversion import TimeInversion
 from .core.composition import Compose, SomeOf, OneOf
 from .utils.config import from_dict, from_yaml
 from .utils.convolution import convolve
