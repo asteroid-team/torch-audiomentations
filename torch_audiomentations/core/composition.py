@@ -124,7 +124,7 @@ class Compose(BaseCompose):
                     # FIXME: do we really want to support regular nn.Module?
                     inputs.samples = self.transforms[i](inputs.samples)
 
-        return inputs
+        return inputs.samples if self.output_type == "tensor" else inputs
 
 
 class SomeOf(BaseCompose):
@@ -214,7 +214,7 @@ class SomeOf(BaseCompose):
                     # FIXME: do we really want to support regular nn.Module?
                     inputs.samples = self.transforms[i](inputs.samples)
 
-        return inputs
+        return inputs.samples if self.output_type == "tensor" else inputs
 
 
 class OneOf(SomeOf):
