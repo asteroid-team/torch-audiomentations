@@ -21,9 +21,7 @@ class TestOneOf(unittest.TestCase):
         augment = OneOf(self.transforms)
 
         self.assertEqual(len(augment.transform_indexes), 0)  # no transforms applied yet
-        output = augment(
-            samples=self.audio, sample_rate=self.sample_rate
-        )
+        output = augment(samples=self.audio, sample_rate=self.sample_rate)
         # This dtype should be torch.Tensor until we switch to ObjectDict by default
         assert type(output) == torch.Tensor
 
@@ -31,7 +29,5 @@ class TestOneOf(unittest.TestCase):
         augment = OneOf(self.transforms, output_type="dict")
 
         self.assertEqual(len(augment.transform_indexes), 0)  # no transforms applied yet
-        output = augment(
-            samples=self.audio, sample_rate=self.sample_rate
-        )
+        output = augment(samples=self.audio, sample_rate=self.sample_rate)
         assert type(output) == ObjectDict
