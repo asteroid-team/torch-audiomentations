@@ -2,7 +2,7 @@ import unittest
 
 import torch
 
-from torch_audiomentations import Mix
+from torch_audiomentations.augmentations.mix import Mix
 from torch_audiomentations.utils.dsp import calculate_rms
 from torch_audiomentations.utils.file import load_audio
 from .utils import TEST_FIXTURES_DIR
