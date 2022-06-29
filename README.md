@@ -206,18 +206,24 @@ classification. It was successfully applied in the paper
 
 ### Added
 
-* Add new transforms: `Identity`, `Mix`, `Padding`, `RandomCrop` and `SpliceOut`
+* Add new transforms: `Mix`, `Padding`, `RandomCrop` and `SpliceOut`
+
+## [v0.11.0] - 2022-06-29
+
+### Added
+
+* Add new transform: `Identity`
+* Add API for processing of targets alongside inputs. Some transforms experimentally
+  support this feature already.
 
 ### Changed
 
 * Add `ObjectDict` output type as alternative to `torch.Tensor`. This alternative is opt-in for
- now (for backwards-compatibility), but note that the old output type (`torch.Tensor`) is
- deprecated and support for it will be removed in a future version.
+  now (for backwards-compatibility), but note that the old output type (`torch.Tensor`) is
+  deprecated and support for it will be removed in a future version.
 * Allow specifying a file path, a folder path, a list of files or a list of folders to
   `AddBackgroundNoise` and `ApplyImpulseResponse`
 * Require newer version of `torch-pitch-shift` to ensure support for torchaudio 0.11 in `PitchShift`
-* Add API for processing of targets alongside inputs. Some transforms experimentally
- support this feature already.
 
 ### Fixed
 
