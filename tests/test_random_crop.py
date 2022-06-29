@@ -26,6 +26,7 @@ class TestRandomCrop(unittest.TestCase):
         np.testing.assert_array_equal(samples, cropped_samples)
         self.assertEqual(samples.size(-1), cropped_samples.size(-1))
 
+    @pytest.mark.skip(reason="output_type is not implemented yet")
     @pytest.mark.skipif(not torch.cuda.is_available(), reason="Requires CUDA")
     def test_crop_on_device_cuda(self):
 
