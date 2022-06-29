@@ -27,7 +27,7 @@ from torch_audiomentations import (
     Identity,
 )
 from torch_audiomentations.augmentations.shuffle_channels import ShuffleChannels
-from torch_audiomentations.augmentations.spliceout import SpliceOut
+from torch_audiomentations.augmentations.splice_out import SpliceOut
 from torch_audiomentations.core.transforms_interface import ModeNotSupportedException
 from torch_audiomentations.utils.object_dict import ObjectDict
 

@@ -213,7 +213,7 @@ classification. It was successfully applied in the paper
 ### Added
 
 * Add new transform: `Identity`
-* Add API for processing of targets alongside inputs. Some transforms experimentally
+* Add API for processing targets alongside inputs. Some transforms experimentally
   support this feature already.
 
 ### Changed

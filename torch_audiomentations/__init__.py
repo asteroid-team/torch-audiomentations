@@ -13,7 +13,7 @@ from .augmentations.polarity_inversion import PolarityInversion
 from .augmentations.shift import Shift
 from .augmentations.shuffle_channels import ShuffleChannels
 from .augmentations.time_inversion import TimeInversion
-from .augmentations.spliceout import SpliceOut
+from .augmentations.splice_out import SpliceOut
 from .core.composition import Compose, SomeOf, OneOf
 from .utils.config import from_dict, from_yaml
 from .utils.convolution import convolve
