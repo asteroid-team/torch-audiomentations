@@ -199,7 +199,7 @@ classification. It was successfully applied in the paper
 
 ### Added
 
-* Add new transforms: `RandomCrop`, `Mix` and `SpliceOut`
+* Add new transforms: `Identity`, `Mix`, `Padding`, `RandomCrop` and `SpliceOut`
 
 ### Changed
 
@@ -209,6 +209,8 @@ classification. It was successfully applied in the paper
 * Allow specifying a file path, a folder path, a list of files or a list of folders to
   `AddBackgroundNoise` and `ApplyImpulseResponse`
 * Require newer version of `torch-pitch-shift` to ensure support for torchaudio 0.11 in `PitchShift`
+* Add API for processing of targets alongside inputs. Some transforms experimentally
+ support this feature already.
 
 ### Fixed
 
