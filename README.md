@@ -131,6 +131,13 @@ _Added in v0.8.0_
 
 Apply high-pass filtering to the input audio.
 
+## Identity
+
+_Added in v0.11.0_
+
+This transform returns the input unchanged. It can be used for simplifying the code
+in cases where data augmentation should be disabled.
+
 ## LowPassFilter
 
 _Added in v0.8.0_
