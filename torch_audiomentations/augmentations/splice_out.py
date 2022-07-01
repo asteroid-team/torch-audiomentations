@@ -1,5 +1,4 @@
 import logging
-from turtle import forward
 import torch
 from typing import Optional
 from torch import Tensor
