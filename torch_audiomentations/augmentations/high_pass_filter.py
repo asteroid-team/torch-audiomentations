@@ -12,8 +12,8 @@ class HighPassFilter(LowPassFilter):
 
     def __init__(
         self,
-        min_cutoff_freq=20,
-        max_cutoff_freq=2400,
+        min_cutoff_freq: float = 20.0,
+        max_cutoff_freq: float = 2400.0,
         mode: str = "per_example",
         p: float = 0.5,
         p_mode: str = None,
