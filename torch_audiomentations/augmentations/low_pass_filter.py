@@ -24,8 +24,8 @@ class LowPassFilter(BaseWaveformTransform):
 
     def __init__(
         self,
-        min_cutoff_freq=150,
-        max_cutoff_freq=7500,
+        min_cutoff_freq: float = 150.0,
+        max_cutoff_freq: float = 7500.0,
         mode: str = "per_example",
         p: float = 0.5,
         p_mode: str = None,
@@ -55,6 +55,8 @@ class LowPassFilter(BaseWaveformTransform):
         if self.min_cutoff_freq > self.max_cutoff_freq:
             raise ValueError("min_cutoff_freq must not be greater than max_cutoff_freq")
 
+        self.cached_lpf = None
+
     def randomize_parameters(
         self,
         samples: Tensor = None,
@@ -67,23 +69,40 @@ class LowPassFilter(BaseWaveformTransform):
         """
         batch_size, _, num_samples = samples.shape
 
-        # Sample frequencies uniformly in mel space, then convert back to frequency
-        dist = torch.distributions.Uniform(
-            low=convert_frequencies_to_mels(
-                torch.tensor(
-                    self.min_cutoff_freq, dtype=torch.float32, device=samples.device
+        if self.min_cutoff_freq == self.max_cutoff_freq:
+            # Speed up computation by caching the LPF instance if the cutoff is constant
+            cutoff_as_fraction_of_sr = self.min_cutoff_freq / sample_rate
+            lpf_needs_init = (
+                self.cached_lpf is None
+                or self.cached_lpf.cutoff != cutoff_as_fraction_of_sr
+            )
+            if lpf_needs_init:
+                self.cached_lpf = julius.LowPassFilter(cutoff=cutoff_as_fraction_of_sr)
+                self.transform_parameters["cutoff_freq"] = torch.full(
+                    size=(batch_size,),
+                    fill_value=self.min_cutoff_freq,
+                    dtype=torch.float32,
+                    device=samples.device,
                 )
-            ),
-            high=convert_frequencies_to_mels(
-                torch.tensor(
-                    self.max_cutoff_freq, dtype=torch.float32, device=samples.device
-                )
-            ),
-            validate_args=True,
-        )
-        self.transform_parameters["cutoff_freq"] = convert_mels_to_frequencies(
-            dist.sample(sample_shape=(batch_size,))
-        )
+        else:
+            # Sample frequencies uniformly in mel space, then convert back to frequency
+            dist = torch.distributions.Uniform(
+                low=convert_frequencies_to_mels(
+                    torch.tensor(
+                        self.min_cutoff_freq, dtype=torch.float32, device=samples.device
+                    )
+                ),
+                high=convert_frequencies_to_mels(
+                    torch.tensor(
+                        self.max_cutoff_freq, dtype=torch.float32, device=samples.device
+                    )
+                ),
+                validate_args=True,
+            )
+            self.transform_parameters["cutoff_freq"] = convert_mels_to_frequencies(
+                dist.sample(sample_shape=(batch_size,))
+            )
+            self.cached_lpf = None
 
     def apply_transform(
         self,
@@ -95,14 +114,18 @@ class LowPassFilter(BaseWaveformTransform):
 
         batch_size, num_channels, num_samples = samples.shape
 
-        cutoffs_as_fraction_of_sample_rate = (
-            self.transform_parameters["cutoff_freq"] / sample_rate
-        )
-        # TODO: Instead of using a for loop, perform batched compute to speed things up
-        for i in range(batch_size):
-            samples[i] = julius.lowpass_filter(
-                samples[i], cutoffs_as_fraction_of_sample_rate[i].item()
+        if self.cached_lpf is None:
+            cutoffs_as_fraction_of_sample_rate = (
+                self.transform_parameters["cutoff_freq"] / sample_rate
             )
+            # TODO: Instead of using a for loop, perform batched compute to speed things up
+            for i in range(batch_size):
+                samples[i] = julius.lowpass_filter(
+                    samples[i], cutoffs_as_fraction_of_sample_rate[i].item()
+                )
+        else:
+            for i in range(batch_size):
+                samples[i] = self.cached_lpf(samples[i])
 
         return ObjectDict(
             samples=samples,
