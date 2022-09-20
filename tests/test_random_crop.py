@@ -8,19 +8,19 @@ from torch_audiomentations.augmentations.random_crop import RandomCrop
 class TestRandomCrop(unittest.TestCase):
     def test_crop(self):
         samples = torch.rand(size=(8, 2, 32000), dtype=torch.float32)
-        sampling_rate = 16000
+        sample_rate = 16000
         crop_to = 1.5
-        desired_samples_len = sampling_rate * crop_to
-        Crop = RandomCrop(max_length=crop_to, sampling_rate=sampling_rate)
+        desired_samples_len = sample_rate * crop_to
+        Crop = RandomCrop(output_length=crop_to, sample_rate=sample_rate)
         cropped_samples = Crop(samples)
 
         self.assertEqual(desired_samples_len, cropped_samples.size(-1))
 
     def test_crop_larger_cropto(self):
         samples = torch.rand(size=(8, 2, 32000), dtype=torch.float32)
-        sampling_rate = 16000
+        sample_rate = 16000
         crop_to = 3
-        Crop = RandomCrop(max_length=crop_to, sampling_rate=sampling_rate)
+        Crop = RandomCrop(output_length=crop_to, sample_rate=sample_rate)
         cropped_samples = Crop(samples)
 
         np.testing.assert_array_equal(samples, cropped_samples)
@@ -33,12 +33,14 @@ class TestRandomCrop(unittest.TestCase):
         samples = torch.rand(
             size=(8, 2, 32000), dtype=torch.float32, device=torch.device("cuda")
         )
-        sampling_rate = 16000
+        sample_rate = 16000
         crop_to = 1.5
-        desired_samples_len = sampling_rate * crop_to
+        desired_samples_len = sample_rate * crop_to
         Crop = RandomCrop(
-            max_length=crop_to, sampling_rate=sampling_rate, output_type="dict"
+            output_length=crop_to, sample_rate=sample_rate, output_type="dict"
         )
         cropped_samples = Crop(samples)
 
         self.assertEqual(desired_samples_len, cropped_samples.size(-1))
+
+    # TODO: Test freeze_parameters

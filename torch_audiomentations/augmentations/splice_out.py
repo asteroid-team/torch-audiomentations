@@ -1,11 +1,8 @@
-import logging
-import torch
 from typing import Optional
-from torch import Tensor
-from torch.nn.functional import pad
+
+import torch
 
 from ..core.transforms_interface import BaseWaveformTransform
-from ..utils.dsp import convert_decibels_to_amplitude_ratio
 from ..utils.object_dict import ObjectDict
 
 
@@ -49,9 +46,9 @@ class SpliceOut(BaseWaveformTransform):
 
     def randomize_parameters(
         self,
-        samples: Tensor = None,
+        samples: torch.Tensor = None,
         sample_rate: Optional[int] = None,
-        targets: Optional[Tensor] = None,
+        targets: Optional[torch.Tensor] = None,
         target_rate: Optional[int] = None,
     ):
 
@@ -63,9 +60,9 @@ class SpliceOut(BaseWaveformTransform):
 
     def apply_transform(
         self,
-        samples: Tensor = None,
+        samples: torch.Tensor = None,
         sample_rate: Optional[int] = None,
-        targets: Optional[Tensor] = None,
+        targets: Optional[torch.Tensor] = None,
         target_rate: Optional[int] = None,
     ) -> ObjectDict:
 
