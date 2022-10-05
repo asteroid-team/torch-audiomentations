@@ -4,27 +4,49 @@ from typing import Optional, Union
 import torch
 
 from torch_audiomentations.utils.multichannel import is_multichannel
-from ..core.transforms_interface import MultichannelAudioNotSupportedException
+from ..core.transforms_interface import (
+    MultichannelAudioNotSupportedException,
+    BaseWaveformTransform,
+)
 
 
-class RandomCrop(torch.nn.Module):
+# TODO: Make BaseWaveformTransform able to pad transform outputs that have a different length
+
+
+class RandomCrop(BaseWaveformTransform):
     """Crop the audio to a predefined length."""
 
+    supported_modes = {"per_example"}
+
     supports_multichannel = True
+
+    supports_target = False
+    requires_target = False
 
     def __init__(
         self,
         output_length: Union[float, int],
         output_length_unit: str = "samples",
         sample_rate: Optional[int] = None,
+        target_rate: Optional[int] = None,
+        output_type: Optional[str] = None,
     ):
         """
         :param output_length: Desired length of output, in samples or in seconds,
             depending on the value of `output_length_unit`
         :param output_length_unit: The unit of output_length
         :param sample_rate:
+        :param target_rate:
+        :param output_type:
         """
-        super(RandomCrop, self).__init__()
+        super().__init__(
+            mode="per_example",
+            p=1.0,
+            p_mode="per_example",
+            sample_rate=sample_rate,
+            target_rate=target_rate,
+            output_type=output_type,
+        )
         assert self.output_length_unit in (
             "samples",
             "seconds",
@@ -84,8 +106,7 @@ class RandomCrop(torch.nn.Module):
 
         if samples.shape[-1] < self.num_samples:
             warnings.warn("audio length less than cropping length")
-            # TODO: We need to apply padding here
-            # TODO: Pad only end? Or place the audio randomly in the alloted placeholder?
+            # TODO: We need to pad the end here
             return samples
 
         start_indices = torch.randint(
