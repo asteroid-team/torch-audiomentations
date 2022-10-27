@@ -59,6 +59,7 @@ perturbed_audio_samples = apply_augmentation(audio_samples, sample_rate=16000)
 
 * Using torch-audiomentations in a multiprocessing context can lead to memory leaks ([#132](https://github.com/asteroid-team/torch-audiomentations/issues/132))
 * PitchShift does not support small pitch shifts, especially for low sample rates ([#151](https://github.com/asteroid-team/torch-audiomentations/issues/151))
+* Multi-GPU / DDP is not officially supported ([#136](https://github.com/asteroid-team/torch-audiomentations/issues/136))
 
 # Contribute
 
