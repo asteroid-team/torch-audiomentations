@@ -57,9 +57,10 @@ perturbed_audio_samples = apply_augmentation(audio_samples, sample_rate=16000)
 
 # Known issues
 
-* Using torch-audiomentations in a multiprocessing context can lead to memory leaks ([#132](https://github.com/asteroid-team/torch-audiomentations/issues/132))
-* PitchShift does not support small pitch shifts, especially for low sample rates ([#151](https://github.com/asteroid-team/torch-audiomentations/issues/151))
-* Multi-GPU / DDP is not officially supported ([#136](https://github.com/asteroid-team/torch-audiomentations/issues/136))
+* Target data processing is still in an experimental state ([#3](https://github.com/asteroid-team/torch-audiomentations/issues/3)). Workaround: Use `freeze_parameters` and `unfreeze_parameters` for now if the target data is audio with the same shape as the input.
+* Using torch-audiomentations in a multiprocessing context can lead to memory leaks ([#132](https://github.com/asteroid-team/torch-audiomentations/issues/132)). Workaround: If using torch-audiomentations in a multiprocessing context, it'll probably work better to run the transforms on CPU.
+* Multi-GPU / DDP is not officially supported ([#136](https://github.com/asteroid-team/torch-audiomentations/issues/136)). The author does not have a multi-GPU setup to test & fix this. Get in touch if you want to donate some hardware for this. Workaround: Run the transforms on single GPU instead.
+* `PitchShift` does not support small pitch shifts, especially for low sample rates ([#151](https://github.com/asteroid-team/torch-audiomentations/issues/151)). Workaround: If you need small pitch shifts applied to low sample rates, use [PitchShift in audiomentations](https://iver56.github.io/audiomentations/waveform_transforms/pitch_shift/) or [torch-pitch-shift](https://github.com/KentoNishi/torch-pitch-shift/) directly without the function for calculating efficient pitch-shift targets.
 
 # Contribute
 
