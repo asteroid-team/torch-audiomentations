@@ -110,12 +110,20 @@ class AddColoredNoise(BaseWaveformTransform):
             ("snr_in_db", self.min_snr_in_db, self.max_snr_in_db),
             ("f_decay", self.min_f_decay, self.max_f_decay),
         ]:
-            dist = torch.distributions.Uniform(
-                low=torch.tensor(mini, dtype=torch.float32, device=samples.device),
-                high=torch.tensor(maxi, dtype=torch.float32, device=samples.device),
-                validate_args=True,
-            )
-            self.transform_parameters[param] = dist.sample(sample_shape=(batch_size,))
+            if mini == maxi:
+                self.transform_parameters[param] = torch.full(
+                    size=(batch_size,),
+                    fill_value=mini,
+                    dtype=torch.float32,
+                    device=samples.device,
+                )
+            else:
+                dist = torch.distributions.Uniform(
+                    low=torch.tensor(mini, dtype=torch.float32, device=samples.device),
+                    high=torch.tensor(maxi, dtype=torch.float32, device=samples.device),
+                    validate_args=True,
+                )
+                self.transform_parameters[param] = dist.sample(sample_shape=(batch_size,))
 
     def apply_transform(
         self,
