@@ -1,7 +1,7 @@
 ![torch-audiomentations](images/torch_audiomentations_logo.png)
 ---
 
-![Build status](https://img.shields.io/github/workflow/status/asteroid-team/torch-audiomentations/CI)
+![Build status](https://img.shields.io/github/actions/workflow/status/asteroid-team/torch-audiomentations/ci.yml?branch=main)
 [![Code coverage](https://img.shields.io/codecov/c/github/asteroid-team/torch-audiomentations/master.svg)](https://codecov.io/gh/asteroid-team/torch-audiomentations)
 [![Code Style: Black](https://img.shields.io/badge/code%20style-black-black.svg)](https://github.com/ambv/black)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.6778064.svg)](https://doi.org/10.5281/zenodo.6778064)
