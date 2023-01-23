@@ -71,8 +71,7 @@ class RandomCrop(torch.nn.Module):
             0, samples.shape[2] - self.num_samples, (samples.shape[2],)
         )
         samples_cropped = torch.empty(
-            (samples.shape[0], samples.shape[1], self.num_samples),
-            device=samples.device
+            (samples.shape[0], samples.shape[1], self.num_samples), device=samples.device
         )
         for i, sample in enumerate(samples):
 
