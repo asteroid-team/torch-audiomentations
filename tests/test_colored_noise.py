@@ -78,6 +78,15 @@ class TestAddColoredNoise(unittest.TestCase):
         self.assertEqual(mixed_inputs.size(0), self.input_audios.size(0))
         self.assertEqual(mixed_inputs.size(1), self.input_audios.size(1))
 
+    def test_same_min_max_f_decay(self):
+        random.seed(42)
+        transform = AddColoredNoise(
+            20, min_f_decay=1.0, max_f_decay=1.0, p=1.0, output_type="dict"
+        )
+        outputs = transform(self.input_audios, self.sample_rate).samples
+        self.assertEqual(outputs.size(0), self.input_audios.size(0))
+        self.assertEqual(outputs.size(1), self.input_audios.size(1))
+
     def test_invalid_params(self):
         with self.assertRaises(ValueError):
             AddColoredNoise(min_snr_in_db=30, max_snr_in_db=3, p=1.0, output_type="dict")
