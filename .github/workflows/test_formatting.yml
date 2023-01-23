@@ -18,7 +18,7 @@ jobs:
       - name: Run Black
         run: python -m black --config=pyproject.toml --check torch_audiomentations tests test_fixtures
 
-      - name: Link with flake8
+      - name: Lint with flake8
         # Exit on important linting errors and warn about others.
         run: |
           python -m flake8  torch_audiomentations tests  --show-source --statistics  --select=F6,F7,F82,F52
