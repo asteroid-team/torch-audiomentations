@@ -75,6 +75,8 @@ comparison of the time it takes to run 1D convolution:
 
 ![Convolve execution times](images/convolve_exec_time_plot.png)
 
+Note: Not all transforms have a speedup this impressive compared to CPU. In general, running audio data augmentation on GPU is not always the best option. For more info, see this article: [https://iver56.github.io/audiomentations/guides/cpu_vs_gpu/](https://iver56.github.io/audiomentations/guides/cpu_vs_gpu/)
+
 # Current state
 
 torch-audiomentations is in an early development stage, so the APIs are subject to change.
