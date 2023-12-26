@@ -17,8 +17,10 @@ from .augmentations.shift import Shift
 from .augmentations.shuffle_channels import ShuffleChannels
 from .augmentations.splice_out import SpliceOut
 from .augmentations.time_inversion import TimeInversion
+from .augmentations.delay import Delay
 from .core.composition import Compose, SomeOf, OneOf
 from .utils.config import from_dict, from_yaml
 from .utils.convolution import convolve
+
 
 __version__ = "0.11.0"
