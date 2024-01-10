@@ -22,10 +22,6 @@ Audio files can be provided to the Audio class using different types:
 The optional "channel" key can be used to indicate a specific channel.
 """
 
-# TODO: Remove this when it is the default
-torchaudio.USE_SOUNDFILE_LEGACY_INTERFACE = False
-torchaudio.set_audio_backend("soundfile")
-
 
 class Audio:
     """Audio IO with on-the-fly resampling
