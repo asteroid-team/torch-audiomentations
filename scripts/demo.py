@@ -23,9 +23,9 @@ from torch_audiomentations import (
     PitchShift,
     BandStopFilter,
     TimeInversion,
-    Padding,
     Identity,
 )
+from torch_audiomentations.augmentations.padding import Padding
 from torch_audiomentations.augmentations.shuffle_channels import ShuffleChannels
 from torch_audiomentations.augmentations.splice_out import SpliceOut
 from torch_audiomentations.core.transforms_interface import ModeNotSupportedException

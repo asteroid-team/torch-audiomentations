@@ -217,6 +217,19 @@ classification. It was successfully applied in the paper
 
 * Add new transforms: `Mix`, `Padding`, `RandomCrop` and `SpliceOut`
 
+## [v0.11.1] - 2024-02-07
+
+### Changed
+
+* Add support for constant cutoff frequency in `LowPassFilter` and `HighPassFilter`
+* Add support for min_f_decay==max_f_decay in `AddColoredNoise`
+* Bump torchaudio dependency from >=0.7.0 to >=0.9.0
+
+### Fixed
+
+* Fix inaccurate type hints in `Shift`
+* Remove `set_backend` to avoid `UserWarning` from torchaudio
+
 ## [v0.11.0] - 2022-06-29
 
 ### Added
