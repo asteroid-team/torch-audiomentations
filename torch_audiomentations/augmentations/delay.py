@@ -5,9 +5,14 @@ from torch import Tensor
 from typing import Optional
 from random import choices
 import torch
+import numpy as np
 
 
 class Delay(BaseWaveformTransform):
+    """ 
+    A rudimentary delay effect which delays the original signal multiple times and applies an attenuation factor to each delayed signal.
+    The delayed signals are then added to the original signal and the whole delayed signal is reduced by a volume factor.
+    """
     
     supported_modes = {"per_batch", "per_example"}
 
@@ -28,8 +33,11 @@ class Delay(BaseWaveformTransform):
         target_rate: int = None,
         output_type: Optional[str] = None,
         volume_factor: float = 0.5,
+        volume_factor_range: float = 0.2,
         repeats: int = 2,
-        attenuation: float = 0.5
+        repeats_range: int = 1,
+        attenuation: float = 0.5,
+        attenuation_range:int = 0.2
     ):
         """
         :param sample_rate:
@@ -39,6 +47,13 @@ class Delay(BaseWaveformTransform):
         :param p:
         :param p_mode:
         :param target_rate:
+        :param output_type:
+        :param volume_factor: The factor by which the delayed signal is reduced compared to the original signal. Default 0.5
+        :param volume_factor_range: The range of the volume factor. Default 0.2
+        :param repeats: The number of times the delayed signal is added to the original signal. Default 2
+        :param repeats_range: The range of the number of repeats. Default 1
+        :param attenuation: The factor by which the delayed signal is attenuated for each repeat. Default 0.5
+        :param attenuation_range: The range of the attenuation factor. Default 0.2
         """
         super().__init__(
             mode=mode,
@@ -60,8 +75,11 @@ class Delay(BaseWaveformTransform):
         self._min_delay_samples = int(min_delay_ms * sample_rate / 1000)
         self._mode = mode
         self._volume_factor = volume_factor
+        self._volume_factor_range = volume_factor_range
         self._repeats = repeats
+        self._repeats_range = repeats_range
         self._attenuation = attenuation
+        self._attenuation_range = attenuation_range
 
     def randomize_parameters(
         self,
@@ -80,17 +98,17 @@ class Delay(BaseWaveformTransform):
             self.transform_parameters["delays"] = choices(
                 range(self._min_delay_samples, self._max_delay_samples + 1), k=batch_size
             )
-            self.transform_parameters['volume_factors'] = choices([self._volume_factor-0.2, self._volume_factor+0.2],k=batch_size)
-            self.transform_parameters['repeats'] = choices([self._repeats-1, self._repeats+1],k=batch_size)
-            self.transform_parameters['attenuation'] = choices([self._attenuation-0.2, self._attenuation+0.2],k=batch_size)
+            self.transform_parameters['volume_factors'] = np.random.uniform(self._volume_factor-self._volume_factor_range, self._volume_factor+self._volume_factor_range, batch_size)
+            self.transform_parameters['repeats'] = choices([self._repeats-self._repeats_range, self._repeats+self._repeats_range],k=batch_size)
+            self.transform_parameters['attenuation'] = choices([self._attenuation-self._attenuation_range, self._attenuation+self._attenuation_range],k=batch_size)
         
         elif self._mode == "per_batch":
             self.transform_parameters["delays"] = choices(
                 range(self._min_delay_samples, self._max_delay_samples + 1), k=1
             )
-            self.transform_parameters['volume_factors'] = choices([self._volume_factor-0.2, self._volume_factor+0.2],k=1)
-            self.transform_parameters['repeats'] = choices([self._repeats-1, self._repeats+1],k=1)
-            self.transform_parameters['attenuation'] = choices([self._attenuation-0.2, self._attenuation+0.2],k=1)
+            self.transform_parameters['volume_factors'] = np.random.uniform(self._volume_factor-self._volume_factor_range, self._volume_factor+self._volume_factor_range, 1)
+            self.transform_parameters['repeats'] = choices([self._repeats-self._repeats_range, self._repeats+self._repeats_range],k=1)
+            self.transform_parameters['attenuation'] = choices([self._attenuation-self._attenuation_range, self._attenuation+self._attenuation_range],k=1)
             
     def apply_transform(
         
@@ -132,13 +150,16 @@ class Delay(BaseWaveformTransform):
             target_rate=target_rate,
         )
         
-    def delay(self,samples: Tensor, delay_samples: int, volume_factor: float , repeats, attenuation) -> Tensor:
+    def delay(self,samples: Tensor, delay_samples: int, volume_factor: float , repeats : int, attenuation : float) -> Tensor:
+        """ 
+        :param samples: (batch_size, num_channels, num_samples)
+        :param delay_samples: int
+        :param volume_factor: float
+        :param repeats: int
+        :param attenuation: float
         
-        ## add the original signal delayed by delay_samples to the original signal
-        ## do this operation repeats times and each time attenuate the delayed signal by attenuation factor
-        ## reduce the whole delayed signal by volume_factor
-        ## then add both signals together and truncate to be the same length as the original signal
-        
+        """
+
         batch_size, num_channels, num_samples = samples.shape
         
         delayed_signal = torch.zeros(batch_size, num_channels, num_samples + repeats * delay_samples, device = samples.device)
