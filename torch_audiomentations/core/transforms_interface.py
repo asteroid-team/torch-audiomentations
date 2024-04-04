@@ -249,7 +249,7 @@ class BaseWaveformTransform(torch.nn.Module):
             self.transform_parameters = {
                 "should_apply": self.bernoulli_distribution.sample(
                     sample_shape=(p_sample_size,)
-                ).to(torch.bool)
+                ).to(dtype=torch.bool, device=samples.device)
             }
 
         if self.transform_parameters["should_apply"].any():
