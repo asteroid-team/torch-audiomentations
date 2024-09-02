@@ -27,7 +27,7 @@ def _gen_noise(f_decay, num_samples, sample_rate, device):
     )
     spec *= mask
     noise = Audio.rms_normalize(irfft(spec).unsqueeze(0)).squeeze()
-    noise = torch.cat([noise] * int(ceil(num_samples / sample_rate)))
+    noise = torch.cat([noise] * int(ceil(num_samples / noise.shape[0])))
     return noise[:num_samples]
 
 

@@ -69,6 +69,15 @@ class TestAddColoredNoise(unittest.TestCase):
         self.assertEqual(mixed_input.size(0), self.input_audio.size(0))
         self.assertEqual(mixed_input.size(1), self.input_audio.size(1))
 
+    def test_colored_noise_guaranteed_with_single_tensor_edgecase_sample_rate(self):
+        signal = torch.zeros(1, 1, 16001)
+        mixed_input = self.cl_noise_transform_guaranteed(
+            signal, 16001
+        ).samples
+        self.assertFalse(torch.equal(mixed_input, self.input_audio))
+        self.assertEqual(mixed_input.size(0), self.input_audio.size(0))
+        self.assertEqual(mixed_input.size(1), self.input_audio.size(1))
+
     def test_colored_noise_guaranteed_with_batched_tensor(self):
         random.seed(42)
         mixed_inputs = self.cl_noise_transform_guaranteed(
