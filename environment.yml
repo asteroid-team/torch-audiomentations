@@ -8,8 +8,8 @@ dependencies:
 - ffmpeg
 - matplotlib>=3,<4
 - numpy>=1.22,<2
-- pip>=20.1,<=21
-- python=3.8.12
+- pip>=20.1
+- python=3.9
 - pytorch::pytorch=1.11.0
 - pytorch::torchaudio=0.11.0
 - scipy=1.7.3
