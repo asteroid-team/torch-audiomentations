@@ -9,7 +9,6 @@ from torch_audiomentations import Compose
 
 class TestSpliceout(unittest.TestCase):
     def test_splice_out(self):
-
         audio_samples = torch.rand(size=(8, 1, 32000), dtype=torch.float32)
         augment = Compose(
             [
@@ -24,7 +23,6 @@ class TestSpliceout(unittest.TestCase):
         assert splice_out_samples.dtype == np.float32
 
     def test_splice_out_odd_hann(self):
-
         audio_samples = torch.rand(size=(8, 1, 32000), dtype=torch.float32)
         augment = Compose(
             [
@@ -39,7 +37,6 @@ class TestSpliceout(unittest.TestCase):
         assert splice_out_samples.dtype == np.float32
 
     def test_splice_out_per_batch(self):
-
         audio_samples = torch.rand(size=(8, 1, 32000), dtype=torch.float32)
         augment = Compose(
             [
@@ -62,7 +59,6 @@ class TestSpliceout(unittest.TestCase):
         self.assertEqual(splice_out_samples.shape, audio_samples.shape)
 
     def test_splice_out_multichannel(self):
-
         audio_samples = torch.rand(size=(8, 2, 32000), dtype=torch.float32)
         augment = Compose(
             [
@@ -81,7 +77,6 @@ class TestSpliceout(unittest.TestCase):
     @pytest.mark.skip(reason="This test fails and SpliceOut is not released yet")
     @pytest.mark.skipif(not torch.cuda.is_available(), reason="Requires CUDA")
     def test_splice_out_cuda(self):
-
         audio_samples = (
             torch.rand(
                 size=(8, 1, 32000), dtype=torch.float32, device=torch.device("cuda")

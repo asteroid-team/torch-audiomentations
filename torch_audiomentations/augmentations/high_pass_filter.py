@@ -49,7 +49,6 @@ class HighPassFilter(LowPassFilter):
         targets: Optional[Tensor] = None,
         target_rate: Optional[int] = None,
     ) -> ObjectDict:
-
         perturbed = super().apply_transform(
             samples=samples.clone(),
             sample_rate=sample_rate,

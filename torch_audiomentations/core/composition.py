@@ -102,7 +102,6 @@ class Compose(BaseCompose):
         targets: Optional[Tensor] = None,
         target_rate: Optional[int] = None,
     ) -> ObjectDict:
-
         inputs = ObjectDict(
             samples=samples,
             sample_rate=sample_rate,
@@ -191,7 +190,6 @@ class SomeOf(BaseCompose):
         targets: Optional[Tensor] = None,
         target_rate: Optional[int] = None,
     ) -> ObjectDict:
-
         inputs = ObjectDict(
             samples=samples,
             sample_rate=sample_rate,
@@ -200,7 +198,6 @@ class SomeOf(BaseCompose):
         )
 
         if random.random() < self.p:
-
             if not self.are_parameters_frozen:
                 self.randomize_parameters()
 

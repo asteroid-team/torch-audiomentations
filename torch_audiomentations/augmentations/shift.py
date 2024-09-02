@@ -166,7 +166,6 @@ class Shift(BaseWaveformTransform):
         targets: Optional[Tensor] = None,
         target_rate: Optional[int] = None,
     ) -> ObjectDict:
-
         num_samples_to_shift = self.transform_parameters["num_samples_to_shift"]
 
         # Select fastest implementation based on device

@@ -84,7 +84,6 @@ class PeakNormalization(BaseWaveformTransform):
         targets: Optional[Tensor] = None,
         target_rate: Optional[int] = None,
     ) -> ObjectDict:
-
         if "divisors" in self.transform_parameters:
             samples[self.transform_parameters["selector"]] /= self.transform_parameters[
                 "divisors"

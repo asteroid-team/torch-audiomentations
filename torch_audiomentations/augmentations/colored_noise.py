@@ -132,7 +132,6 @@ class AddColoredNoise(BaseWaveformTransform):
         targets: Optional[Tensor] = None,
         target_rate: Optional[int] = None,
     ) -> ObjectDict:
-
         batch_size, num_channels, num_samples = samples.shape
 
         # (batch_size, num_samples)

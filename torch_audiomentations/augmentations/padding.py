@@ -7,7 +7,6 @@ from ..utils.object_dict import ObjectDict
 
 
 class Padding(BaseWaveformTransform):
-
     supported_modes = {"per_batch", "per_example", "per_channel"}
     supports_multichannel = True
     requires_sample_rate = False
@@ -70,7 +69,6 @@ class Padding(BaseWaveformTransform):
         targets: Optional[int] = None,
         target_rate: Optional[int] = None,
     ) -> ObjectDict:
-
         for i, index in enumerate(self.transform_parameters["pad_length"]):
             if self.pad_section == "start":
                 samples[i, :, :index] = 0.0

@@ -108,7 +108,6 @@ def test_impulse_response_guaranteed_with_zero_length_samples(ir_transform):
 
 
 def test_impulse_response_access_file_paths(ir_path, sample_rate, input_audios):
-
     augment = ApplyImpulseResponse(
         ir_path, p=1.0, sample_rate=sample_rate, output_type="dict"
     )

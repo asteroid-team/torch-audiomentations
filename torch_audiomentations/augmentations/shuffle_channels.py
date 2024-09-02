@@ -63,7 +63,6 @@ class ShuffleChannels(BaseWaveformTransform):
         targets: Optional[Tensor] = None,
         target_rate: Optional[int] = None,
     ) -> ObjectDict:
-
         if samples.shape[1] == 1:
             warnings.warn(
                 "Mono audio was passed to ShuffleChannels - there are no channels to shuffle."

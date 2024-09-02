@@ -83,7 +83,6 @@ class ApplyImpulseResponse(BaseWaveformTransform):
         targets: Optional[Tensor] = None,
         target_rate: Optional[int] = None,
     ):
-
         batch_size, _, _ = samples.shape
 
         audio = self.audio if hasattr(self, "audio") else Audio(sample_rate, mono=True)
@@ -105,7 +104,6 @@ class ApplyImpulseResponse(BaseWaveformTransform):
         targets: Optional[Tensor] = None,
         target_rate: Optional[int] = None,
     ) -> ObjectDict:
-
         batch_size, num_channels, num_samples = samples.shape
 
         # (batch_size, 1, max_ir_length)

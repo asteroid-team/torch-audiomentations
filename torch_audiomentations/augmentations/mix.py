@@ -73,7 +73,6 @@ class Mix(BaseWaveformTransform):
         targets: Optional[Tensor] = None,
         target_rate: Optional[int] = None,
     ):
-
         batch_size, num_channels, num_samples = samples.shape
         snr_distribution = torch.distributions.Uniform(
             low=torch.tensor(
@@ -109,7 +108,6 @@ class Mix(BaseWaveformTransform):
         targets: Optional[Tensor] = None,
         target_rate: Optional[int] = None,
     ) -> ObjectDict:
-
         snr = self.transform_parameters["snr_in_db"]
         idx = self.transform_parameters["sample_idx"]
 

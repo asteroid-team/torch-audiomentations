@@ -81,7 +81,6 @@ class Gain(BaseWaveformTransform):
         targets: Optional[Tensor] = None,
         target_rate: Optional[int] = None,
     ) -> ObjectDict:
-
         return ObjectDict(
             samples=samples * self.transform_parameters["gain_factors"],
             sample_rate=sample_rate,

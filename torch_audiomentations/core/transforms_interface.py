@@ -22,7 +22,6 @@ class ModeNotSupportedException(Exception):
 
 
 class BaseWaveformTransform(torch.nn.Module):
-
     supported_modes = {"per_batch", "per_example", "per_channel"}
 
     supports_multichannel = True
@@ -133,7 +132,6 @@ class BaseWaveformTransform(torch.nn.Module):
         # TODO: add support for additional **kwargs (batch_size, ...)-shaped tensors
         # TODO: but do that only when we actually have a use case for it...
     ) -> ObjectDict:
-
         if not self.training:
             output = ObjectDict(
                 samples=samples,
@@ -192,9 +190,7 @@ class BaseWaveformTransform(torch.nn.Module):
             warnings.warn(f"Targets are not (yet) supported by {self.__class__.__name__}")
 
         if has_targets:
-
             if not isinstance(targets, Tensor) or len(targets.shape) != 4:
-
                 raise RuntimeError(
                     "torch-audiomentations expects four-dimensional target tensors, with"
                     " dimension ordering like [batch_size, num_channels, num_frames, num_classes]."
@@ -233,7 +229,6 @@ class BaseWaveformTransform(torch.nn.Module):
                     target_rate = 0
 
         if not self.are_parameters_frozen:
-
             if self.p_mode == "per_example":
                 p_sample_size = batch_size
 
@@ -253,7 +248,6 @@ class BaseWaveformTransform(torch.nn.Module):
             }
 
         if self.transform_parameters["should_apply"].any():
-
             cloned_samples = samples.clone()
 
             if has_targets:
@@ -263,7 +257,6 @@ class BaseWaveformTransform(torch.nn.Module):
                 selected_targets = None
 
             if self.p_mode == "per_channel":
-
                 cloned_samples = cloned_samples.reshape(
                     batch_size * num_channels, 1, num_samples
                 )
@@ -318,7 +311,6 @@ class BaseWaveformTransform(torch.nn.Module):
                 return output.samples if self.output_type == "tensor" else output
 
             elif self.p_mode == "per_example":
-
                 selected_samples = cloned_samples[
                     self.transform_parameters["should_apply"]
                 ]
@@ -329,7 +321,6 @@ class BaseWaveformTransform(torch.nn.Module):
                     ]
 
                 if self.mode == "per_example":
-
                     if not self.are_parameters_frozen:
                         self.randomize_parameters(
                             samples=selected_samples,
@@ -363,7 +354,6 @@ class BaseWaveformTransform(torch.nn.Module):
                     return output.samples if self.output_type == "tensor" else output
 
                 elif self.mode == "per_channel":
-
                     (
                         selected_batch_size,
                         selected_num_channels,
@@ -431,9 +421,7 @@ class BaseWaveformTransform(torch.nn.Module):
                     raise Exception("Invalid mode/p_mode combination")
 
             elif self.p_mode == "per_batch":
-
                 if self.mode == "per_batch":
-
                     cloned_samples = cloned_samples.reshape(
                         1, batch_size * num_channels, num_samples
                     )
@@ -471,7 +459,6 @@ class BaseWaveformTransform(torch.nn.Module):
                     )
 
                 elif self.mode == "per_example":
-
                     if not self.are_parameters_frozen:
                         self.randomize_parameters(
                             samples=cloned_samples,
@@ -492,7 +479,6 @@ class BaseWaveformTransform(torch.nn.Module):
                     )
 
                 elif self.mode == "per_channel":
-
                     cloned_samples = cloned_samples.reshape(
                         batch_size * num_channels, 1, num_samples
                     )
@@ -565,7 +551,6 @@ class BaseWaveformTransform(torch.nn.Module):
         targets: Optional[Tensor] = None,
         target_rate: Optional[int] = None,
     ) -> ObjectDict:
-
         raise NotImplementedError()
 
     def serialize_parameters(self):

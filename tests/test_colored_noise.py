@@ -109,7 +109,9 @@ def test_invalid_params():
 
 def test_various_lengths_and_sample_rates():
     random.seed(42)
-    transform = AddColoredNoise(min_snr_in_db=10, max_snr_in_db=12, p=1.0, output_type="dict")
+    transform = AddColoredNoise(
+        min_snr_in_db=10, max_snr_in_db=12, p=1.0, output_type="dict"
+    )
 
     for _ in range(100):
         length = random.randint(1000, 100_000)

@@ -54,7 +54,6 @@ class TimeInversion(BaseWaveformTransform):
         targets: Optional[Tensor] = None,
         target_rate: Optional[int] = None,
     ) -> ObjectDict:
-
         # torch.flip() is supposed to be slower than np.flip()
         # An alternative is to use advanced indexing: https://github.com/pytorch/pytorch/issues/16424
         # reverse_index = torch.arange(selected_samples.size(-1) - 1, -1, -1).to(selected_samples.device)

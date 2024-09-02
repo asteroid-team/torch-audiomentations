@@ -488,7 +488,6 @@ class TestGain(unittest.TestCase):
         actual_gains_in_db = []
         for i in range(processed_samples.shape[0]):
             if not np.allclose(processed_samples[i], samples_batch[i]):
-
                 estimated_gain_factor = np.mean(processed_samples[i] / samples_batch[i])
                 estimated_gain_factor_in_db = convert_amplitude_ratio_to_decibels(
                     torch.tensor(estimated_gain_factor)
@@ -526,7 +525,6 @@ class TestGain(unittest.TestCase):
         actual_gains_in_db = []
         for i in range(processed_samples.shape[0]):
             if not np.allclose(processed_samples[i], samples_batch[i]):
-
                 estimated_gain_factor = np.mean(processed_samples[i] / samples_batch[i])
                 estimated_gain_factor_in_db = convert_amplitude_ratio_to_decibels(
                     torch.tensor(estimated_gain_factor)

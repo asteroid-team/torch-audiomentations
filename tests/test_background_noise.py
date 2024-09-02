@@ -69,7 +69,6 @@ class TestAddBackgroundNoise(unittest.TestCase):
         self.assertEqual(mixed_input.size(0), self.empty_input_audio.size(0))
 
     def test_background_noise_guaranteed_with_zero_length_samples(self):
-
         with self.assertWarns(UserWarning) as warning_context_manager:
             mixed_input = self.bg_noise_transform_guaranteed(
                 self.empty_input_audio, self.sample_rate

@@ -16,7 +16,7 @@ dependencies:
 - seaborn>=0.9,<1.0
 - pip:
   - audioread==2.1.8
-  - black
+  - black==23.12.1
   - coverage==5.3
   - julius>=0.2.3,<0.3
   - librosa==0.9.1

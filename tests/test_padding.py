@@ -9,7 +9,6 @@ from torch_audiomentations.augmentations.padding import Padding
 
 class TestPadding(unittest.TestCase):
     def test_padding_end(self):
-
         audio_samples = torch.rand(size=(2, 2, 32000), dtype=torch.float32)
         augment = Padding(
             min_fraction=0.2,
@@ -24,7 +23,6 @@ class TestPadding(unittest.TestCase):
         assert_almost_equal(padded_samples[..., -6400:].numpy(), np.zeros((2, 2, 6400)))
 
     def test_padding_start(self):
-
         audio_samples = torch.rand(size=(2, 2, 32000), dtype=torch.float32)
         augment = Padding(
             min_fraction=0.2,
@@ -39,7 +37,6 @@ class TestPadding(unittest.TestCase):
         assert_almost_equal(padded_samples[..., :6400].numpy(), np.zeros((2, 2, 6400)))
 
     def test_padding_zero(self):
-
         audio_samples = torch.rand(size=(2, 2, 32000), dtype=torch.float32)
         augment = Padding(min_fraction=0.2, max_fraction=0.5, p=0.0, output_type="dict")
         padded_samples = augment(audio_samples).samples
@@ -48,7 +45,6 @@ class TestPadding(unittest.TestCase):
         assert_almost_equal(audio_samples.numpy(), padded_samples.numpy())
 
     def test_padding_perexample(self):
-
         audio_samples = torch.rand(size=(10, 2, 32000), dtype=torch.float32)
         augment = Padding(
             min_fraction=0.2,
@@ -72,7 +68,6 @@ class TestPadding(unittest.TestCase):
         self.assertLess(padded_samples.sum(), audio_samples.numpy().sum())
 
     def test_padding_perchannel(self):
-
         audio_samples = torch.rand(size=(10, 2, 32000), dtype=torch.float32)
         augment = Padding(
             min_fraction=0.2,
@@ -96,7 +91,6 @@ class TestPadding(unittest.TestCase):
         self.assertLess(padded_samples.sum(), audio_samples.numpy().sum())
 
     def test_padding_variability_perexample(self):
-
         audio_samples = torch.rand(size=(10, 2, 32000), dtype=torch.float32)
         augment = Padding(
             min_fraction=0.2,
@@ -123,7 +117,6 @@ class TestPadding(unittest.TestCase):
 
     @pytest.mark.skipif(not torch.cuda.is_available(), reason="Requires CUDA")
     def test_padding_cuda(self):
-
         audio_samples = torch.rand(
             size=(2, 2, 32000), dtype=torch.float32, device=torch.device("cuda")
         )

@@ -47,11 +47,8 @@ class Audio:
 
     @staticmethod
     def is_valid(file: AudioFile) -> bool:
-
         if isinstance(file, dict):
-
             if "samples" in file:
-
                 samples = file["samples"]
                 if len(samples.shape) != 2 or samples.shape[0] > samples.shape[1]:
                     raise ValueError(
@@ -116,7 +113,6 @@ class Audio:
         self.is_valid(file)
 
         if isinstance(file, dict):
-
             # file = {"samples": torch.Tensor, "sample_rate": int, [ "channel": int ]}
             if "samples" in file:
                 num_samples = file["samples"].shape[1]
@@ -200,7 +196,6 @@ class Audio:
         original_samples = None
 
         if isinstance(file, dict):
-
             # file = {"samples": torch.Tensor, "sample_rate": int, [ "channel": int ]}
             if "samples" in file:
                 original_samples = file["samples"]

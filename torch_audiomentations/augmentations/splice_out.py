@@ -54,7 +54,6 @@ class SpliceOut(BaseWaveformTransform):
         targets: Optional[Tensor] = None,
         target_rate: Optional[int] = None,
     ):
-
         self.transform_parameters["splice_lengths"] = torch.randint(
             low=0,
             high=int(sample_rate * self.max_width * 1e-3),
@@ -68,11 +67,9 @@ class SpliceOut(BaseWaveformTransform):
         targets: Optional[Tensor] = None,
         target_rate: Optional[int] = None,
     ) -> ObjectDict:
-
         spliceout_samples = []
 
         for i in range(samples.shape[0]):
-
             random_lengths = self.transform_parameters["splice_lengths"][i]
             sample = samples[i][:, :]
             for j in range(self.num_time_intervals):

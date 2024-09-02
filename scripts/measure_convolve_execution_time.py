@@ -84,7 +84,7 @@ if __name__ == "__main__":
             execution_times[(t.description, num_examples)].append(t.execution_time)
 
     normalized_execution_times = {}
-    for (description, batch_size) in execution_times:
+    for description, batch_size in execution_times:
         times = execution_times[(description, batch_size)]
         if len(times) == 0:
             continue

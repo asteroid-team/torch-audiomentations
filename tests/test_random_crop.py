@@ -29,7 +29,6 @@ class TestRandomCrop(unittest.TestCase):
     @pytest.mark.skip(reason="output_type is not implemented yet")
     @pytest.mark.skipif(not torch.cuda.is_available(), reason="Requires CUDA")
     def test_crop_on_device_cuda(self):
-
         samples = torch.rand(
             size=(8, 2, 32000), dtype=torch.float32, device=torch.device("cuda")
         )
