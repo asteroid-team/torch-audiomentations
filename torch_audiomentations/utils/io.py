@@ -89,7 +89,7 @@ class Audio:
         return samples / (rms + 1e-8)
 
     @staticmethod
-    def get_audio_metadata(file_path: str | Path) -> tuple:
+    def get_audio_metadata(file_path: Union[str, Path]) -> tuple:
         """Return (num_samples, sample_rate)."""
         info = torchaudio.info(str(file_path))
         # Deal with backwards-incompatible signature change.
