@@ -89,9 +89,9 @@ class Audio:
         return samples / (rms + 1e-8)
 
     @staticmethod
-    def get_audio_metadata(file_path) -> tuple:
+    def get_audio_metadata(file_path: Union[str, Path]) -> tuple:
         """Return (num_samples, sample_rate)."""
-        info = torchaudio.info(file_path)
+        info = torchaudio.info(str(file_path))
         # Deal with backwards-incompatible signature change.
         # See https://github.com/pytorch/audio/issues/903 for more information.
         if type(info) is tuple:
