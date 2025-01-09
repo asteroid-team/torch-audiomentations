@@ -217,6 +217,14 @@ classification. It was successfully applied in the paper
 
 * Add new transforms: `Mix`, `Padding`, `RandomCrop` and `SpliceOut`
 
+## [v0.11.2] - 2025-01-09
+
+### Fixed
+
+* Fix a device-related bug in `transform_parameters` when training on multiple GPUs
+* Fix a shape-related edge case bug in `AddColoredNoise`
+* Fix a bug where an incompatible Path data type was passed to torchaudio.info
+
 ## [v0.11.1] - 2024-02-07
 
 ### Changed
