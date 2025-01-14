@@ -1,8 +1,6 @@
-import warnings
 from pathlib import Path
 from typing import Text, Union
 
-import librosa
 import torch
 import torchaudio
 from torch import Tensor
@@ -155,18 +153,7 @@ class Audio:
 
         # resample
         if self.sample_rate != sample_rate:
-            samples = samples.numpy()
-            if self.mono:
-                # librosa expects mono audio to be of shape (n,), but we have (1, n).
-                samples = librosa.core.resample(
-                    samples[0], orig_sr=sample_rate, target_sr=self.sample_rate
-                )[None]
-            else:
-                samples = librosa.core.resample(
-                    samples.T, orig_sr=sample_rate, target_sr=self.sample_rate
-                ).T
-
-            samples = torch.tensor(samples)
+            samples = torchaudio.functional.resample(samples, sample_rate, self.sample_rate)
 
         return samples
 

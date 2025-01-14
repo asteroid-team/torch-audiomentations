@@ -1,4 +1,3 @@
-import librosa
 import numpy as np
 import torch
 from cpuinfo import get_cpu_info
@@ -8,14 +7,14 @@ from tqdm import tqdm
 from scripts.demo import TEST_FIXTURES_DIR, timer
 from scripts.plot import show_horizontal_bar_chart
 from torch_audiomentations.utils.convolution import convolve as torch_convolve
+from torch_audiomentations.utils.io import Audio
 
 if __name__ == "__main__":
     file_path = TEST_FIXTURES_DIR / "acoustic_guitar_0.wav"
     sample_rate = 48000
-    samples, _ = librosa.load(file_path, sr=sample_rate)
-    ir_samples, _ = librosa.load(
-        TEST_FIXTURES_DIR / "ir" / "impulse_response_0.wav", sr=sample_rate
-    )
+    audio = Audio(sample_rate, mono=True)
+    samples = audio(file_path).numpy()
+    ir_samples = audio(TEST_FIXTURES_DIR / "ir" / "impulse_response_0.wav").numpy()
 
     is_cuda_available = torch.cuda.is_available()
     print("Is torch CUDA available:", is_cuda_available)

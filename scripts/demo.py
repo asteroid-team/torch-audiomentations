@@ -3,7 +3,6 @@ import random
 import time
 from pathlib import Path
 
-import librosa
 import numpy as np
 import torch
 from scipy.io import wavfile
@@ -30,6 +29,7 @@ from torch_audiomentations.augmentations.shuffle_channels import ShuffleChannels
 from torch_audiomentations.augmentations.splice_out import SpliceOut
 from torch_audiomentations.core.transforms_interface import ModeNotSupportedException
 from torch_audiomentations.utils.object_dict import ObjectDict
+from torch_audiomentations.utils.io import Audio
 
 SAMPLE_RATE = 44100
 
@@ -88,14 +88,14 @@ if __name__ == "__main__":
     random.seed(43)
 
     filenames = ["perfect-alley1.ogg", "perfect-alley2.ogg"]
-    samples1, _ = librosa.load(
-        os.path.join(TEST_FIXTURES_DIR, filenames[0]), sr=SAMPLE_RATE, mono=False
-    )
-    samples2, _ = librosa.load(
-        os.path.join(TEST_FIXTURES_DIR, filenames[1]), sr=SAMPLE_RATE, mono=False
-    )
-    samples = np.stack((samples1, samples2), axis=0)
-    samples = torch.from_numpy(samples)
+    audio = Audio(SAMPLE_RATE, mono=True)
+    samples1 = audio(os.path.join(TEST_FIXTURES_DIR, filenames[0]))
+    _, num_samples1 = samples1.shape
+    samples2 = audio(os.path.join(TEST_FIXTURES_DIR, filenames[1]))
+    _, num_samples2 = samples2.shape
+    num_samples = min(num_samples1, num_samples2)
+    samples = torch.stack([samples1[:, :num_samples], samples2[:, :num_samples]], dim=0)
+
 
     modes = ["per_batch", "per_example", "per_channel"]
     for mode in modes:

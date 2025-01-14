@@ -4,32 +4,16 @@ import torch
 
 from torch_audiomentations.augmentations.mix import Mix
 from torch_audiomentations.utils.dsp import calculate_rms
-from torch_audiomentations.utils.file import load_audio
+from torch_audiomentations.utils.io import Audio
 from .utils import TEST_FIXTURES_DIR
 
 
 class TestMix(unittest.TestCase):
     def setUp(self):
         self.sample_rate = 16000
-        self.guitar = (
-            torch.from_numpy(
-                load_audio(
-                    TEST_FIXTURES_DIR / "acoustic_guitar_0.wav",
-                    sample_rate=self.sample_rate,
-                )
-            )
-            .unsqueeze(0)
-            .unsqueeze(0)
-        )
-        self.noise = (
-            torch.from_numpy(
-                load_audio(
-                    TEST_FIXTURES_DIR / "bg" / "bg.wav", sample_rate=self.sample_rate
-                )
-            )
-            .unsqueeze(0)
-            .unsqueeze(0)
-        )
+        audio = Audio(self.sample_rate, mono=True)
+        self.guitar = audio(TEST_FIXTURES_DIR / "acoustic_guitar_0.wav")[None]
+        self.noise = audio(TEST_FIXTURES_DIR / "bg" / "bg.wav")[None]
 
         common_num_samples = min(self.guitar.shape[-1], self.noise.shape[-1])
         self.guitar = self.guitar[:, :, :common_num_samples]

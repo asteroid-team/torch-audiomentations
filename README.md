@@ -217,6 +217,10 @@ classification. It was successfully applied in the paper
 
 * Add new transforms: `Mix`, `Padding`, `RandomCrop` and `SpliceOut`
 
+### Changes
+
+* Remove `librosa` dependency in favor of `torchaudio`
+
 ## [v0.11.2] - 2025-01-09
 
 ### Fixed

@@ -4,7 +4,6 @@ torch==1.11.0
 torchaudio==0.11.0
 audioread>=2.1.8
 julius>=0.2.3,<0.3
-librosa==0.9.1
 py-cpuinfo>=7.0.0
 pytest==5.3.4
 pytest-cov==2.8.1

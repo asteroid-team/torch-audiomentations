@@ -4,7 +4,7 @@ import pytest
 import torch
 
 from torch_audiomentations import ApplyImpulseResponse
-from torch_audiomentations.utils.file import load_audio
+from torch_audiomentations.utils.io import Audio
 from .utils import TEST_FIXTURES_DIR
 
 
@@ -15,16 +15,8 @@ def sample_rate():
 
 @pytest.fixture
 def input_audio(sample_rate):
-    return (
-        torch.from_numpy(
-            load_audio(
-                os.path.join(TEST_FIXTURES_DIR, "acoustic_guitar_0.wav"),
-                sample_rate=sample_rate,
-            )
-        )
-        .unsqueeze(0)
-        .unsqueeze(0)
-    )
+    audio = Audio(sample_rate, mono=True)
+    return audio(os.path.join(TEST_FIXTURES_DIR, "acoustic_guitar_0.wav"))[None]
 
 
 @pytest.fixture
