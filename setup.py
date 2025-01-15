@@ -38,7 +38,6 @@ setup(
     ),
     install_requires=[
         "julius>=0.2.3,<0.3",
-        "librosa>=0.6.0",
         "torch>=1.7.0",
         "torchaudio>=0.9.0",
         "torch-pitch-shift>=1.2.2",

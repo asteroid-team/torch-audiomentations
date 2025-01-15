@@ -24,14 +24,6 @@ def calculate_desired_noise_rms(clean_rms, snr):
     return noise_rms
 
 
-def resample_audio(audio, orig_sr, target_sr):
-    # TODO: We can probably remove this function and call resample directly where needed
-    """Resamples the audio to a new sampling rate."""
-    import librosa
-
-    return librosa.resample(audio, orig_sr=orig_sr, target_sr=target_sr)
-
-
 def convert_decibels_to_amplitude_ratio(decibels):
     return 10 ** (decibels / 20)
 

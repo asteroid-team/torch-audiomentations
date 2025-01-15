@@ -13,9 +13,8 @@ from scipy.io.wavfile import write
 
 from torch_audiomentations import AddBackgroundNoise
 from torch_audiomentations.utils.dsp import calculate_rms
-from torch_audiomentations.utils.file import load_audio
 from .utils import TEST_FIXTURES_DIR
-
+from torch_audiomentations.utils.io import Audio
 
 class TestAddBackgroundNoise(unittest.TestCase):
     def setUp(self):
@@ -23,17 +22,9 @@ class TestAddBackgroundNoise(unittest.TestCase):
         self.batch_size = 16
         self.empty_input_audio = torch.empty(0, 1, 16000)
         # TODO: use utils.io.Audio
-        self.input_audio = (
-            torch.from_numpy(
-                load_audio(
-                    TEST_FIXTURES_DIR / "acoustic_guitar_0.wav",
-                    sample_rate=self.sample_rate,
-                )
-            )
-            .unsqueeze(0)
-            .unsqueeze(0)
-        )
 
+        audio = Audio(self.sample_rate, mono=True)
+        self.input_audio = audio(TEST_FIXTURES_DIR / "acoustic_guitar_0.wav")[None]
         self.input_audios = torch.cat([self.input_audio] * self.batch_size, dim=0)
 
         self.bg_path = TEST_FIXTURES_DIR / "bg"
