@@ -4,7 +4,7 @@
 ![Build status](https://img.shields.io/github/actions/workflow/status/asteroid-team/torch-audiomentations/ci.yml?branch=main)
 [![Code coverage](https://img.shields.io/codecov/c/github/asteroid-team/torch-audiomentations/main.svg)](https://codecov.io/gh/asteroid-team/torch-audiomentations)
 [![Code Style: Black](https://img.shields.io/badge/code%20style-black-black.svg)](https://github.com/ambv/black)
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.14621558.svg)](https://doi.org/10.5281/zenodo.14621558)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.14650813.svg)](https://doi.org/10.5281/zenodo.14650813)
 
 Audio data augmentation in PyTorch. Inspired by [audiomentations](https://github.com/iver56/audiomentations).
 
