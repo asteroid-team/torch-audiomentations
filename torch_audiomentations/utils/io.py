@@ -153,7 +153,9 @@ class Audio:
 
         # resample
         if self.sample_rate != sample_rate:
-            samples = torchaudio.functional.resample(samples, sample_rate, self.sample_rate)
+            samples = torchaudio.functional.resample(
+                samples, sample_rate, self.sample_rate
+            )
 
         return samples
 

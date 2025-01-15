@@ -6,6 +6,7 @@ from tests.utils import TEST_FIXTURES_DIR
 from torch_audiomentations.utils.convolution import convolve as torch_convolve
 from torch_audiomentations.utils.io import Audio
 
+
 class TestConvolution:
     def test_convolve(self):
         sample_rate = 16000
@@ -14,7 +15,6 @@ class TestConvolution:
         audio = Audio(sample_rate, mono=True)
         samples = audio(file_path).numpy()
         ir_samples = audio(TEST_FIXTURES_DIR / "ir" / "impulse_response_0.wav").numpy()
-
 
         expected_output = scipy_convolve(samples, ir_samples)
         actual_output = torch_convolve(

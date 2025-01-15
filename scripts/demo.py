@@ -96,7 +96,6 @@ if __name__ == "__main__":
     num_samples = min(num_samples1, num_samples2)
     samples = torch.stack([samples1[:, :num_samples], samples2[:, :num_samples]], dim=0)
 
-
     modes = ["per_batch", "per_example", "per_channel"]
     for mode in modes:
         transforms = [

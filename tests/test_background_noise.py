@@ -16,6 +16,7 @@ from torch_audiomentations.utils.dsp import calculate_rms
 from .utils import TEST_FIXTURES_DIR
 from torch_audiomentations.utils.io import Audio
 
+
 class TestAddBackgroundNoise(unittest.TestCase):
     def setUp(self):
         self.sample_rate = 16000
