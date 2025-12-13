@@ -10,6 +10,7 @@ from .augmentations.low_pass_filter import LowPassFilter
 from .augmentations.peak_normalization import PeakNormalization
 from .augmentations.pitch_shift import PitchShift
 from .augmentations.polarity_inversion import PolarityInversion
+from .augmentations.rms_normalization import RMSNormalization
 from .augmentations.shift import Shift
 from .augmentations.shuffle_channels import ShuffleChannels
 from .augmentations.time_inversion import TimeInversion
