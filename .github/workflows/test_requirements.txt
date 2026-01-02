@@ -1,6 +1,6 @@
 numpy>=1.22,<2
 scipy>=1.5.2
-torch==1.11.0
+torch==1.13.1
 torchaudio==0.11.0
 audioread>=2.1.8
 julius>=0.2.3,<0.3
