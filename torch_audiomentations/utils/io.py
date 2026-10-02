@@ -89,6 +89,15 @@ class Audio:
     @staticmethod
     def get_audio_metadata(file_path: Union[str, Path]) -> tuple:
         """Return (num_samples, sample_rate)."""
+        if not hasattr(torchaudio, "info"):
+            # torchaudio 2.9 removed info(). SoundFile provides exact frame
+            # counts without decoding the samples, including for WAV files
+            # used by AddBackgroundNoise and ApplyImpulseResponse.
+            import soundfile as sf
+
+            info = sf.info(str(file_path))
+            return info.frames, info.samplerate
+
         info = torchaudio.info(str(file_path))
         # Deal with backwards-incompatible signature change.
         # See https://github.com/pytorch/audio/issues/903 for more information.
@@ -175,7 +184,7 @@ class Audio:
 
         Returns
         -------
-        samples : (time, channel) torch.Tensor
+        samples : (channel, time) torch.Tensor
             Samples
 
         """
@@ -223,17 +232,30 @@ class Audio:
             raise ValueError()
 
         if original_samples is None:
-            try:
-                original_data, _ = torchaudio.load(
-                    audio_path,
-                    frame_offset=original_sample_offset,
-                    num_frames=original_num_samples,
-                )
-            except TypeError:
-                raise Exception(
-                    "It looks like you are using an unsupported version of torchaudio."
-                    " If you have 0.6 or older, please upgrade to a newer version."
-                )
+            if not hasattr(torchaudio, "info"):
+                import soundfile as sf
+
+                # torchaudio 2.9 load() decodes the entire file before slicing.
+                # Seek/read in source frames to keep random crops bounded.
+                with sf.SoundFile(audio_path) as audio_file:
+                    audio_file.seek(original_sample_offset)
+                    frames = audio_file.read(
+                        frames=original_num_samples, dtype="float32", always_2d=True
+                    )
+                original_data = torch.from_numpy(frames.T.copy())
+            else:
+                try:
+                    original_data, _ = torchaudio.load(
+                        audio_path,
+                        frame_offset=original_sample_offset,
+                        num_frames=original_num_samples,
+                    )
+                except TypeError:
+                    raise Exception(
+                        "It looks like you are using an unsupported version "
+                        "of torchaudio."
+                        " If you have 0.6 or older, please upgrade to a newer version."
+                    )
 
         else:
             original_data = original_samples[

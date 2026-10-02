@@ -39,7 +39,8 @@ setup(
     install_requires=[
         "julius>=0.2.3,<0.3",
         "torch>=1.7.0",
-        "torchaudio>=0.9.0,<2.9",
+        "torchaudio>=0.9.0,<2.10",
+        "soundfile>=0.12.1; python_version >= '3.10'",
         "torch-pitch-shift>=1.2.2",
     ],
     extras_require={"extras": ["PyYAML"]},
