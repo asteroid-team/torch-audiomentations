@@ -25,6 +25,16 @@ Audio data augmentation in PyTorch. Inspired by [audiomentations](https://github
 
 `pip install torch-audiomentations`
 
+File-backed audio loading supports torchaudio up to 2.9.x. With torchaudio 2.9,
+`Audio`, `AddBackgroundNoise`, and `ApplyImpulseResponse` use SoundFile for
+metadata and sample-exact partial reads; older torchaudio versions retain their
+existing I/O path. Augmentation file discovery accepts WAV files. Direct `Audio`
+inputs can use other formats supported by the installed libsndfile (e.g. FLAC
+and Ogg/Vorbis), but FFmpeg-only formats such as AAC/M4A are unavailable on the
+2.9 path. Resampling still uses `torchaudio.functional.resample`. SoundFile
+wheels include libsndfile on common platforms; source installations require a
+system libsndfile installation.
+
 # Usage example
 
 ```python
